@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Notes</title>
+<title>Smart Notes Pro</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -23,7 +23,7 @@
     color: var(--text-main); overflow-x: hidden; padding-bottom: 80px; 
   }
 
-  /* Header & Top Bar */
+  /* Top Header */
   .top { 
     padding: 15px; background: var(--bg-card); box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
     display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10;
@@ -36,42 +36,24 @@
     padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; 
     font-family: 'Poppins', sans-serif; transition: 0.2s;
   }
-  .btn-small:hover { background: var(--accent); color: white; }
 
-  /* Input Section */
-  .input-section { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-  textarea { 
-    width: 100%; padding: 12px; background: var(--bg-input); border: 2px solid transparent; 
-    border-radius: 10px; color: var(--text-main); font-family: 'Poppins', sans-serif; 
-    font-size: 14px; resize: none; outline: none; box-sizing: border-box; min-height: 80px;
+  /* Floating Add Button */
+  .fab-add {
+    position: fixed; bottom: 80px; right: 20px; width: 56px; height: 56px;
+    background: var(--accent); color: white; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-size: 24px;
+    box-shadow: 0 4px 10px rgba(14, 165, 233, 0.4); cursor: pointer; z-index: 90;
   }
-  textarea:focus { border-color: var(--accent); }
-  
-  .action-row { display: flex; gap: 10px; }
-  .btn-action { 
-    flex: 1; padding: 12px; border-radius: 10px; border: none; font-size: 14px; 
-    font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;
-    font-family: 'Poppins', sans-serif; color: white;
-  }
-  .btn-text { background: var(--accent); }
-  .btn-photo { background: var(--success); }
-  .btn-voice { background: var(--warning); }
-  .btn-recording { background: var(--danger); animation: pulse 1.5s infinite; }
 
-  @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-
-  /* Notes Container & Cards */
-  #notes-container { padding: 0 15px; display: flex; flex-direction: column; gap: 12px; }
+  /* Notes Grid/List */
+  #notes-container { padding: 15px; display: flex; flex-direction: column; gap: 12px; }
   
   .note-card {
     background: var(--bg-card); padding: 15px; border-radius: 12px; 
     border-left: 4px solid var(--accent); display: flex; flex-direction: column; gap: 10px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative;
-    /* Touch actions allow scrolling but let us hijack hold-to-drag */
-    touch-action: pan-y; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; touch-action: pan-y; 
   }
   .note-card.dragging { opacity: 0.5; transform: scale(0.98); border: 2px dashed var(--accent); }
-
   .note-header { display: flex; justify-content: space-between; align-items: center; }
   .note-date { font-size: 11px; color: var(--text-muted); font-weight: 500; }
   
@@ -82,13 +64,77 @@
     border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; 
     justify-content: center; font-size: 14px; cursor: pointer;
   }
-
-  /* Media Elements */
   .note-text { font-size: 14px; white-space: pre-wrap; line-height: 1.5; }
-  .note-img { max-width: 100%; border-radius: 8px; max-height: 300px; object-fit: cover; }
-  audio { width: 100%; height: 40px; outline: none; }
+  .note-img { max-width: 100%; border-radius: 8px; max-height: 200px; object-fit: cover; }
+  audio { width: 100%; height: 40px; margin-top: 5px; }
 
-  /* Bottom Navigation Bar */
+  /* Full Page Editor Overlay */
+  .editor-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: var(--bg-main); z-index: 200; display: none; flex-direction: column;
+  }
+  .editor-overlay.active { display: flex; }
+
+  .editor-header {
+    padding: 15px; background: var(--bg-card); display: flex; 
+    justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .btn-close-editor {
+    background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none;
+    padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer;
+  }
+
+  .editor-body { flex: 1; padding: 15px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+  
+  .rich-input-container {
+    position: relative; background: var(--bg-card); border-radius: 12px;
+    border: 2px solid var(--bg-input); display: flex; flex-direction: column; min-height: 200px;
+  }
+  .rich-input-container:focus-within { border-color: var(--accent); }
+  
+  textarea {
+    flex: 1; width: 100%; padding: 15px; background: transparent; border: none;
+    color: var(--text-main); font-family: 'Poppins', sans-serif; font-size: 15px;
+    resize: none; outline: none; box-sizing: border-box;
+  }
+
+  .inline-toolbar {
+    display: flex; gap: 12px; padding: 10px 15px; background: rgba(0, 0, 0, 0.2);
+    border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; align-items: center;
+  }
+  .media-btn {
+    background: var(--bg-input); color: var(--text-main); border: none;
+    width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 18px; cursor: pointer; transition: 0.2s;
+  }
+  .media-btn:active { transform: scale(0.9); }
+  .media-btn.recording { background: var(--danger); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+  .preview-section { display: flex; flex-direction: column; gap: 10px; }
+  .preview-wrapper { position: relative; max-width: 100%; }
+  .preview-img { max-width: 100%; border-radius: 8px; max-height: 180px; object-fit: cover; }
+  .btn-remove-media {
+    position: absolute; top: 5px; right: 5px; background: var(--danger); color: white;
+    border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 12px;
+  }
+
+  /* Undo Snackbar */
+  #snackbar {
+    visibility: hidden; min-width: 250px; background-color: var(--bg-input); color: #fff;
+    text-align: center; border-radius: 10px; padding: 15px 20px; position: fixed;
+    z-index: 1000; left: 50%; bottom: 80px; transform: translateX(-50%); display: flex;
+    justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    opacity: 0; transition: opacity 0.3s, bottom 0.3s; font-size: 14px; border: 1px solid var(--accent);
+  }
+  #snackbar.show { visibility: visible; opacity: 1; bottom: 90px; }
+  .undo-btn {
+    color: var(--accent); font-weight: bold; cursor: pointer; border: none; background: none;
+    margin-left: 15px; font-family: inherit; font-size: 14px; padding: 5px 10px; border-radius: 6px;
+  }
+  .undo-btn:hover { background: rgba(14, 165, 233, 0.1); }
+
+  /* Bottom Nav */
   .bottom-nav {
     position: fixed; bottom: 0; left: 0; width: 100%; height: 60px;
     background: var(--bg-card); display: flex; justify-content: space-around;
@@ -101,7 +147,6 @@
   }
   .nav-btn span { font-size: 20px; margin-bottom: 2px; }
   .nav-btn.active { color: var(--accent); font-weight: 600; }
-  
   .action-fab {
     background: var(--accent); color: white; width: 50px; height: 50px;
     border-radius: 50%; display: flex; align-items: center; justify-content: center;
@@ -123,17 +168,33 @@
   </div>
 </div>
 
-<div class="input-section">
-  <textarea id="textInput" placeholder="Write a note here..."></textarea>
-  <div class="action-row">
-    <button class="btn-action btn-text" onclick="addTextNote()">➕ Save Text</button>
-    <button class="btn-action btn-photo" onclick="document.getElementById('imageInput').click()">📷 Photo</button>
-    <button class="btn-action btn-voice" id="voiceBtn" onclick="toggleRecording()">🎙️ Voice</button>
+<div id="notes-container"></div>
+
+<div class="fab-add" onclick="openEditor()">➕</div>
+
+<div class="editor-overlay" id="editorOverlay">
+  <div class="editor-header">
+    <span style="font-weight: 600; font-size: 16px;">Edit Note</span>
+    <button class="btn-close-editor" onclick="closeEditor()">✕ Save & Close</button>
+  </div>
+  
+  <div class="editor-body">
+    <div class="rich-input-container">
+      <textarea id="noteText" placeholder="Start typing your note here..."></textarea>
+      <div class="inline-toolbar">
+        <button class="media-btn" title="Add Photo" onclick="document.getElementById('imageInput').click()">📷</button>
+        <button class="media-btn" id="inlineVoiceBtn" title="Record Voice" onclick="toggleRecording()">🎙️</button>
+        <span id="recordingStatus" style="font-size: 12px; color: var(--text-muted);"></span>
+      </div>
+    </div>
+    <div class="preview-section" id="previewSection"></div>
   </div>
 </div>
 
-<div id="notes-container">
-  </div>
+<div id="snackbar">
+  <span>Note deleted</span>
+  <button class="undo-btn" onclick="undoDelete()">UNDO</button>
+</div>
 
 <div class="bottom-nav">
   <a href="shopping.html" class="nav-btn"><span>🛒</span>Shopping</a>
@@ -145,278 +206,296 @@
 /* =========================================
    1. IndexedDB Engine Setup
    ========================================= */
-const DB_NAME = "ProSmartNotes";
-const STORE_NAME = "notes_store";
+const DB_NAME = "ProSmartNotesV2";
+const STORE_NAME = "notes_multimedia";
 let db;
+let currentEditingId = null; 
+let currentMedia = { img: null, audio: null };
+
+// Undo State Variables
+let lastDeletedNote = null;
+let undoTimeout = null;
 
 const request = indexedDB.open(DB_NAME, 1);
 request.onupgradeneeded = (e) => {
   db = e.target.result;
   if (!db.objectStoreNames.contains(STORE_NAME)) {
-    // order property indexing for drag and drop
     const store = db.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
     store.createIndex("order", "order", { unique: false });
   }
 };
-request.onsuccess = (e) => {
-  db = e.target.result;
-  loadNotes();
-};
-request.onerror = (e) => console.error("Database Error:", e);
+request.onsuccess = (e) => { db = e.target.result; loadNotes(); };
 
 /* =========================================
-   2. Helper Functions (Date & Saving)
+   2. Date Formatting
    ========================================= */
 function getFormattedDate() {
   const date = new Date();
-  const day = date.getDate();
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  return `${day} ${monthNames[date.getMonth()]}, ${dayNames[date.getDay()]}, ${date.getFullYear()}`;
+  return `${date.getDate()} ${monthNames[date.getMonth()]}, ${dayNames[date.getDay()]}, ${date.getFullYear()}`;
 }
 
-function saveNoteToDB(noteObj) {
-  noteObj.date = getFormattedDate();
-  noteObj.order = Date.now(); // For sorting
+/* =========================================
+   3. Editor Logic & Hardware Back
+   ========================================= */
+function openEditor(noteId = null) {
+  currentEditingId = noteId;
+  currentMedia = { img: null, audio: null };
+  document.getElementById("noteText").value = "";
+  document.getElementById("previewSection").innerHTML = "";
   
+  if (noteId) {
+    const tx = db.transaction(STORE_NAME, "readonly");
+    tx.objectStore(STORE_NAME).get(noteId).onsuccess = (e) => {
+      const note = e.target.result;
+      if (note) {
+        document.getElementById("noteText").value = note.text || "";
+        currentMedia.img = note.img;
+        currentMedia.audio = note.audio;
+        updatePreviewUI();
+      }
+    };
+  }
+  document.getElementById("editorOverlay").classList.add("active");
+  history.pushState({ isEditing: true }, "");
+}
+
+window.addEventListener('popstate', function (event) {
+  if (document.getElementById("editorOverlay").classList.contains("active")) {
+    closeEditor(false); 
+  }
+});
+
+function closeEditor(shouldPopHistory = true) {
+  autoSaveCurrentNote();
+  document.getElementById("editorOverlay").classList.remove("active");
+  if (shouldPopHistory && history.state && history.state.isEditing) history.back();
+}
+
+function autoSaveCurrentNote() {
+  const text = document.getElementById("noteText").value.trim();
+  if (!text && !currentMedia.img && !currentMedia.audio) return;
+
   const tx = db.transaction(STORE_NAME, "readwrite");
-  tx.objectStore(STORE_NAME).add(noteObj);
+  const store = tx.objectStore(STORE_NAME);
+
+  if (currentEditingId) {
+    store.get(currentEditingId).onsuccess = (e) => {
+      const note = e.target.result;
+      if (note) {
+        note.text = text; note.img = currentMedia.img; note.audio = currentMedia.audio;
+        store.put(note);
+      }
+    };
+  } else {
+    store.add({ text: text, img: currentMedia.img, audio: currentMedia.audio, date: getFormattedDate(), order: Date.now() });
+  }
   tx.oncomplete = () => loadNotes();
 }
 
 /* =========================================
-   3. Note Creation (Text, Photo, Voice)
+   4. Media Management
    ========================================= */
-// Text Note
-function addTextNote() {
-  const text = document.getElementById("textInput").value.trim();
-  if (!text) return;
-  saveNoteToDB({ type: "text", content: text });
-  document.getElementById("textInput").value = "";
-}
-
-// Photo Note (With Compression)
 document.getElementById("imageInput").addEventListener("change", function(e) {
   const file = e.target.files[0];
   if (!file) return;
-  
   const reader = new FileReader();
   reader.onload = function(event) {
     const img = new Image();
     img.onload = function() {
-      // Compress Image using Canvas
       const canvas = document.createElement("canvas");
-      const MAX_WIDTH = 800; // Resize to max 800px width
-      let width = img.width;
-      let height = img.height;
-      
-      if (width > MAX_WIDTH) {
-        height = Math.round((height * MAX_WIDTH) / width);
-        width = MAX_WIDTH;
-      }
-      
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, width, height);
-      
-      // Save 70% quality JPEG (Massive space saving)
-      const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.7);
-      saveNoteToDB({ type: "image", content: compressedDataUrl });
+      const MAX_WIDTH = 800;
+      let width = img.width, height = img.height;
+      if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
+      canvas.width = width; canvas.height = height;
+      canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+      currentMedia.img = canvas.toDataURL("image/jpeg", 0.7); 
+      updatePreviewUI();
     };
     img.src = event.target.result;
   };
   reader.readAsDataURL(file);
 });
 
-// Voice Note
 let mediaRecorder;
 let audioChunks = [];
 let isRecording = false;
 
 async function toggleRecording() {
-  const btn = document.getElementById("voiceBtn");
-  
+  const btn = document.getElementById("inlineVoiceBtn");
+  const status = document.getElementById("recordingStatus");
   if (!isRecording) {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorder = new MediaRecorder(stream);
-      
+      audioChunks = [];
       mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data); };
-      
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
         const reader = new FileReader();
-        reader.onload = () => saveNoteToDB({ type: "audio", content: reader.result });
+        reader.onload = () => { currentMedia.audio = reader.result; updatePreviewUI(); };
         reader.readAsDataURL(audioBlob);
-        audioChunks = [];
       };
-      
       mediaRecorder.start();
       isRecording = true;
-      btn.innerHTML = "⏹️ Stop";
-      btn.classList.add("btn-recording");
-    } catch (err) {
-      alert("Microphone permission denied!");
-    }
+      btn.innerHTML = "⏹️"; btn.classList.add("recording"); status.innerText = "Recording...";
+    } catch (err) { alert("Microphone permission denied!"); }
   } else {
     mediaRecorder.stop();
     isRecording = false;
-    btn.innerHTML = "🎙️ Voice";
-    btn.classList.remove("btn-recording");
+    btn.innerHTML = "🎙️"; btn.classList.remove("recording"); status.innerText = "";
+  }
+}
+
+function removeMedia(type) { currentMedia[type] = null; updatePreviewUI(); }
+
+function updatePreviewUI() {
+  const previewSection = document.getElementById("previewSection");
+  previewSection.innerHTML = "";
+  if (currentMedia.img) {
+    previewSection.innerHTML += `<div class="preview-wrapper"><img class="preview-img" src="${currentMedia.img}"><button class="btn-remove-media" onclick="removeMedia('img')">✕</button></div>`;
+  }
+  if (currentMedia.audio) {
+    previewSection.innerHTML += `<div class="preview-wrapper"><audio controls src="${currentMedia.audio}"></audio><button class="btn-remove-media" onclick="removeMedia('audio')" style="top:-5px;">✕</button></div>`;
   }
 }
 
 /* =========================================
-   4. Rendering and Deleting
+   5. Rendering, Deleting & UNDO Logic
    ========================================= */
 function loadNotes() {
   const container = document.getElementById("notes-container");
   container.innerHTML = "";
   
   const tx = db.transaction(STORE_NAME, "readonly");
-  const store = tx.objectStore(STORE_NAME);
-  // Sort by order descending
-  const request = store.index("order").openCursor(null, "prev");
-  
-  request.onsuccess = (e) => {
+  tx.objectStore(STORE_NAME).index("order").openCursor(null, "prev").onsuccess = (e) => {
     const cursor = e.target.result;
     if (cursor) {
       const note = cursor.value;
       const card = document.createElement("div");
       card.className = "note-card";
       card.dataset.id = note.id;
+      card.onclick = (event) => {
+        if(!event.target.closest('.btn-delete') && !event.target.closest('.drag-handle') && event.target.tagName !== 'AUDIO') {
+          openEditor(note.id);
+        }
+      };
       
-      let contentHtml = "";
-      if (note.type === "text") contentHtml = `<div class="note-text">${note.content}</div>`;
-      if (note.type === "image") contentHtml = `<img class="note-img" src="${note.content}">`;
-      if (note.type === "audio") contentHtml = `<audio controls src="${note.content}"></audio>`;
+      let mediaHtml = "";
+      if (note.img) mediaHtml += `<img class="note-img" src="${note.img}">`;
+      if (note.audio) mediaHtml += `<audio controls src="${note.audio}"></audio>`;
 
       card.innerHTML = `
         <div class="note-header">
           <span class="note-date">${note.date}</span>
           <div class="note-controls">
             <span class="drag-handle">↕️</span>
-            <button class="btn-delete" onclick="deleteNote(${note.id})">🗑️</button>
+            <button class="btn-delete" onclick="deleteNote(event, ${note.id})">🗑️</button>
           </div>
         </div>
-        ${contentHtml}
+        ${note.text ? `<div class="note-text">${note.text}</div>` : ''}
+        ${mediaHtml}
       `;
-      
-      setupTouchDrag(card);
-      container.appendChild(card);
-      cursor.continue();
+      setupTouchDrag(card); container.appendChild(card); cursor.continue();
     }
   };
 }
 
-function deleteNote(id) {
-  if(confirm("Delete this note?")) {
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    tx.objectStore(STORE_NAME).delete(id);
-    tx.oncomplete = () => loadNotes();
-  }
+// DELETE with UNDO feature (No confirm popup)
+function deleteNote(event, id) {
+  event.stopPropagation(); 
+  
+  const tx = db.transaction(STORE_NAME, "readwrite");
+  const store = tx.objectStore(STORE_NAME);
+  
+  // Pehle data ko temporary variable mein save kar lo
+  store.get(id).onsuccess = (e) => {
+    lastDeletedNote = e.target.result;
+    store.delete(id); // Phir Delete kar do
+  };
+
+  tx.oncomplete = () => {
+    loadNotes();
+    showUndoToast();
+  };
+}
+
+function showUndoToast() {
+  const snackbar = document.getElementById("snackbar");
+  snackbar.classList.add("show");
+  
+  clearTimeout(undoTimeout);
+  // 5 seconds timer
+  undoTimeout = setTimeout(() => {
+    snackbar.classList.remove("show");
+    lastDeletedNote = null; // Flush memory
+  }, 5000);
+}
+
+function undoDelete() {
+  if (!lastDeletedNote) return;
+  
+  const tx = db.transaction(STORE_NAME, "readwrite");
+  const store = tx.objectStore(STORE_NAME);
+  store.add(lastDeletedNote); // Waapas database mein daal do
+  
+  tx.oncomplete = () => {
+    loadNotes();
+    document.getElementById("snackbar").classList.remove("show");
+    lastDeletedNote = null;
+    clearTimeout(undoTimeout);
+  };
 }
 
 /* =========================================
-   5. Mobile-Friendly Drag & Drop (Native JS)
+   6. Drag & Drop Engine
    ========================================= */
 let draggedElement = null;
 
 function setupTouchDrag(card) {
   const handle = card.querySelector('.drag-handle');
-  
-  // Desktop Mouse Events
   handle.addEventListener('mousedown', () => { card.setAttribute('draggable', 'true'); });
-  card.addEventListener('dragstart', (e) => {
-    draggedElement = card;
-    setTimeout(() => card.classList.add('dragging'), 0);
-  });
-  card.addEventListener('dragend', () => {
-    card.classList.remove('dragging');
-    card.removeAttribute('draggable');
-    saveNewOrder();
-  });
-
-  // Mobile Touch Events
-  handle.addEventListener('touchstart', (e) => {
-    draggedElement = card;
-    card.classList.add('dragging');
-    // Prevent default scrolling when dragging handle
-    e.preventDefault(); 
-  }, { passive: false });
-
+  card.addEventListener('dragstart', (e) => { draggedElement = card; setTimeout(() => card.classList.add('dragging'), 0); });
+  card.addEventListener('dragend', () => { card.classList.remove('dragging'); card.removeAttribute('draggable'); saveNewOrder(); });
+  handle.addEventListener('touchstart', (e) => { draggedElement = card; card.classList.add('dragging'); e.preventDefault(); }, { passive: false });
   handle.addEventListener('touchmove', (e) => {
-    if (!draggedElement) return;
-    e.preventDefault();
+    if (!draggedElement) return; e.preventDefault();
     const touch = e.touches[0];
-    // Find element under finger
     const target = document.elementFromPoint(touch.clientX, touch.clientY);
     const targetCard = target ? target.closest('.note-card') : null;
-    
     if (targetCard && targetCard !== draggedElement) {
       const container = document.getElementById("notes-container");
       const targetRect = targetCard.getBoundingClientRect();
-      // Drop above or below based on touch position
-      if (touch.clientY < targetRect.top + targetRect.height / 2) {
-        container.insertBefore(draggedElement, targetCard);
-      } else {
-        container.insertBefore(draggedElement, targetCard.nextSibling);
-      }
+      if (touch.clientY < targetRect.top + targetRect.height / 2) container.insertBefore(draggedElement, targetCard);
+      else container.insertBefore(draggedElement, targetCard.nextSibling);
     }
   }, { passive: false });
-
-  handle.addEventListener('touchend', () => {
-    if (draggedElement) {
-      draggedElement.classList.remove('dragging');
-      draggedElement = null;
-      saveNewOrder();
-    }
-  });
+  handle.addEventListener('touchend', () => { if (draggedElement) { draggedElement.classList.remove('dragging'); draggedElement = null; saveNewOrder(); } });
 }
 
-// Drag over logic for desktop
 document.getElementById('notes-container').addEventListener('dragover', (e) => {
   e.preventDefault();
   const draggingCard = document.querySelector('.dragging');
   const cards = [...document.querySelectorAll('.note-card:not(.dragging)')];
-  
-  // Find nearest card
-  let nextCard = cards.find(card => {
-    return e.clientY <= card.getBoundingClientRect().top + card.offsetHeight / 2;
-  });
-  
-  if (nextCard) {
-    document.getElementById('notes-container').insertBefore(draggingCard, nextCard);
-  } else {
-    document.getElementById('notes-container').appendChild(draggingCard);
-  }
+  let nextCard = cards.find(card => e.clientY <= card.getBoundingClientRect().top + card.offsetHeight / 2);
+  if (nextCard) document.getElementById('notes-container').insertBefore(draggingCard, nextCard);
+  else document.getElementById('notes-container').appendChild(draggingCard);
 });
 
-// Save Reordered positions to DB
 function saveNewOrder() {
   const cards = document.querySelectorAll('.note-card');
   const tx = db.transaction(STORE_NAME, "readwrite");
   const store = tx.objectStore(STORE_NAME);
-  
-  // We want top item to have highest order timestamp
   let baseTime = Date.now();
-  
   cards.forEach((card, index) => {
     const id = parseInt(card.dataset.id);
-    const request = store.get(id);
-    request.onsuccess = (e) => {
-      const note = e.target.result;
-      if (note) {
-        note.order = baseTime - index; // Ensure descending order
-        store.put(note);
-      }
-    };
+    store.get(id).onsuccess = (e) => { const note = e.target.result; if (note) { note.order = baseTime - index; store.put(note); } };
   });
 }
 
 /* =========================================
-   6. Export & Import Features
+   7. Export / Import Functions
    ========================================= */
 function exportNotes() {
   const tx = db.transaction(STORE_NAME, "readonly");
@@ -424,19 +503,13 @@ function exportNotes() {
     const data = JSON.stringify(e.target.result);
     const blob = new Blob([data], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    
     const a = document.createElement("a");
-    a.href = url;
-    a.download = `SmartNotes_Backup_${new Date().getTime()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    a.href = url; a.download = `SmartNotes_Backup_${new Date().getTime()}.json`; a.click();
   };
 }
 
 document.getElementById("importInput").addEventListener("change", function(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  
+  const file = e.target.files[0]; if (!file) return;
   const reader = new FileReader();
   reader.onload = function(event) {
     try {
@@ -444,20 +517,10 @@ document.getElementById("importInput").addEventListener("change", function(e) {
       if (Array.isArray(importedData)) {
         const tx = db.transaction(STORE_NAME, "readwrite");
         const store = tx.objectStore(STORE_NAME);
-        
-        importedData.forEach(note => {
-          delete note.id; // Let autoIncrement generate new IDs to avoid conflicts
-          store.add(note);
-        });
-        
-        tx.oncomplete = () => {
-          alert("Notes Imported Successfully!");
-          loadNotes();
-        };
+        importedData.forEach(note => { delete note.id; store.add(note); });
+        tx.oncomplete = () => { alert("Imported Successfully!"); loadNotes(); };
       }
-    } catch (err) {
-      alert("Invalid backup file!");
-    }
+    } catch (err) { alert("Invalid backup file!"); }
   };
   reader.readAsText(file);
 });
