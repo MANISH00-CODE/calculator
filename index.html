@@ -27,52 +27,53 @@
   }
 
   .top { 
-    padding: 20px 15px; 
+    padding: 15px; 
     background: var(--bg-card); 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
     position: relative;
     z-index: 5;
   }
   
-  .input-wrapper { position: relative; width: 100%; margin-top: 8px; display: flex; flex-direction: column; }
+  .input-wrapper { position: relative; width: 100%; margin-top: 6px; display: flex; flex-direction: column; }
   .input-wrapper.flex-2 { flex: 2; margin-top: 0; }
   
+  /* Inputs size reduced */
   input, select { 
     width: 100%; 
-    padding: 14px 40px 14px 16px; 
+    padding: 12px 35px 12px 14px; 
     border: 2px solid transparent; 
-    border-radius: 12px; 
+    border-radius: 10px; 
     background: var(--bg-input); 
     color: var(--text-main); 
-    font-size: 15px; 
+    font-size: 14px; 
     font-family: 'Poppins', sans-serif;
     outline: none; 
     box-sizing: border-box; 
     transition: 0.3s ease;
   }
   
-  select { padding-right: 15px; cursor: pointer; }
+  select { padding-right: 12px; cursor: pointer; }
   
   input:focus, select:focus, input.active-input { 
     border-color: var(--accent); 
     background: #1e293b; 
-    box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
   }
   
   .clear-btn { 
     position: absolute; 
-    right: 12px; 
+    right: 10px; 
     top: 50%; 
     transform: translateY(-50%); 
     background: #475569; 
     color: #fff; 
     border-radius: 50%; 
-    width: 24px; 
-    height: 24px; 
+    width: 22px; 
+    height: 22px; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
-    font-size: 12px; 
+    font-size: 10px; 
     cursor: pointer; 
     opacity: 0; 
     transition: 0.2s; 
@@ -81,90 +82,78 @@
   .clear-btn:hover { background: var(--danger); }
 
   .history { 
-    padding: 15px; 
-    height: calc(100vh - 90px); 
+    padding: 12px; 
+    height: calc(100vh - 70px); 
     overflow-y: auto; 
     padding-bottom: 90px; 
   }
   
   .item { 
     position: relative;
-    padding: 16px; 
-    margin-bottom: 12px; 
+    padding: 14px; 
+    margin-bottom: 10px; 
     background: var(--bg-card); 
-    border-radius: 14px; 
-    border-left: 5px solid var(--accent); 
+    border-radius: 12px; 
+    border-left: 4px solid var(--accent); 
     cursor: pointer; 
-    transition: all 0.2s ease; 
     display: flex; 
     flex-direction: column; 
-    gap: 8px; 
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    gap: 6px; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   }
   
-  .item:hover { transform: translateY(-2px); box-shadow: 0 6px 12px -2px rgba(0,0,0,0.2); }
-  .item:active { transform: scale(0.98); }
-  
-  .item-base { color: var(--text-muted); font-size: 13px; font-weight: 500; }
-  .item-target { font-weight: 600; color: var(--success); font-size: 16px; }
+  .item-base { color: var(--text-muted); font-size: 12px; font-weight: 500; }
+  .item-target { font-weight: 600; color: var(--success); font-size: 15px; }
 
   .delete-btn {
     position: absolute;
-    right: 15px;
+    right: 12px;
     top: 50%;
     transform: translateY(-50%);
     background: rgba(239, 68, 68, 0.1);
     color: var(--danger);
     border: none;
-    border-radius: 8px;
-    width: 36px;
-    height: 36px;
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: 15px;
     cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  .delete-btn:hover {
-    background: var(--danger);
-    color: white;
-    transform: translateY(-50%) scale(1.1);
   }
   
   .fab { 
     position: fixed; 
-    right: 24px; 
-    bottom: 24px; 
-    width: 60px; 
-    height: 60px; 
+    right: 20px; 
+    bottom: 20px; 
+    width: 55px; 
+    height: 55px; 
     border-radius: 50%; 
     background: var(--accent); 
     color: #fff; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
-    font-size: 24px; 
+    font-size: 22px; 
     cursor: pointer; 
-    box-shadow: 0 10px 20px rgba(14, 165, 233, 0.4); 
+    box-shadow: 0 6px 15px rgba(14, 165, 233, 0.4); 
     z-index: 10; 
-    transition: 0.3s;
   }
-  .fab:hover { transform: scale(1.05); background: var(--accent-hover); }
-  .fab:active { transform: scale(0.95); }
   
-  /* Fixed Mobile Layout using Flexbox */
+  /* Calculator panel set to Auto Height */
   .calc { 
     position: fixed; 
     left: 0; 
     bottom: -100%; 
     width: 100%; 
-    height: 94%; 
+    height: auto; /* Ab auto adjust hoga */
+    max-height: 98%; /* Screen ke bahar nahi jayega */
     background: var(--bg-main); 
-    border-top-left-radius: 30px; 
-    border-top-right-radius: 30px; 
-    transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); 
-    padding: 20px 24px; 
+    border-top-left-radius: 25px; 
+    border-top-right-radius: 25px; 
+    transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); 
+    padding: 15px 20px; /* Padding kam ki */
     box-sizing: border-box; 
     z-index: 20; 
     box-shadow: 0 -10px 40px rgba(0,0,0,0.6); 
@@ -173,91 +162,79 @@
   }
   .calc.active { bottom: 0; }
 
-  .calc-scrollable {
-    flex: 1;
-    overflow-y: auto;
-    padding-bottom: 10px;
-  }
-
   .drag-handle {
-    width: 40px;
-    height: 5px;
+    width: 35px;
+    height: 4px;
     background: var(--bg-input);
-    border-radius: 5px;
-    margin: 0 auto 15px auto;
-    flex-shrink: 0;
+    border-radius: 4px;
+    margin: 0 auto 10px auto;
   }
   
-  .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-shrink: 0; }
-  .header-row h3 { margin: 0; font-size: 22px; color: var(--text-main); font-weight: 600; }
+  .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .header-row h3 { margin: 0; font-size: 18px; color: var(--text-main); font-weight: 600; }
   .btn-close { 
     background: rgba(239, 68, 68, 0.1); 
     color: var(--danger); 
-    padding: 8px 16px; 
-    border-radius: 8px; 
+    padding: 6px 12px; 
+    border-radius: 6px; 
     cursor: pointer; 
     font-weight: 600; 
-    font-size: 14px; 
-    transition: 0.2s;
+    font-size: 13px; 
   }
-  .btn-close:hover { background: var(--danger); color: white; }
 
-  .row { display: flex; gap: 12px; align-items: center; margin-top: 12px; }
+  .row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
   .row select { flex: 1; margin-top: 0; }
 
+  /* Result Box smaller height */
   .result-box { 
-    margin-top: 15px; 
-    padding: 20px; 
+    margin-top: 12px; 
+    padding: 12px; 
     background: var(--bg-card); 
-    border-radius: 16px; 
+    border-radius: 12px; 
     color: var(--success); 
-    font-size: 22px; 
+    font-size: 18px; 
     font-weight: 700; 
     text-align: center; 
-    border: 2px dashed var(--accent); 
-    box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
+    border: 1px dashed var(--accent); 
   }
 
+  /* Save button smaller */
   .save-btn {
     width: 100%;
-    padding: 15px;
+    padding: 12px;
     background: var(--success);
     color: white;
     border: none;
-    border-radius: 12px;
-    font-size: 16px;
+    border-radius: 10px;
+    font-size: 15px;
     font-weight: 600;
-    font-family: 'Poppins', sans-serif;
-    margin-top: 12px;
+    margin-top: 8px;
     cursor: pointer;
-    transition: 0.2s;
-    display: none; /* Only show when valid calculation is ready */
+    display: none; 
   }
   .save-btn.active { display: block; }
-  .save-btn:active { transform: scale(0.98); }
 
+  /* Numpad compact size */
   .numpad { 
     display: grid; 
     grid-template-columns: repeat(3, 1fr); 
-    gap: 12px; 
-    margin-top: 15px; 
-    padding-bottom: 15px; 
-    flex-shrink: 0; /* Prevents numpad from shrinking */
+    gap: 8px; 
+    margin-top: 10px; 
+    padding-bottom: 5px; 
   }
   .numpad button { 
     background: var(--bg-card); 
     color: var(--text-main); 
     border: none; 
-    border-radius: 14px; 
-    padding: 16px; 
-    font-size: 22px; 
+    border-radius: 10px; 
+    padding: 12px; /* Pad kam kiya */
+    font-size: 18px; /* Size chota kiya */
     font-weight: 600; 
     font-family: 'Poppins', sans-serif;
     cursor: pointer; 
-    box-shadow: 0 4px 6px rgba(0,0,0,0.2); 
-    transition: 0.1s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
   }
-  .numpad button:active { background: var(--bg-input); transform: scale(0.95); box-shadow: 0 0 0 rgba(0,0,0,0); }
+  .numpad button:active { background: var(--bg-input); transform: scale(0.95); }
   .numpad button.action { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
 </style>
 </head>
@@ -279,43 +256,41 @@
     <div class="btn-close" onclick="closeCalc()">✕ Close</div>
   </div>
 
-  <div class="calc-scrollable">
-    <div class="input-wrapper">
-      <input id="price" type="number" inputmode="none" list="price-sug" placeholder="Base Price (Rs)" onclick="setActive(this)" oninput="handleInput(this)">
-      <span class="clear-btn" onclick="clearField('price')">✕</span>
-      <datalist id="price-sug"></datalist>
-    </div>
-    
-    <div class="row">
-      <div class="input-wrapper flex-2">
-        <input id="weight" type="number" inputmode="none" placeholder="Base Weight" onclick="setActive(this)" oninput="handleInput(this)">
-        <span class="clear-btn" onclick="clearField('weight')">✕</span>
-      </div>
-      <select id="unit" onchange="calculate()">
-        <option value="kg">Kg</option>
-        <option value="g">Gram</option>
-      </select>
-    </div>
-
-    <div class="row" style="margin-top:20px; padding-top:20px; border-top:1px solid var(--bg-input);">
-      <div class="input-wrapper flex-2">
-        <input id="targetVal" type="number" inputmode="none" list="target-sug" placeholder="🔍 Find for..." onclick="setActive(this)" oninput="handleInput(this)">
-        <span class="clear-btn" onclick="clearField('targetVal')">✕</span>
-        <datalist id="target-sug"></datalist>
-      </div>
-      <select id="targetUnit" onchange="calculate()">
-        <option value="rs">Rs</option>
-        <option value="kg">Kg</option>
-        <option value="g">Gram</option>
-      </select>
-    </div>
-
-    <div class="result-box" id="result">
-      <span style="font-size:16px; color:var(--text-muted); font-weight:500;">Enter values to calculate</span>
-    </div>
-
-    <button class="save-btn" id="saveBtn" onclick="saveToHistory()">💾 Save & Close</button>
+  <div class="input-wrapper">
+    <input id="price" type="number" inputmode="none" list="price-sug" placeholder="Base Price (Rs)" onclick="setActive(this)" oninput="handleInput(this)">
+    <span class="clear-btn" onclick="clearField('price')">✕</span>
+    <datalist id="price-sug"></datalist>
   </div>
+  
+  <div class="row">
+    <div class="input-wrapper flex-2">
+      <input id="weight" type="number" inputmode="none" placeholder="Base Weight" onclick="setActive(this)" oninput="handleInput(this)">
+      <span class="clear-btn" onclick="clearField('weight')">✕</span>
+    </div>
+    <select id="unit" onchange="calculate()">
+      <option value="kg">Kg</option>
+      <option value="g">Gram</option>
+    </select>
+  </div>
+
+  <div class="row" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--bg-input);">
+    <div class="input-wrapper flex-2">
+      <input id="targetVal" type="number" inputmode="none" list="target-sug" placeholder="🔍 Find for..." onclick="setActive(this)" oninput="handleInput(this)">
+      <span class="clear-btn" onclick="clearField('targetVal')">✕</span>
+      <datalist id="target-sug"></datalist>
+    </div>
+    <select id="targetUnit" onchange="calculate()">
+      <option value="rs">Rs</option>
+      <option value="kg">Kg</option>
+      <option value="g">Gram</option>
+    </select>
+  </div>
+
+  <div class="result-box" id="result">
+    <span style="font-size:14px; color:var(--text-muted); font-weight:500;">Enter values</span>
+  </div>
+
+  <button class="save-btn" id="saveBtn" onclick="saveToHistory()">💾 Save & Close</button>
 
   <div class="numpad">
     <button onclick="pressKey('1')">1</button>
@@ -336,7 +311,7 @@
 <script>
 let data = JSON.parse(localStorage.getItem("proData") || "[]");
 let activeInput = null;
-let currentValidData = null; // Used for saving manually
+let currentValidData = null; 
 
 function populateSuggestions() {
   let prices = [...new Set(data.map(d => d.p))];
@@ -381,8 +356,6 @@ function handleInput(element) {
 
 function pressKey(val) {
   if (!activeInput) return;
-  
-  // Prevent multiple dots
   if (val === '.' && activeInput.value.includes('.')) return;
   
   if (val === 'DEL') {
@@ -390,17 +363,13 @@ function pressKey(val) {
   } else {
     activeInput.value += val;
   }
-  
   calculate();
 }
 
-// Function triggered ONLY when Save button is clicked
 function saveToHistory() {
   if (!currentValidData) return;
   
   let { p, w, u, tv, tu, resText } = currentValidData;
-  
-  // Remove duplicates
   data = data.filter(d => !(d.p === p && d.w === w && d.tv === tv && d.tu === tu));
   
   data.unshift({ p, w, u, tv, tu, res: resText });
@@ -409,7 +378,7 @@ function saveToHistory() {
   localStorage.setItem("proData", JSON.stringify(data));
   populateSuggestions();
   render();
-  closeCalc(); // Save ke baad apne aap band ho jayega
+  closeCalc(); 
 }
 
 function calculate() {
@@ -422,7 +391,7 @@ function calculate() {
   let saveBtn = document.getElementById("saveBtn");
 
   if (isNaN(p) || isNaN(w) || p === 0 || w === 0) {
-    document.getElementById("result").innerHTML = `<span style="font-size:16px; color:var(--text-muted); font-weight:500;">Enter Base Values</span>`;
+    document.getElementById("result").innerHTML = `<span style="font-size:14px; color:var(--text-muted); font-weight:500;">Enter Base Values</span>`;
     saveBtn.classList.remove("active");
     currentValidData = null;
     return;
@@ -434,7 +403,7 @@ function calculate() {
   let finalHtml = "";
 
   if (isNaN(tv) || tv === 0) {
-    document.getElementById("result").innerHTML = `<span style="font-size:16px; color:var(--text-muted); font-weight:500;">Enter target to find...</span>`;
+    document.getElementById("result").innerHTML = `<span style="font-size:14px; color:var(--text-muted); font-weight:500;">Enter target to find...</span>`;
     saveBtn.classList.remove("active");
     currentValidData = null;
     return; 
@@ -444,7 +413,7 @@ function calculate() {
     let grams = tv / perGram;
     if(grams >= 1000) {
       resText = `${(grams/1000).toFixed(3)} Kg`;
-      finalHtml = `${resText} <div style="font-size:14px; color:var(--text-muted); font-weight:500; margin-top:4px;">(${grams.toFixed(0)} grams)</div>`;
+      finalHtml = `${resText} <div style="font-size:12px; color:var(--text-muted); font-weight:500; margin-top:2px;">(${grams.toFixed(0)} grams)</div>`;
     } else {
       resText = `${grams.toFixed(0)} Grams`;
       finalHtml = resText;
@@ -458,8 +427,6 @@ function calculate() {
   }
 
   document.getElementById("result").innerHTML = finalHtml;
-  
-  // Valid data store kar lo taaki Save button kaam kare
   currentValidData = { p, w, u, tv, tu, resText };
   saveBtn.classList.add("active");
 }
@@ -490,7 +457,6 @@ function render() {
   
   data.forEach((d, index) => {
     let searchStr = `${d.p} ${d.tv} ${d.res}`.toLowerCase();
-    
     if (searchStr.includes(q)) {
       html += `
       <div class="item" onclick="loadHistoryItem(${d.p}, ${d.w}, '${d.u}', ${d.tv}, '${d.tu}')">
@@ -501,7 +467,7 @@ function render() {
     }
   });
   
-  if(html === "") html = "<div style='text-align:center; color:var(--text-muted); font-weight:500; margin-top:40px; font-size:16px;'>No history found</div>";
+  if(html === "") html = "<div style='text-align:center; color:var(--text-muted); font-weight:500; margin-top:30px; font-size:14px;'>No history found</div>";
   document.getElementById("history").innerHTML = html;
 }
 
