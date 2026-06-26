@@ -3,67 +3,534 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shopping</title>
+<title>Smart Expense Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg-main: #0f172a;
     --bg-card: #1e293b;
+    --bg-input: #334155;
     --accent: #0ea5e9;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
   }
+
   body { 
-    margin: 0; 
-    font-family: 'Poppins', sans-serif; 
-    background: var(--bg-main); 
-    color: var(--text-main); 
+    margin: 0; font-family: 'Poppins', sans-serif; background: var(--bg-main); 
+    color: var(--text-main); overflow-x: hidden; padding-bottom: 80px; 
   }
+
+  /* Top Header */
+  .top { 
+    padding: 15px; background: var(--bg-card); box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
+    display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10;
+  }
+  .top h2 { margin: 0; font-size: 18px; color: var(--accent); }
   
-  /* Bottom Navigation Bar CSS */
+  .header-btns { display: flex; gap: 8px; }
+  .btn-small { 
+    background: var(--bg-input); color: var(--text-main); border: none; 
+    padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; 
+    font-family: 'Poppins', sans-serif; transition: 0.2s; font-weight: 600;
+  }
+
+  /* Wallet Balance */
+  .wallet-card {
+    margin: 15px; padding: 20px; background: linear-gradient(135deg, var(--bg-card), #0f172a);
+    border-radius: 12px; border: 1px solid var(--bg-input); text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  }
+  .wallet-title { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+  .wallet-balance { font-size: 32px; font-weight: 700; margin-top: 5px; }
+
+  /* Input Section (4 Fields) */
+  .input-section { padding: 0 15px 15px 15px; display: flex; flex-direction: column; gap: 10px; position: relative; }
+  
+  .input-wrapper { position: relative; }
+  input, select { 
+    width: 100%; padding: 12px; background: var(--bg-input); border: 2px solid transparent; 
+    border-radius: 10px; color: var(--text-main); font-family: 'Poppins', sans-serif; 
+    font-size: 14px; outline: none; box-sizing: border-box;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  
+  .row-inputs { display: flex; gap: 10px; }
+  .row-inputs > * { flex: 1; }
+
+  .btn-add { 
+    padding: 12px; border-radius: 10px; border: none; font-size: 15px; 
+    font-weight: 600; cursor: pointer; background: var(--accent); color: white;
+    font-family: 'Poppins', sans-serif; width: 100%; margin-top: 5px;
+  }
+
+  /* Custom Suggestion Box */
+  .suggestions-box {
+    position: absolute; top: 100%; left: 0; width: 100%; background: var(--bg-card);
+    border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 20;
+    max-height: 150px; overflow-y: auto; display: none; border: 1px solid var(--bg-input);
+  }
+  .suggestion-item { padding: 10px 15px; cursor: pointer; font-size: 14px; border-bottom: 1px solid var(--bg-input); }
+  .suggestion-item:last-child { border-bottom: none; }
+  .suggestion-item:hover { background: var(--bg-input); }
+
+  /* History List */
+  #history-container { padding: 0 15px; display: flex; flex-direction: column; gap: 12px; }
+  
+  .entry-card {
+    background: var(--bg-card); padding: 15px; border-radius: 12px; 
+    display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; touch-action: pan-y;
+    border-left: 4px solid var(--danger);
+  }
+  .entry-card.dragging { opacity: 0.5; transform: scale(0.98); border: 2px dashed var(--accent); }
+
+  .entry-info { display: flex; flex-direction: column; gap: 2px; }
+  .entry-name { font-size: 15px; font-weight: 600; }
+  .entry-meta { font-size: 11px; color: var(--text-muted); }
+  
+  .entry-right { display: flex; align-items: center; gap: 12px; }
+  .entry-amount { font-size: 16px; font-weight: 700; color: var(--danger); }
+
+  .controls { display: flex; gap: 10px; align-items: center; }
+  .drag-handle { cursor: grab; font-size: 18px; color: var(--text-muted); padding: 5px; }
+  .btn-delete { 
+    background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; 
+    border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer;
+  }
+
+  /* Overlays (Deposit & Analytics) */
+  .overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-main);
+    z-index: 200; display: none; flex-direction: column;
+  }
+  .overlay.active { display: flex; }
+  .overlay-header { padding: 15px; background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; }
+  .overlay-body { padding: 15px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+  
+  .deposit-card {
+    background: var(--bg-card); padding: 12px 15px; border-radius: 10px; display: flex; 
+    justify-content: space-between; align-items: center; border-left: 4px solid var(--success);
+  }
+
+  /* Analytics Styling */
+  .analytics-result {
+    background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px dashed var(--accent);
+    text-align: center; margin-top: 10px;
+  }
+  .analytics-result h3 { margin: 0 0 10px 0; font-size: 14px; color: var(--text-muted); }
+  .analytics-result .total-val { font-size: 28px; font-weight: bold; color: var(--danger); }
+
+  /* Undo Snackbar */
+  #snackbar {
+    visibility: hidden; min-width: 250px; background-color: var(--bg-input); color: #fff;
+    text-align: center; border-radius: 10px; padding: 15px 20px; position: fixed;
+    z-index: 1000; left: 50%; bottom: 80px; transform: translateX(-50%); display: flex;
+    justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    opacity: 0; transition: opacity 0.3s, bottom 0.3s; font-size: 14px; border: 1px solid var(--accent);
+  }
+  #snackbar.show { visibility: visible; opacity: 1; bottom: 90px; }
+  .undo-btn { color: var(--accent); font-weight: bold; cursor: pointer; border: none; background: none; font-size: 14px; }
+
+  /* Bottom Navigation */
   .bottom-nav {
-    position: fixed; bottom: 0; left: 0; width: 100%; height: 60px;
-    background: var(--bg-card); display: flex; justify-content: space-around;
-    align-items: center; box-shadow: 0 -4px 10px rgba(0,0,0,0.3); z-index: 10;
+    position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--bg-card); display: flex; justify-content: space-around; align-items: center; box-shadow: 0 -4px 10px rgba(0,0,0,0.3); z-index: 100;
   }
-  .nav-btn {
-    background: none; border: none; color: var(--text-muted); font-size: 11px;
-    display: flex; flex-direction: column; align-items: center; cursor: pointer;
-    text-decoration: none; transition: 0.2s;
-  }
+  .nav-btn { background: none; border: none; color: var(--text-muted); font-size: 11px; display: flex; flex-direction: column; align-items: center; cursor: pointer; text-decoration: none; }
   .nav-btn span { font-size: 20px; margin-bottom: 2px; }
   .nav-btn.active { color: var(--accent); font-weight: 600; }
-  
-  .action-fab {
-    background: var(--accent); color: white; width: 50px; height: 50px;
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-size: 24px; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.4);
-    cursor: pointer; text-decoration: none; margin-top: -20px; 
-  }
-  .action-fab:active { transform: scale(0.95); }
-
-  /* Page Content Centered */
-  .content {
-    display: flex; flex-direction: column; align-items: center; 
-    justify-content: center; height: 80vh; text-align: center;
-  }
+  .action-fab { background: var(--accent); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.4); margin-top: -20px; text-decoration: none; }
 </style>
 </head>
 <body>
 
-<div class="content">
-  <h1>🛒</h1>
-  <h2>Shopping Page</h2>
-  <p style="color: var(--text-muted);">Connection successful! Yahan hum shopping list banayenge.</p>
+<div class="top">
+  <h2>🛒 Tracker</h2>
+  <div class="header-btns">
+    <button class="btn-small" style="background: var(--warning); color: #fff;" onclick="openAnalytics()">📊 Analytics</button>
+    <button class="btn-small" style="background: var(--success); color: white;" onclick="openDepositPanel()">💰 Budget</button>
+  </div>
+</div>
+
+<div class="wallet-card">
+  <div class="wallet-title">Remaining Balance</div>
+  <div class="wallet-balance" id="walletBalance">₹ 0</div>
+</div>
+
+<div class="input-section">
+  <div class="input-wrapper">
+    <input type="text" id="itemName" placeholder="Item Name (e.g. Kurkure)" autocomplete="off">
+    <div class="suggestions-box" id="suggestionBox"></div>
+  </div>
+  
+  <div class="row-inputs">
+    <input type="number" id="itemQty" placeholder="Qty" min="0.01" step="any">
+    <select id="itemUnit">
+      <option value="Packet">Packet</option>
+      <option value="Kg">Kg</option>
+      <option value="Gram">Gram</option>
+      <option value="Liter">Liter</option>
+      <option value="Piece">Piece</option>
+      <option value="Box">Box</option>
+      <option value="Dozen">Dozen</option>
+    </select>
+    <input type="number" id="itemPrice" placeholder="₹ Price" min="0" step="any">
+  </div>
+
+  <button class="btn-add" onclick="addExpense()">➕ Add Expense</button>
+</div>
+
+<div id="history-container"></div>
+
+<div class="overlay" id="depositOverlay">
+  <div class="overlay-header">
+    <span style="font-weight: 600;">💰 Budget History</span>
+    <button class="btn-small" style="background: rgba(239, 68, 68, 0.1); color: var(--danger);" onclick="closeDepositPanel()">✕ Close</button>
+  </div>
+  <div class="overlay-body">
+    <div style="display: flex; gap: 10px;">
+      <input type="number" id="depositAmount" placeholder="Amount (₹)">
+      <button class="btn-small" style="background: var(--success); color: white; padding: 0 20px;" onclick="addDeposit()">Add</button>
+    </div>
+    <div id="deposit-history-container" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;"></div>
+  </div>
+</div>
+
+<div class="overlay" id="analyticsOverlay">
+  <div class="overlay-header">
+    <span style="font-weight: 600;">📊 Expense Analytics</span>
+    <button class="btn-small" style="background: rgba(239, 68, 68, 0.1); color: var(--danger);" onclick="closeAnalytics()">✕ Close</button>
+  </div>
+  <div class="overlay-body">
+    <label style="font-size:12px; color:var(--text-muted);">Select Filter</label>
+    <select id="filterType" onchange="runAnalytics()">
+      <option value="today">Today's Expense</option>
+      <option value="month">This Month's Expense</option>
+      <option value="year">This Year's Expense</option>
+      <option value="custom">Select Custom Date...</option>
+    </select>
+    
+    <input type="date" id="customFilterDate" style="display:none;" onchange="runAnalytics()">
+    
+    <div class="analytics-result">
+      <h3 id="analyticsLabel">Total Spent Today</h3>
+      <div class="total-val" id="analyticsTotal">₹ 0</div>
+    </div>
+  </div>
+</div>
+
+<div id="snackbar">
+  <span id="snackText">Deleted</span>
+  <button class="undo-btn" onclick="undoDelete()">UNDO</button>
 </div>
 
 <div class="bottom-nav">
   <a href="shopping.html" class="nav-btn active"><span>🛒</span>Shopping</a>
-  
   <a href="index.html" class="action-fab">🧮</a>
-  
   <a href="notes.html" class="nav-btn"><span>📝</span>Notes</a>
 </div>
 
+<script>
+/* =========================================
+   1. DB & Setup
+   ========================================= */
+const DB_NAME = "SmartShopV4";
+let db;
+let uniqueItemsDict = {}; 
+let allExpensesCache = []; // For fast filtering
+
+let lastDeletedData = null;
+let lastDeletedType = null; 
+let undoTimeout = null;
+
+const request = indexedDB.open(DB_NAME, 1);
+request.onupgradeneeded = (e) => {
+  db = e.target.result;
+  db.createObjectStore("expenses", { keyPath: "id", autoIncrement: true }).createIndex("order", "order", { unique: false });
+  db.createObjectStore("deposits", { keyPath: "id", autoIncrement: true }).createIndex("order", "order", { unique: false });
+};
+request.onsuccess = (e) => { db = e.target.result; loadAllData(); };
+
+/* =========================================
+   2. Date Formatting (Fixed Year)
+   ========================================= */
+function getDisplayDate() {
+  const d = new Date();
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  // Year add kiya gaya hai
+  return `${d.getDate()} ${months[d.getMonth()]}, ${d.getFullYear()} | ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+}
+
+// System sorting/filtering ke liye ISO dates
+function getIsoDates() {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  
+  return {
+    full: `${year}-${month}-${day}`, // 2026-06-27
+    month: `${year}-${month}`,       // 2026-06
+    year: `${year}`                  // 2026
+  };
+}
+
+/* =========================================
+   3. Auto-Fill Suggestions
+   ========================================= */
+const nameInput = document.getElementById("itemName");
+const sugBox = document.getElementById("suggestionBox");
+
+nameInput.addEventListener("input", (e) => {
+  const val = e.target.value.toLowerCase().trim();
+  sugBox.innerHTML = "";
+  if (!val) { sugBox.style.display = "none"; return; }
+  
+  const matches = Object.keys(uniqueItemsDict).filter(k => k.toLowerCase().includes(val));
+  if (matches.length > 0) {
+    sugBox.style.display = "block";
+    matches.forEach(m => {
+      const div = document.createElement("div");
+      div.className = "suggestion-item";
+      div.innerHTML = `<strong>${m}</strong> <span style="color:var(--text-muted); font-size:11px;">(₹${uniqueItemsDict[m].price})</span>`;
+      div.onclick = () => {
+        document.getElementById("itemName").value = m;
+        document.getElementById("itemQty").value = uniqueItemsDict[m].qty;
+        document.getElementById("itemUnit").value = uniqueItemsDict[m].unit;
+        document.getElementById("itemPrice").value = uniqueItemsDict[m].price;
+        sugBox.style.display = "none";
+      };
+      sugBox.appendChild(div);
+    });
+  } else { sugBox.style.display = "none"; }
+});
+document.addEventListener("click", (e) => { if (e.target !== nameInput) sugBox.style.display = "none"; });
+
+/* =========================================
+   4. Add Data
+   ========================================= */
+function addExpense() {
+  const name = document.getElementById("itemName").value.trim();
+  const qty = parseFloat(document.getElementById("itemQty").value);
+  const unit = document.getElementById("itemUnit").value;
+  const price = parseFloat(document.getElementById("itemPrice").value);
+
+  if (!name || !qty || !price) return alert("Please fill Name, Qty, and Price!");
+
+  const tx = db.transaction("expenses", "readwrite");
+  const iso = getIsoDates();
+  
+  tx.objectStore("expenses").add({
+    name, qty, unit, price,
+    dateStr: getDisplayDate(),
+    isoDay: iso.full,
+    isoMonth: iso.month,
+    isoYear: iso.year,
+    order: Date.now()
+  });
+
+  tx.oncomplete = () => {
+    document.getElementById("itemName").value = "";
+    document.getElementById("itemQty").value = "";
+    document.getElementById("itemPrice").value = "";
+    loadAllData();
+  };
+}
+
+function addDeposit() {
+  const amt = parseFloat(document.getElementById("depositAmount").value);
+  if (!amt || amt <= 0) return;
+  const tx = db.transaction("deposits", "readwrite");
+  tx.objectStore("deposits").add({ amount: amt, dateStr: getDisplayDate(), order: Date.now() });
+  tx.oncomplete = () => { document.getElementById("depositAmount").value = ""; loadAllData(); };
+}
+
+/* =========================================
+   5. Load & Render Data
+   ========================================= */
+function loadAllData() {
+  let totalExpenses = 0; let totalDeposits = 0;
+  uniqueItemsDict = {}; allExpensesCache = [];
+  
+  const expContainer = document.getElementById("history-container");
+  const depContainer = document.getElementById("deposit-history-container");
+  expContainer.innerHTML = ""; depContainer.innerHTML = "";
+
+  const txExp = db.transaction("expenses", "readonly");
+  txExp.objectStore("expenses").index("order").openCursor(null, "prev").onsuccess = (e) => {
+    const cursor = e.target.result;
+    if (cursor) {
+      const exp = cursor.value;
+      totalExpenses += exp.price;
+      allExpensesCache.push(exp); 
+      
+      if (!uniqueItemsDict[exp.name]) uniqueItemsDict[exp.name] = { qty: exp.qty, unit: exp.unit, price: exp.price };
+
+      const card = document.createElement("div");
+      card.className = "entry-card";
+      card.dataset.id = exp.id;
+      card.innerHTML = `
+        <div class="entry-info">
+          <span class="entry-name">${exp.name}</span>
+          <span class="entry-meta">${exp.qty} ${exp.unit} | ${exp.dateStr}</span>
+        </div>
+        <div class="entry-right">
+          <span class="entry-amount">-₹${exp.price}</span>
+          <div class="controls">
+            <span class="drag-handle">↕️</span>
+            <button class="btn-delete" onclick="deleteItem(event, ${exp.id}, 'expenses')">🗑️</button>
+          </div>
+        </div>
+      `;
+      setupTouchDrag(card); expContainer.appendChild(card);
+      cursor.continue();
+    }
+  };
+
+  const txDep = db.transaction("deposits", "readonly");
+  txDep.objectStore("deposits").index("order").openCursor(null, "prev").onsuccess = (e) => {
+    const cursor = e.target.result;
+    if (cursor) {
+      const dep = cursor.value;
+      totalDeposits += dep.amount;
+      depContainer.innerHTML += `
+        <div class="deposit-card">
+          <div><strong style="color:var(--success);">+ ₹${dep.amount}</strong><br><span style="font-size:11px; color:var(--text-muted);">${dep.dateStr}</span></div>
+          <button class="btn-delete" onclick="deleteItem(event, ${dep.id}, 'deposits')">🗑️</button>
+        </div>
+      `;
+      cursor.continue();
+    } else {
+      const balance = totalDeposits - totalExpenses;
+      const balEl = document.getElementById("walletBalance");
+      balEl.innerText = `₹ ${balance.toLocaleString('en-IN')}`;
+      balEl.style.color = balance < 0 ? "var(--danger)" : "var(--success)";
+      
+      // Update analytics if overlay is open
+      if(document.getElementById("analyticsOverlay").classList.contains("active")) runAnalytics();
+    }
+  };
+}
+
+/* =========================================
+   6. Delete & Undo
+   ========================================= */
+function deleteItem(event, id, storeName) {
+  event.stopPropagation();
+  const tx = db.transaction(storeName, "readwrite");
+  const store = tx.objectStore(storeName);
+  
+  store.get(id).onsuccess = (e) => {
+    lastDeletedData = e.target.result;
+    lastDeletedType = storeName;
+    store.delete(id);
+  };
+  tx.oncomplete = () => { loadAllData(); showSnackbar(); };
+}
+
+function showSnackbar() {
+  const snackbar = document.getElementById("snackbar");
+  document.getElementById("snackText").innerText = lastDeletedType === 'expenses' ? "Item Deleted" : "Deposit Deleted";
+  snackbar.classList.add("show");
+  clearTimeout(undoTimeout);
+  undoTimeout = setTimeout(() => { snackbar.classList.remove("show"); lastDeletedData = null; }, 5000);
+}
+
+function undoDelete() {
+  if (!lastDeletedData || !lastDeletedType) return;
+  const tx = db.transaction(lastDeletedType, "readwrite");
+  tx.objectStore(lastDeletedType).add(lastDeletedData);
+  tx.oncomplete = () => {
+    loadAllData();
+    document.getElementById("snackbar").classList.remove("show");
+    lastDeletedData = null; clearTimeout(undoTimeout);
+  };
+}
+
+/* =========================================
+   7. Drag & Drop
+   ========================================= */
+let draggedElement = null;
+function setupTouchDrag(card) {
+  const handle = card.querySelector('.drag-handle');
+  handle.addEventListener('mousedown', () => { card.setAttribute('draggable', 'true'); });
+  card.addEventListener('dragstart', () => { draggedElement = card; setTimeout(() => card.classList.add('dragging'), 0); });
+  card.addEventListener('dragend', () => { card.classList.remove('dragging'); card.removeAttribute('draggable'); saveNewOrder(); });
+  handle.addEventListener('touchstart', (e) => { draggedElement = card; card.classList.add('dragging'); e.preventDefault(); }, { passive: false });
+  handle.addEventListener('touchmove', (e) => {
+    if (!draggedElement) return; e.preventDefault();
+    const touch = e.touches[0];
+    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+    const targetCard = target ? target.closest('.entry-card') : null;
+    if (targetCard && targetCard !== draggedElement) {
+      const container = document.getElementById("history-container");
+      const targetRect = targetCard.getBoundingClientRect();
+      if (touch.clientY < targetRect.top + targetRect.height / 2) container.insertBefore(draggedElement, targetCard);
+      else container.insertBefore(draggedElement, targetCard.nextSibling);
+    }
+  }, { passive: false });
+  handle.addEventListener('touchend', () => { if (draggedElement) { draggedElement.classList.remove('dragging'); draggedElement = null; saveNewOrder(); } });
+}
+function saveNewOrder() {
+  const cards = document.querySelectorAll('.entry-card');
+  const tx = db.transaction("expenses", "readwrite");
+  let baseTime = Date.now();
+  cards.forEach((card, index) => {
+    const id = parseInt(card.dataset.id);
+    tx.objectStore("expenses").get(id).onsuccess = (e) => { const entry = e.target.result; if (entry) { entry.order = baseTime - index; tx.objectStore("expenses").put(entry); } };
+  });
+}
+
+/* =========================================
+   8. Overlays & Analytics Logic
+   ========================================= */
+function openDepositPanel() { document.getElementById("depositOverlay").classList.add("active"); }
+function closeDepositPanel() { document.getElementById("depositOverlay").classList.remove("active"); }
+
+function openAnalytics() { 
+  document.getElementById("analyticsOverlay").classList.add("active"); 
+  runAnalytics(); 
+}
+function closeAnalytics() { document.getElementById("analyticsOverlay").classList.remove("active"); }
+
+function runAnalytics() {
+  const type = document.getElementById("filterType").value;
+  const customInput = document.getElementById("customFilterDate");
+  const iso = getIsoDates();
+  
+  let targetIso = "";
+  let label = "";
+
+  // Show/Hide custom date picker
+  if (type === "custom") {
+    customInput.style.display = "block";
+    targetIso = customInput.value;
+    if(!targetIso) {
+      document.getElementById("analyticsLabel").innerText = "Select a date below";
+      document.getElementById("analyticsTotal").innerText = "₹ 0";
+      return;
+    }
+    label = `Spent on ${targetIso}`;
+  } else {
+    customInput.style.display = "none";
+    if(type === "today") { targetIso = iso.full; label = "Total Spent Today"; }
+    else if(type === "month") { targetIso = iso.month; label = "Total Spent This Month"; }
+    else if(type === "year") { targetIso = iso.year; label = "Total Spent This Year"; }
+  }
+
+  // Calculate sum based on filter target
+  let sum = 0;
+  allExpensesCache.forEach(exp => {
+    if(type === "today" || type === "custom") { if(exp.isoDay === targetIso) sum += exp.price; }
+    else if(type === "month") { if(exp.isoMonth === targetIso) sum += exp.price; }
+    else if(type === "year") { if(exp.isoYear === targetIso) sum += exp.price; }
+  });
+
+  document.getElementById("analyticsLabel").innerText = label;
+  document.getElementById("analyticsTotal").innerText = `₹ ${sum.toLocaleString('en-IN')}`;
+}
+</script>
 </body>
 </html>
