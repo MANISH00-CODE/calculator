@@ -27,49 +27,49 @@
   }
 
   .top { 
-    padding: 15px; 
+    padding: 12px 15px; 
     background: var(--bg-card); 
     box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
     position: relative;
     z-index: 5;
   }
   
-  .input-wrapper { position: relative; width: 100%; margin-top: 6px; display: flex; flex-direction: column; }
+  .input-wrapper { position: relative; width: 100%; margin-top: 4px; display: flex; flex-direction: column; }
   .input-wrapper.flex-2 { flex: 2; margin-top: 0; }
   
-  /* Inputs size reduced */
+  /* Inputs aur compact kar diye */
   input, select { 
     width: 100%; 
-    padding: 12px 35px 12px 14px; 
+    padding: 10px 30px 10px 12px; 
     border: 2px solid transparent; 
-    border-radius: 10px; 
+    border-radius: 8px; 
     background: var(--bg-input); 
     color: var(--text-main); 
-    font-size: 14px; 
+    font-size: 13px; 
     font-family: 'Poppins', sans-serif;
     outline: none; 
     box-sizing: border-box; 
     transition: 0.3s ease;
   }
   
-  select { padding-right: 12px; cursor: pointer; }
+  select { padding-right: 10px; cursor: pointer; }
   
   input:focus, select:focus, input.active-input { 
     border-color: var(--accent); 
     background: #1e293b; 
-    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.15);
   }
   
   .clear-btn { 
     position: absolute; 
-    right: 10px; 
+    right: 8px; 
     top: 50%; 
     transform: translateY(-50%); 
     background: #475569; 
     color: #fff; 
     border-radius: 50%; 
-    width: 22px; 
-    height: 22px; 
+    width: 20px; 
+    height: 20px; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
@@ -82,93 +82,80 @@
   .clear-btn:hover { background: var(--danger); }
 
   .history { 
-    padding: 12px; 
-    height: calc(100vh - 70px); 
+    padding: 10px; 
+    height: calc(100vh - 65px); 
     overflow-y: auto; 
-    padding-bottom: 90px; 
+    padding-bottom: 80px; 
   }
   
   .item { 
     position: relative;
-    padding: 14px; 
-    margin-bottom: 10px; 
+    padding: 12px; 
+    margin-bottom: 8px; 
     background: var(--bg-card); 
-    border-radius: 12px; 
+    border-radius: 10px; 
     border-left: 4px solid var(--accent); 
     cursor: pointer; 
     display: flex; 
     flex-direction: column; 
-    gap: 6px; 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    gap: 4px; 
   }
   
-  .item-base { color: var(--text-muted); font-size: 12px; font-weight: 500; }
-  .item-target { font-weight: 600; color: var(--success); font-size: 15px; }
+  .item-base { color: var(--text-muted); font-size: 11px; font-weight: 500; }
+  .item-target { font-weight: 600; color: var(--success); font-size: 14px; }
 
   .delete-btn {
     position: absolute;
-    right: 12px;
+    right: 10px;
     top: 50%;
     transform: translateY(-50%);
     background: rgba(239, 68, 68, 0.1);
     color: var(--danger);
     border: none;
     border-radius: 6px;
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 15px;
+    font-size: 14px;
     cursor: pointer;
   }
   
   .fab { 
     position: fixed; 
-    right: 20px; 
-    bottom: 20px; 
-    width: 55px; 
-    height: 55px; 
+    right: 15px; 
+    bottom: 15px; 
+    width: 50px; 
+    height: 50px; 
     border-radius: 50%; 
     background: var(--accent); 
     color: #fff; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
-    font-size: 22px; 
+    font-size: 20px; 
     cursor: pointer; 
-    box-shadow: 0 6px 15px rgba(14, 165, 233, 0.4); 
+    box-shadow: 0 4px 10px rgba(14, 165, 233, 0.4); 
     z-index: 10; 
   }
   
-  /* Calculator panel set to Auto Height */
+  /* Full Screen Calculator */
   .calc { 
     position: fixed; 
     left: 0; 
     bottom: -100%; 
     width: 100%; 
-    height: auto; /* Ab auto adjust hoga */
-    max-height: 98%; /* Screen ke bahar nahi jayega */
+    height: 100%; /* Ab full screen */
     background: var(--bg-main); 
-    border-top-left-radius: 25px; 
-    border-top-right-radius: 25px; 
     transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); 
-    padding: 15px 20px; /* Padding kam ki */
+    padding: 15px; 
     box-sizing: border-box; 
     z-index: 20; 
-    box-shadow: 0 -10px 40px rgba(0,0,0,0.6); 
     display: flex;
     flex-direction: column;
   }
   .calc.active { bottom: 0; }
-
-  .drag-handle {
-    width: 35px;
-    height: 4px;
-    background: var(--bg-input);
-    border-radius: 4px;
-    margin: 0 auto 10px auto;
-  }
   
   .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
   .header-row h3 { margin: 0; font-size: 18px; color: var(--text-main); font-weight: 600; }
@@ -179,18 +166,18 @@
     border-radius: 6px; 
     cursor: pointer; 
     font-weight: 600; 
-    font-size: 13px; 
+    font-size: 12px; 
   }
 
-  .row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+  .row { display: flex; gap: 6px; align-items: center; margin-top: 6px; }
   .row select { flex: 1; margin-top: 0; }
 
-  /* Result Box smaller height */
+  /* Chota result box */
   .result-box { 
-    margin-top: 12px; 
+    margin-top: 10px; 
     padding: 12px; 
     background: var(--bg-card); 
-    border-radius: 12px; 
+    border-radius: 10px; 
     color: var(--success); 
     font-size: 18px; 
     font-weight: 700; 
@@ -198,37 +185,21 @@
     border: 1px dashed var(--accent); 
   }
 
-  /* Save button smaller */
-  .save-btn {
-    width: 100%;
-    padding: 12px;
-    background: var(--success);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 600;
-    margin-top: 8px;
-    cursor: pointer;
-    display: none; 
-  }
-  .save-btn.active { display: block; }
-
-  /* Numpad compact size */
+  /* Compact Numpad */
   .numpad { 
     display: grid; 
     grid-template-columns: repeat(3, 1fr); 
-    gap: 8px; 
-    margin-top: 10px; 
-    padding-bottom: 5px; 
+    gap: 6px; /* Gap kam kiya */
+    margin-top: auto; /* Screen me niche fix rakhne ke liye */
+    padding-bottom: 10px; 
   }
   .numpad button { 
     background: var(--bg-card); 
     color: var(--text-main); 
     border: none; 
-    border-radius: 10px; 
-    padding: 12px; /* Pad kam kiya */
-    font-size: 18px; /* Size chota kiya */
+    border-radius: 8px; 
+    padding: 12px; /* Pad kafi kam kiya */
+    font-size: 16px; /* Font size chota kiya */
     font-weight: 600; 
     font-family: 'Poppins', sans-serif;
     cursor: pointer; 
@@ -250,7 +221,6 @@
 <div class="fab" onclick="openNewCalc()">⌨️</div>
 
 <div class="calc" id="calc">
-  <div class="drag-handle"></div>
   <div class="header-row">
     <h3>Calculator</h3>
     <div class="btn-close" onclick="closeCalc()">✕ Close</div>
@@ -273,7 +243,7 @@
     </select>
   </div>
 
-  <div class="row" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--bg-input);">
+  <div class="row" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--bg-input);">
     <div class="input-wrapper flex-2">
       <input id="targetVal" type="number" inputmode="none" list="target-sug" placeholder="🔍 Find for..." onclick="setActive(this)" oninput="handleInput(this)">
       <span class="clear-btn" onclick="clearField('targetVal')">✕</span>
@@ -287,10 +257,8 @@
   </div>
 
   <div class="result-box" id="result">
-    <span style="font-size:14px; color:var(--text-muted); font-weight:500;">Enter values</span>
+    <span style="font-size:13px; color:var(--text-muted); font-weight:500;">Enter values</span>
   </div>
-
-  <button class="save-btn" id="saveBtn" onclick="saveToHistory()">💾 Save & Close</button>
 
   <div class="numpad">
     <button onclick="pressKey('1')">1</button>
@@ -311,7 +279,6 @@
 <script>
 let data = JSON.parse(localStorage.getItem("proData") || "[]");
 let activeInput = null;
-let currentValidData = null; 
 
 function populateSuggestions() {
   let prices = [...new Set(data.map(d => d.p))];
@@ -333,7 +300,9 @@ function openNewCalc() {
   calculate();
 }
 
+// Ab jab calculator band karenge toh apne aap save ho jayega (Sirf final result)
 function closeCalc() {
+  saveCurrentState(); // Yahan automatically save call ho raha hai
   document.getElementById("calc").classList.remove("active");
 }
 
@@ -366,10 +335,31 @@ function pressKey(val) {
   calculate();
 }
 
-function saveToHistory() {
-  if (!currentValidData) return;
+// Ye function background me chalta hai Final save karne ke liye
+function saveCurrentState() {
+  let p = parseFloat(document.getElementById("price").value);
+  let w = parseFloat(document.getElementById("weight").value);
+  let u = document.getElementById("unit").value;
+  let tv = parseFloat(document.getElementById("targetVal").value);
+  let tu = document.getElementById("targetUnit").value;
   
-  let { p, w, u, tv, tu, resText } = currentValidData;
+  // Agar values adhoori hain toh save nahi karega
+  if (isNaN(p) || isNaN(w) || isNaN(tv) || p === 0 || w === 0 || tv === 0) return;
+
+  let baseGram = u === "kg" ? w * 1000 : w;
+  let perGram = p / baseGram;
+  let resText = "";
+
+  if (tu === "rs") {
+    let grams = tv / perGram;
+    resText = grams >= 1000 ? `${(grams/1000).toFixed(3)} Kg` : `${grams.toFixed(0)} Grams`;
+  } else if (tu === "kg") {
+    resText = `${(tv * 1000 * perGram).toFixed(2)} Rs`;
+  } else {
+    resText = `${(tv * perGram).toFixed(2)} Rs`;
+  }
+
+  // Duplicate check
   data = data.filter(d => !(d.p === p && d.w === w && d.tv === tv && d.tu === tu));
   
   data.unshift({ p, w, u, tv, tu, res: resText });
@@ -378,7 +368,6 @@ function saveToHistory() {
   localStorage.setItem("proData", JSON.stringify(data));
   populateSuggestions();
   render();
-  closeCalc(); 
 }
 
 function calculate() {
@@ -387,13 +376,9 @@ function calculate() {
   let u = document.getElementById("unit").value;
   let tv = parseFloat(document.getElementById("targetVal").value);
   let tu = document.getElementById("targetUnit").value;
-  
-  let saveBtn = document.getElementById("saveBtn");
 
   if (isNaN(p) || isNaN(w) || p === 0 || w === 0) {
-    document.getElementById("result").innerHTML = `<span style="font-size:14px; color:var(--text-muted); font-weight:500;">Enter Base Values</span>`;
-    saveBtn.classList.remove("active");
-    currentValidData = null;
+    document.getElementById("result").innerHTML = `<span style="font-size:13px; color:var(--text-muted); font-weight:500;">Enter Base Values</span>`;
     return;
   }
 
@@ -403,9 +388,7 @@ function calculate() {
   let finalHtml = "";
 
   if (isNaN(tv) || tv === 0) {
-    document.getElementById("result").innerHTML = `<span style="font-size:14px; color:var(--text-muted); font-weight:500;">Enter target to find...</span>`;
-    saveBtn.classList.remove("active");
-    currentValidData = null;
+    document.getElementById("result").innerHTML = `<span style="font-size:13px; color:var(--text-muted); font-weight:500;">Enter target to find...</span>`;
     return; 
   }
 
@@ -413,7 +396,7 @@ function calculate() {
     let grams = tv / perGram;
     if(grams >= 1000) {
       resText = `${(grams/1000).toFixed(3)} Kg`;
-      finalHtml = `${resText} <div style="font-size:12px; color:var(--text-muted); font-weight:500; margin-top:2px;">(${grams.toFixed(0)} grams)</div>`;
+      finalHtml = `${resText} <span style="font-size:11px; color:var(--text-muted); font-weight:500;">(${grams.toFixed(0)} g)</span>`;
     } else {
       resText = `${grams.toFixed(0)} Grams`;
       finalHtml = resText;
@@ -427,8 +410,6 @@ function calculate() {
   }
 
   document.getElementById("result").innerHTML = finalHtml;
-  currentValidData = { p, w, u, tv, tu, resText };
-  saveBtn.classList.add("active");
 }
 
 function loadHistoryItem(p, w, u, tv, tu) {
@@ -467,7 +448,7 @@ function render() {
     }
   });
   
-  if(html === "") html = "<div style='text-align:center; color:var(--text-muted); font-weight:500; margin-top:30px; font-size:14px;'>No history found</div>";
+  if(html === "") html = "<div style='text-align:center; color:var(--text-muted); font-weight:500; margin-top:20px; font-size:13px;'>No history found</div>";
   document.getElementById("history").innerHTML = html;
 }
 
