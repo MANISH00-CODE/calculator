@@ -77,14 +77,14 @@
     opacity: 0; 
     transition: 0.2s; 
   }
-  input:valid + .clear-btn, input:focus + .clear-btn { opacity: 1; }
+  input:valid + .clear-btn, input:focus + .clear-btn, input.active-input + .clear-btn { opacity: 1; }
   .clear-btn:hover { background: var(--danger); }
 
   .history { 
     padding: 15px; 
     height: calc(100vh - 90px); 
     overflow-y: auto; 
-    padding-bottom: 90px; /* Space for FAB */
+    padding-bottom: 90px; 
   }
   
   .item { 
@@ -108,7 +108,6 @@
   .item-base { color: var(--text-muted); font-size: 13px; font-weight: 500; }
   .item-target { font-weight: 600; color: var(--success); font-size: 16px; }
 
-  /* New Delete Button Style */
   .delete-btn {
     position: absolute;
     right: 15px;
@@ -154,6 +153,7 @@
   .fab:hover { transform: scale(1.05); background: var(--accent-hover); }
   .fab:active { transform: scale(0.95); }
   
+  /* Fixed Mobile Layout using Flexbox */
   .calc { 
     position: fixed; 
     left: 0; 
@@ -164,23 +164,31 @@
     border-top-left-radius: 30px; 
     border-top-right-radius: 30px; 
     transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); 
-    padding: 24px; 
+    padding: 20px 24px; 
     box-sizing: border-box; 
     z-index: 20; 
-    overflow-y: auto; 
     box-shadow: 0 -10px 40px rgba(0,0,0,0.6); 
+    display: flex;
+    flex-direction: column;
   }
   .calc.active { bottom: 0; }
+
+  .calc-scrollable {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 10px;
+  }
 
   .drag-handle {
     width: 40px;
     height: 5px;
     background: var(--bg-input);
     border-radius: 5px;
-    margin: 0 auto 20px auto;
+    margin: 0 auto 15px auto;
+    flex-shrink: 0;
   }
   
-  .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+  .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-shrink: 0; }
   .header-row h3 { margin: 0; font-size: 22px; color: var(--text-main); font-weight: 600; }
   .btn-close { 
     background: rgba(239, 68, 68, 0.1); 
@@ -198,31 +206,50 @@
   .row select { flex: 1; margin-top: 0; }
 
   .result-box { 
-    margin-top: 20px; 
-    padding: 24px; 
+    margin-top: 15px; 
+    padding: 20px; 
     background: var(--bg-card); 
     border-radius: 16px; 
     color: var(--success); 
-    font-size: 24px; 
+    font-size: 22px; 
     font-weight: 700; 
     text-align: center; 
     border: 2px dashed var(--accent); 
     box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
   }
 
+  .save-btn {
+    width: 100%;
+    padding: 15px;
+    background: var(--success);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    margin-top: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+    display: none; /* Only show when valid calculation is ready */
+  }
+  .save-btn.active { display: block; }
+  .save-btn:active { transform: scale(0.98); }
+
   .numpad { 
     display: grid; 
     grid-template-columns: repeat(3, 1fr); 
-    gap: 15px; 
-    margin-top: 25px; 
-    padding-bottom: 30px; 
+    gap: 12px; 
+    margin-top: 15px; 
+    padding-bottom: 15px; 
+    flex-shrink: 0; /* Prevents numpad from shrinking */
   }
   .numpad button { 
     background: var(--bg-card); 
     color: var(--text-main); 
     border: none; 
     border-radius: 14px; 
-    padding: 20px; 
+    padding: 16px; 
     font-size: 22px; 
     font-weight: 600; 
     font-family: 'Poppins', sans-serif;
@@ -252,38 +279,42 @@
     <div class="btn-close" onclick="closeCalc()">✕ Close</div>
   </div>
 
-  <div class="input-wrapper">
-    <input id="price" type="number" list="price-sug" placeholder="Base Price (Rs)" onclick="setActive(this)" oninput="handleInput(this)">
-    <span class="clear-btn" onclick="clearField('price')">✕</span>
-    <datalist id="price-sug"></datalist>
-  </div>
-  
-  <div class="row">
-    <div class="input-wrapper flex-2">
-      <input id="weight" type="number" placeholder="Base Weight" onclick="setActive(this)" oninput="handleInput(this)">
-      <span class="clear-btn" onclick="clearField('weight')">✕</span>
+  <div class="calc-scrollable">
+    <div class="input-wrapper">
+      <input id="price" type="number" inputmode="none" list="price-sug" placeholder="Base Price (Rs)" onclick="setActive(this)" oninput="handleInput(this)">
+      <span class="clear-btn" onclick="clearField('price')">✕</span>
+      <datalist id="price-sug"></datalist>
     </div>
-    <select id="unit" onchange="calculate()">
-      <option value="kg">Kg</option>
-      <option value="g">Gram</option>
-    </select>
-  </div>
-
-  <div class="row" style="margin-top:20px; padding-top:20px; border-top:1px solid var(--bg-input);">
-    <div class="input-wrapper flex-2">
-      <input id="targetVal" type="number" list="target-sug" placeholder="🔍 Find for..." onclick="setActive(this)" oninput="handleInput(this)">
-      <span class="clear-btn" onclick="clearField('targetVal')">✕</span>
-      <datalist id="target-sug"></datalist>
+    
+    <div class="row">
+      <div class="input-wrapper flex-2">
+        <input id="weight" type="number" inputmode="none" placeholder="Base Weight" onclick="setActive(this)" oninput="handleInput(this)">
+        <span class="clear-btn" onclick="clearField('weight')">✕</span>
+      </div>
+      <select id="unit" onchange="calculate()">
+        <option value="kg">Kg</option>
+        <option value="g">Gram</option>
+      </select>
     </div>
-    <select id="targetUnit" onchange="calculate()">
-      <option value="rs">Rs</option>
-      <option value="kg">Kg</option>
-      <option value="g">Gram</option>
-    </select>
-  </div>
 
-  <div class="result-box" id="result">
-    <span style="font-size:16px; color:var(--text-muted); font-weight:500;">Enter values to calculate</span>
+    <div class="row" style="margin-top:20px; padding-top:20px; border-top:1px solid var(--bg-input);">
+      <div class="input-wrapper flex-2">
+        <input id="targetVal" type="number" inputmode="none" list="target-sug" placeholder="🔍 Find for..." onclick="setActive(this)" oninput="handleInput(this)">
+        <span class="clear-btn" onclick="clearField('targetVal')">✕</span>
+        <datalist id="target-sug"></datalist>
+      </div>
+      <select id="targetUnit" onchange="calculate()">
+        <option value="rs">Rs</option>
+        <option value="kg">Kg</option>
+        <option value="g">Gram</option>
+      </select>
+    </div>
+
+    <div class="result-box" id="result">
+      <span style="font-size:16px; color:var(--text-muted); font-weight:500;">Enter values to calculate</span>
+    </div>
+
+    <button class="save-btn" id="saveBtn" onclick="saveToHistory()">💾 Save & Close</button>
   </div>
 
   <div class="numpad">
@@ -296,7 +327,7 @@
     <button onclick="pressKey('7')">7</button>
     <button onclick="pressKey('8')">8</button>
     <button onclick="pressKey('9')">9</button>
-    <button class="action" onclick="pressKey('C')">C</button>
+    <button onclick="pressKey('.')">.</button>
     <button onclick="pressKey('0')">0</button>
     <button class="action" onclick="pressKey('DEL')">⌫</button>
   </div>
@@ -305,6 +336,7 @@
 <script>
 let data = JSON.parse(localStorage.getItem("proData") || "[]");
 let activeInput = null;
+let currentValidData = null; // Used for saving manually
 
 function populateSuggestions() {
   let prices = [...new Set(data.map(d => d.p))];
@@ -338,7 +370,6 @@ function setActive(element) {
 
 function clearField(id) {
   document.getElementById(id).value = "";
-  document.getElementById(id).focus();
   setActive(document.getElementById(id));
   calculate();
 }
@@ -350,24 +381,35 @@ function handleInput(element) {
 
 function pressKey(val) {
   if (!activeInput) return;
-  if (val === 'C') activeInput.value = '';
-  else if (val === 'DEL') activeInput.value = activeInput.value.slice(0, -1);
-  else activeInput.value += val;
+  
+  // Prevent multiple dots
+  if (val === '.' && activeInput.value.includes('.')) return;
+  
+  if (val === 'DEL') {
+    activeInput.value = activeInput.value.slice(0, -1);
+  } else {
+    activeInput.value += val;
+  }
   
   calculate();
 }
 
-function autoSave(p, w, u, tv, tu, resultStr) {
-  if (data.length > 0 && data[0].p === p && data[0].w === w && data[0].tv === tv && data[0].tu === tu) return;
+// Function triggered ONLY when Save button is clicked
+function saveToHistory() {
+  if (!currentValidData) return;
   
+  let { p, w, u, tv, tu, resText } = currentValidData;
+  
+  // Remove duplicates
   data = data.filter(d => !(d.p === p && d.w === w && d.tv === tv && d.tu === tu));
   
-  data.unshift({ p, w, u, tv, tu, res: resultStr });
+  data.unshift({ p, w, u, tv, tu, res: resText });
   if(data.length > 50) data.pop(); 
   
   localStorage.setItem("proData", JSON.stringify(data));
   populateSuggestions();
   render();
+  closeCalc(); // Save ke baad apne aap band ho jayega
 }
 
 function calculate() {
@@ -376,9 +418,13 @@ function calculate() {
   let u = document.getElementById("unit").value;
   let tv = parseFloat(document.getElementById("targetVal").value);
   let tu = document.getElementById("targetUnit").value;
+  
+  let saveBtn = document.getElementById("saveBtn");
 
   if (isNaN(p) || isNaN(w) || p === 0 || w === 0) {
     document.getElementById("result").innerHTML = `<span style="font-size:16px; color:var(--text-muted); font-weight:500;">Enter Base Values</span>`;
+    saveBtn.classList.remove("active");
+    currentValidData = null;
     return;
   }
 
@@ -389,6 +435,8 @@ function calculate() {
 
   if (isNaN(tv) || tv === 0) {
     document.getElementById("result").innerHTML = `<span style="font-size:16px; color:var(--text-muted); font-weight:500;">Enter target to find...</span>`;
+    saveBtn.classList.remove("active");
+    currentValidData = null;
     return; 
   }
 
@@ -410,7 +458,10 @@ function calculate() {
   }
 
   document.getElementById("result").innerHTML = finalHtml;
-  autoSave(p, w, u, tv, tu, resText);
+  
+  // Valid data store kar lo taaki Save button kaam kare
+  currentValidData = { p, w, u, tv, tu, resText };
+  saveBtn.classList.add("active");
 }
 
 function loadHistoryItem(p, w, u, tv, tu) {
@@ -425,13 +476,12 @@ function loadHistoryItem(p, w, u, tv, tu) {
   calculate(); 
 }
 
-// Ye naya delete function hai
 function deleteHistory(event, index) {
-  event.stopPropagation(); // Click event ko parent tak jaane se rokna
-  data.splice(index, 1); // Array se delete karna
-  localStorage.setItem("proData", JSON.stringify(data)); // Storage update karna
+  event.stopPropagation(); 
+  data.splice(index, 1); 
+  localStorage.setItem("proData", JSON.stringify(data)); 
   populateSuggestions();
-  render(); // UI update karna
+  render(); 
 }
 
 function render() {
