@@ -11,7 +11,6 @@
     --bg-card: #1e293b;
     --bg-input: #334155;
     --accent: #0ea5e9;
-    --accent-hover: #0284c7;
     --success: #10b981;
     --danger: #ef4444;
     --text-main: #f8fafc;
@@ -26,6 +25,7 @@
     overflow: hidden; 
   }
 
+  /* Top Search Bar */
   .top { 
     padding: 12px 15px; 
     background: var(--bg-card); 
@@ -78,15 +78,15 @@
     transition: 0.2s; 
     z-index: 5;
   }
-  /* Clear button logic updated for readonly fields */
   input:not(:placeholder-shown) + .clear-btn, input.active-input + .clear-btn { opacity: 1; }
   .clear-btn:hover { background: var(--danger); }
 
+  /* History List */
   .history { 
     padding: 10px; 
-    height: calc(100vh - 65px); 
+    height: calc(100vh - 125px); /* Adjusted for bottom nav */
     overflow-y: auto; 
-    padding-bottom: 80px; 
+    padding-bottom: 20px; 
   }
   
   .item { 
@@ -123,24 +123,57 @@
     cursor: pointer;
   }
   
-  .fab { 
-    position: fixed; 
-    right: 15px; 
-    bottom: 15px; 
-    width: 50px; 
-    height: 50px; 
-    border-radius: 50%; 
-    background: var(--accent); 
-    color: #fff; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    font-size: 20px; 
-    cursor: pointer; 
-    box-shadow: 0 4px 10px rgba(14, 165, 233, 0.4); 
-    z-index: 10; 
+  /* Bottom Navigation Bar */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: var(--bg-card);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    box-shadow: 0 -4px 10px rgba(0,0,0,0.3);
+    z-index: 10;
   }
-  
+
+  .nav-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'Poppins', sans-serif;
+    font-size: 11px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    text-decoration: none; /* For link styling */
+    transition: 0.2s;
+  }
+
+  .nav-btn span { font-size: 20px; margin-bottom: 2px; }
+  .nav-btn.active { color: var(--accent); font-weight: 600; }
+
+  /* Center Calculator Action Button */
+  .action-fab {
+    background: var(--accent);
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 4px 10px rgba(14, 165, 233, 0.4);
+    cursor: pointer;
+    transition: 0.2s;
+    margin-top: -20px; /* Thoda upar utha hua dikhne ke liye */
+  }
+  .action-fab:active { transform: scale(0.95); }
+
+  /* Full Screen Calculator Panel */
   .calc { 
     position: fixed; 
     left: 0; 
@@ -167,6 +200,7 @@
     cursor: pointer; 
     font-weight: 600; 
     font-size: 12px; 
+    border: none;
   }
 
   .row { display: flex; gap: 6px; align-items: center; margin-top: 6px; }
@@ -209,6 +243,7 @@
 </head>
 <body>
 
+<!-- Main History Screen -->
 <div class="top">
   <div class="input-wrapper" style="margin-top: 0;">
     <input id="search" placeholder="🔍 Search calculations..." oninput="render()">
@@ -216,12 +251,28 @@
 </div>
 
 <div class="history" id="history"></div>
-<div class="fab" onclick="openNewCalc()">⌨️</div>
 
-<div class="calc" id="calc">
+<!-- Bottom Navigation Bar -->
+<div class="bottom-nav">
+  <!-- 1st Icon: History (Active) -->
+  <button class="nav-btn active">
+    <span>🕒</span>History
+  </button>
+  
+  <!-- Center Button: Calculator Icon -->
+  <div class="action-fab" onclick="openCalcPanel()">🧮</div>
+  
+  <!-- 3rd Icon: Shopping (Ye baad mein shopping/notes file par le jayega) -->
+  <a href="#" class="nav-btn">
+    <span>🛒</span>Shopping
+  </a>
+</div>
+
+<!-- Full Screen Calculator Panel -->
+<div class="calc" id="calcPanel">
   <div class="header-row">
     <h3>Calculator</h3>
-    <div class="btn-close" onclick="closeCalc()">✕ Close</div>
+    <button class="btn-close" onclick="closeCalcPanel()">✕ Close</button>
   </div>
 
   <div class="input-wrapper">
@@ -276,21 +327,21 @@
 let data = JSON.parse(localStorage.getItem("proData") || "[]");
 let activeInput = null;
 
-function openNewCalc() {
+function openCalcPanel() {
   document.getElementById("price").value = "";
   document.getElementById("weight").value = "1"; 
   document.getElementById("unit").value = "kg";
   document.getElementById("targetVal").value = "";
   document.getElementById("targetUnit").value = "rs";
   
-  document.getElementById("calc").classList.add("active");
+  document.getElementById("calcPanel").classList.add("active");
   setActive(document.getElementById("price")); 
   calculate();
 }
 
-function closeCalc() {
+function closeCalcPanel() {
   saveCurrentState(); 
-  document.getElementById("calc").classList.remove("active");
+  document.getElementById("calcPanel").classList.remove("active");
 }
 
 function setActive(element) {
@@ -396,7 +447,7 @@ function loadHistoryItem(p, w, u, tv, tu) {
   document.getElementById("targetVal").value = tv; 
   document.getElementById("targetUnit").value = tu; 
   
-  document.getElementById("calc").classList.add("active");
+  document.getElementById("calcPanel").classList.add("active");
   setActive(document.getElementById("targetVal")); 
   calculate(); 
 }
