@@ -30,7 +30,7 @@
   }
   .top h2 { margin: 0; font-size: 18px; color: var(--accent); }
   
-  .header-btns { display: flex; gap: 8px; }
+  .header-btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;}
   .btn-small { 
     background: var(--bg-input); color: var(--text-main); border: none; 
     padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; 
@@ -122,6 +122,35 @@
   }
   .analytics-result h3 { margin: 0 0 10px 0; font-size: 14px; color: var(--text-muted); }
   .analytics-result .total-val { font-size: 28px; font-weight: bold; color: var(--danger); }
+
+  /* Data Table Styling (Excel Like) inside Analytics */
+  .data-table-wrapper {
+    overflow-x: auto;
+    width: 100%;
+    background: var(--bg-card);
+    border-radius: 10px;
+    border: 1px solid var(--bg-input);
+  }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .data-table th {
+    background: var(--bg-input);
+    color: var(--text-muted);
+    padding: 10px 12px;
+    font-weight: 600;
+  }
+  .data-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--bg-input);
+  }
+  .data-table tr:hover td {
+    background: rgba(255, 255, 255, 0.05);
+  }
 
   /* Undo Snackbar */
   #snackbar {
@@ -215,15 +244,36 @@
     <input type="date" id="customFilterDate" style="display:none;" onchange="runAnalytics()">
     
     <div class="analytics-result">
-      <h3 id="analyticsLabel">Total Spent Today</h3>
+      <h3 id="analyticsLabel">Total Spent</h3>
       <div class="total-val" id="analyticsTotal">₹ 0</div>
     </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+       <span style="font-size: 14px; font-weight: 600; color: var(--text-main);">📋 Filtered Data</span>
+       <button class="btn-small" style="background: var(--success); color: white;" onclick="exportCSV()">⬇️ Export CSV</button>
+    </div>
+    
+    <div class="data-table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Item</th>
+            <th>Qty</th>
+            <th>Price</th>
+          </tr>
+        </thead>
+        <tbody id="analyticsTableBody">
+          </tbody>
+      </table>
+    </div>
+
   </div>
 </div>
 
 <div id="snackbar">
   <span id="snackText">Deleted</span>
-  <button class="undo-btn" onclick="undoDelete()">UNDO</button>
+  <button class="undo-btn" id="undoBtnAction" onclick="undoDelete()">UNDO</button>
 </div>
 
 <div class="bottom-nav">
@@ -239,7 +289,8 @@
 const DB_NAME = "SmartShopV4";
 let db;
 let uniqueItemsDict = {}; 
-let allExpensesCache = []; // For fast filtering
+let allExpensesCache = []; 
+let currentFilteredData = []; // Store current filtered data for table and CSV
 
 let lastDeletedData = null;
 let lastDeletedType = null; 
@@ -254,16 +305,14 @@ request.onupgradeneeded = (e) => {
 request.onsuccess = (e) => { db = e.target.result; loadAllData(); };
 
 /* =========================================
-   2. Date Formatting (Fixed Year)
+   2. Date Formatting
    ========================================= */
 function getDisplayDate() {
   const d = new Date();
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  // Year add kiya gaya hai
   return `${d.getDate()} ${months[d.getMonth()]}, ${d.getFullYear()} | ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
 }
 
-// System sorting/filtering ke liye ISO dates
 function getIsoDates() {
   const d = new Date();
   const year = d.getFullYear();
@@ -271,9 +320,9 @@ function getIsoDates() {
   const day = String(d.getDate()).padStart(2, '0');
   
   return {
-    full: `${year}-${month}-${day}`, // 2026-06-27
-    month: `${year}-${month}`,       // 2026-06
-    year: `${year}`                  // 2026
+    full: `${year}-${month}-${day}`, 
+    month: `${year}-${month}`,       
+    year: `${year}`                  
   };
 }
 
@@ -317,7 +366,17 @@ function addExpense() {
   const unit = document.getElementById("itemUnit").value;
   const price = parseFloat(document.getElementById("itemPrice").value);
 
-  if (!name || !qty || !price) return alert("Please fill Name, Qty, and Price!");
+  // Snackbar custom alert
+  if (!name || !qty || !price) {
+    document.getElementById("snackText").innerText = "Please fill Name, Qty, and Price!";
+    document.getElementById("undoBtnAction").style.display = "none";
+    document.getElementById("snackbar").classList.add("show");
+    setTimeout(() => { 
+        document.getElementById("snackbar").classList.remove("show"); 
+        setTimeout(() => document.getElementById("undoBtnAction").style.display = "block", 300);
+    }, 2500);
+    return;
+  }
 
   const tx = db.transaction("expenses", "readwrite");
   const iso = getIsoDates();
@@ -408,7 +467,7 @@ function loadAllData() {
       balEl.innerText = `₹ ${balance.toLocaleString('en-IN')}`;
       balEl.style.color = balance < 0 ? "var(--danger)" : "var(--success)";
       
-      // Update analytics if overlay is open
+      // Update analytics table instantly if overlay is open
       if(document.getElementById("analyticsOverlay").classList.contains("active")) runAnalytics();
     }
   };
@@ -433,6 +492,7 @@ function deleteItem(event, id, storeName) {
 function showSnackbar() {
   const snackbar = document.getElementById("snackbar");
   document.getElementById("snackText").innerText = lastDeletedType === 'expenses' ? "Item Deleted" : "Deposit Deleted";
+  document.getElementById("undoBtnAction").style.display = "block";
   snackbar.classList.add("show");
   clearTimeout(undoTimeout);
   undoTimeout = setTimeout(() => { snackbar.classList.remove("show"); lastDeletedData = null; }, 5000);
@@ -484,7 +544,7 @@ function saveNewOrder() {
 }
 
 /* =========================================
-   8. Overlays & Analytics Logic
+   8. Overlays & Analytics Logic 
    ========================================= */
 function openDepositPanel() { document.getElementById("depositOverlay").classList.add("active"); }
 function closeDepositPanel() { document.getElementById("depositOverlay").classList.remove("active"); }
@@ -503,13 +563,14 @@ function runAnalytics() {
   let targetIso = "";
   let label = "";
 
-  // Show/Hide custom date picker
   if (type === "custom") {
     customInput.style.display = "block";
     targetIso = customInput.value;
     if(!targetIso) {
       document.getElementById("analyticsLabel").innerText = "Select a date below";
       document.getElementById("analyticsTotal").innerText = "₹ 0";
+      document.getElementById("analyticsTableBody").innerHTML = "";
+      currentFilteredData = [];
       return;
     }
     label = `Spent on ${targetIso}`;
@@ -520,16 +581,79 @@ function runAnalytics() {
     else if(type === "year") { targetIso = iso.year; label = "Total Spent This Year"; }
   }
 
-  // Calculate sum based on filter target
   let sum = 0;
+  currentFilteredData = []; // Clear current data
+
   allExpensesCache.forEach(exp => {
-    if(type === "today" || type === "custom") { if(exp.isoDay === targetIso) sum += exp.price; }
-    else if(type === "month") { if(exp.isoMonth === targetIso) sum += exp.price; }
-    else if(type === "year") { if(exp.isoYear === targetIso) sum += exp.price; }
+    let match = false;
+    if(type === "today" || type === "custom") { if(exp.isoDay === targetIso) match = true; }
+    else if(type === "month") { if(exp.isoMonth === targetIso) match = true; }
+    else if(type === "year") { if(exp.isoYear === targetIso) match = true; }
+
+    if (match) {
+        sum += exp.price;
+        currentFilteredData.push(exp);
+    }
   });
 
   document.getElementById("analyticsLabel").innerText = label;
   document.getElementById("analyticsTotal").innerText = `₹ ${sum.toLocaleString('en-IN')}`;
+  
+  // Render the table with only filtered data
+  renderAnalyticsTable();
+}
+
+function renderAnalyticsTable() {
+  const tbody = document.getElementById("analyticsTableBody");
+  tbody.innerHTML = "";
+  
+  if (currentFilteredData.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No data found for this filter.</td></tr>`;
+    return;
+  }
+
+  currentFilteredData.forEach(exp => {
+    // Extracting just date (removing time) for cleaner table view
+    const dateOnly = exp.dateStr.split(" | ")[0]; 
+    
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td style="color: var(--text-muted); font-size: 11px; white-space: normal;">${dateOnly}</td>
+      <td style="font-weight: 600; white-space: normal;">${exp.name}</td>
+      <td>${exp.qty} ${exp.unit}</td>
+      <td style="color: var(--danger); font-weight: bold;">₹${exp.price}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function exportCSV() {
+  if (currentFilteredData.length === 0) {
+    document.getElementById("snackText").innerText = "No data to export!";
+    document.getElementById("undoBtnAction").style.display = "none";
+    document.getElementById("snackbar").classList.add("show");
+    setTimeout(() => { 
+        document.getElementById("snackbar").classList.remove("show"); 
+        setTimeout(() => document.getElementById("undoBtnAction").style.display = "block", 300);
+    }, 2500);
+    return;
+  }
+  
+  let csv = "Date & Time,Item Name,Quantity,Unit,Price (INR)\n";
+  currentFilteredData.forEach(exp => {
+    const safeName = exp.name.replace(/"/g, '""');
+    const safeDate = exp.dateStr.replace(/"/g, '""');
+    csv += `"${safeDate}","${safeName}",${exp.qty},"${exp.unit}",${exp.price}\n`;
+  });
+  
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `Filtered_Expenses_${getIsoDates().full}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 </script>
 </body>
