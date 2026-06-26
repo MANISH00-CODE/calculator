@@ -84,7 +84,7 @@
   /* History List */
   .history { 
     padding: 10px; 
-    height: calc(100vh - 125px); /* Adjusted for bottom nav */
+    height: calc(100vh - 125px); 
     overflow-y: auto; 
     padding-bottom: 20px; 
   }
@@ -148,12 +148,13 @@
     flex-direction: column;
     align-items: center;
     cursor: pointer;
-    text-decoration: none; /* For link styling */
+    text-decoration: none; 
     transition: 0.2s;
   }
 
   .nav-btn span { font-size: 20px; margin-bottom: 2px; }
-  .nav-btn.active { color: var(--accent); font-weight: 600; }
+  /* Aap chaho toh active class kisi ek par laga sakte ho, abhi shopping par di hai */
+  .nav-btn:hover { color: var(--text-main); }
 
   /* Center Calculator Action Button */
   .action-fab {
@@ -169,7 +170,7 @@
     box-shadow: 0 4px 10px rgba(14, 165, 233, 0.4);
     cursor: pointer;
     transition: 0.2s;
-    margin-top: -20px; /* Thoda upar utha hua dikhne ke liye */
+    margin-top: -20px; 
   }
   .action-fab:active { transform: scale(0.95); }
 
@@ -243,7 +244,6 @@
 </head>
 <body>
 
-<!-- Main History Screen -->
 <div class="top">
   <div class="input-wrapper" style="margin-top: 0;">
     <input id="search" placeholder="🔍 Search calculations..." oninput="render()">
@@ -252,23 +252,18 @@
 
 <div class="history" id="history"></div>
 
-<!-- Bottom Navigation Bar -->
 <div class="bottom-nav">
-  <!-- 1st Icon: History (Active) -->
-  <button class="nav-btn active">
-    <span>🕒</span>History
-  </button>
+  <a href="shopping.html" class="nav-btn">
+    <span>🛒</span>Shopping
+  </a>
   
-  <!-- Center Button: Calculator Icon -->
   <div class="action-fab" onclick="openCalcPanel()">🧮</div>
   
-  <!-- 3rd Icon: Shopping (Ye baad mein shopping/notes file par le jayega) -->
-  <a href="#" class="nav-btn">
-    <span>🛒</span>Shopping
+  <a href="notes.html" class="nav-btn">
+    <span>📝</span>Notes
   </a>
 </div>
 
-<!-- Full Screen Calculator Panel -->
 <div class="calc" id="calcPanel">
   <div class="header-row">
     <h3>Calculator</h3>
