@@ -37,7 +37,6 @@
   .input-wrapper { position: relative; width: 100%; margin-top: 4px; display: flex; flex-direction: column; }
   .input-wrapper.flex-2 { flex: 2; margin-top: 0; }
   
-  /* Inputs aur compact kar diye */
   input, select { 
     width: 100%; 
     padding: 10px 30px 10px 12px; 
@@ -77,8 +76,10 @@
     cursor: pointer; 
     opacity: 0; 
     transition: 0.2s; 
+    z-index: 5;
   }
-  input:valid + .clear-btn, input:focus + .clear-btn, input.active-input + .clear-btn { opacity: 1; }
+  /* Clear button logic updated for readonly fields */
+  input:not(:placeholder-shown) + .clear-btn, input.active-input + .clear-btn { opacity: 1; }
   .clear-btn:hover { background: var(--danger); }
 
   .history { 
@@ -140,13 +141,12 @@
     z-index: 10; 
   }
   
-  /* Full Screen Calculator */
   .calc { 
     position: fixed; 
     left: 0; 
     bottom: -100%; 
     width: 100%; 
-    height: 100%; /* Ab full screen */
+    height: 100%; 
     background: var(--bg-main); 
     transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); 
     padding: 15px; 
@@ -172,7 +172,6 @@
   .row { display: flex; gap: 6px; align-items: center; margin-top: 6px; }
   .row select { flex: 1; margin-top: 0; }
 
-  /* Chota result box */
   .result-box { 
     margin-top: 10px; 
     padding: 12px; 
@@ -185,12 +184,11 @@
     border: 1px dashed var(--accent); 
   }
 
-  /* Compact Numpad */
   .numpad { 
     display: grid; 
     grid-template-columns: repeat(3, 1fr); 
-    gap: 6px; /* Gap kam kiya */
-    margin-top: auto; /* Screen me niche fix rakhne ke liye */
+    gap: 6px; 
+    margin-top: auto; 
     padding-bottom: 10px; 
   }
   .numpad button { 
@@ -198,8 +196,8 @@
     color: var(--text-main); 
     border: none; 
     border-radius: 8px; 
-    padding: 12px; /* Pad kafi kam kiya */
-    font-size: 16px; /* Font size chota kiya */
+    padding: 12px; 
+    font-size: 16px; 
     font-weight: 600; 
     font-family: 'Poppins', sans-serif;
     cursor: pointer; 
@@ -227,14 +225,13 @@
   </div>
 
   <div class="input-wrapper">
-    <input id="price" type="number" inputmode="none" list="price-sug" placeholder="Base Price (Rs)" onclick="setActive(this)" oninput="handleInput(this)">
+    <input id="price" placeholder="Base Price (Rs)" readonly onclick="setActive(this)">
     <span class="clear-btn" onclick="clearField('price')">✕</span>
-    <datalist id="price-sug"></datalist>
   </div>
   
   <div class="row">
     <div class="input-wrapper flex-2">
-      <input id="weight" type="number" inputmode="none" placeholder="Base Weight" onclick="setActive(this)" oninput="handleInput(this)">
+      <input id="weight" placeholder="Base Weight" readonly onclick="setActive(this)">
       <span class="clear-btn" onclick="clearField('weight')">✕</span>
     </div>
     <select id="unit" onchange="calculate()">
@@ -245,9 +242,8 @@
 
   <div class="row" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--bg-input);">
     <div class="input-wrapper flex-2">
-      <input id="targetVal" type="number" inputmode="none" list="target-sug" placeholder="🔍 Find for..." onclick="setActive(this)" oninput="handleInput(this)">
+      <input id="targetVal" placeholder="🔍 Find for..." readonly onclick="setActive(this)">
       <span class="clear-btn" onclick="clearField('targetVal')">✕</span>
-      <datalist id="target-sug"></datalist>
     </div>
     <select id="targetUnit" onchange="calculate()">
       <option value="rs">Rs</option>
@@ -280,14 +276,6 @@
 let data = JSON.parse(localStorage.getItem("proData") || "[]");
 let activeInput = null;
 
-function populateSuggestions() {
-  let prices = [...new Set(data.map(d => d.p))];
-  let targets = [...new Set(data.map(d => d.tv))];
-  
-  document.getElementById("price-sug").innerHTML = prices.map(p => `<option value="${p}">`).join('');
-  document.getElementById("target-sug").innerHTML = targets.map(t => `<option value="${t}">`).join('');
-}
-
 function openNewCalc() {
   document.getElementById("price").value = "";
   document.getElementById("weight").value = "1"; 
@@ -300,9 +288,8 @@ function openNewCalc() {
   calculate();
 }
 
-// Ab jab calculator band karenge toh apne aap save ho jayega (Sirf final result)
 function closeCalc() {
-  saveCurrentState(); // Yahan automatically save call ho raha hai
+  saveCurrentState(); 
   document.getElementById("calc").classList.remove("active");
 }
 
@@ -318,11 +305,6 @@ function clearField(id) {
   calculate();
 }
 
-function handleInput(element) {
-  setActive(element);
-  calculate();
-}
-
 function pressKey(val) {
   if (!activeInput) return;
   if (val === '.' && activeInput.value.includes('.')) return;
@@ -335,7 +317,6 @@ function pressKey(val) {
   calculate();
 }
 
-// Ye function background me chalta hai Final save karne ke liye
 function saveCurrentState() {
   let p = parseFloat(document.getElementById("price").value);
   let w = parseFloat(document.getElementById("weight").value);
@@ -343,7 +324,6 @@ function saveCurrentState() {
   let tv = parseFloat(document.getElementById("targetVal").value);
   let tu = document.getElementById("targetUnit").value;
   
-  // Agar values adhoori hain toh save nahi karega
   if (isNaN(p) || isNaN(w) || isNaN(tv) || p === 0 || w === 0 || tv === 0) return;
 
   let baseGram = u === "kg" ? w * 1000 : w;
@@ -359,14 +339,11 @@ function saveCurrentState() {
     resText = `${(tv * perGram).toFixed(2)} Rs`;
   }
 
-  // Duplicate check
   data = data.filter(d => !(d.p === p && d.w === w && d.tv === tv && d.tu === tu));
-  
   data.unshift({ p, w, u, tv, tu, res: resText });
   if(data.length > 50) data.pop(); 
   
   localStorage.setItem("proData", JSON.stringify(data));
-  populateSuggestions();
   render();
 }
 
@@ -428,7 +405,6 @@ function deleteHistory(event, index) {
   event.stopPropagation(); 
   data.splice(index, 1); 
   localStorage.setItem("proData", JSON.stringify(data)); 
-  populateSuggestions();
   render(); 
 }
 
@@ -452,7 +428,6 @@ function render() {
   document.getElementById("history").innerHTML = html;
 }
 
-populateSuggestions();
 render();
 </script>
 </body>
