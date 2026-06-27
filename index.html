@@ -153,7 +153,6 @@
   }
 
   .nav-btn span { font-size: 20px; margin-bottom: 2px; }
-  /* Aap chaho toh active class kisi ek par laga sakte ho, abhi shopping par di hai */
   .nav-btn:hover { color: var(--text-main); }
 
   /* Center Calculator Action Button */
@@ -240,6 +239,20 @@
   }
   .numpad button:active { background: var(--bg-input); transform: scale(0.95); }
   .numpad button.action { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+
+  /* Undo Snackbar */
+  #snackbar {
+    visibility: hidden; min-width: 250px; background-color: var(--bg-input); color: #fff;
+    text-align: center; border-radius: 10px; padding: 15px 20px; position: fixed;
+    z-index: 1000; left: 50%; bottom: 80px; transform: translateX(-50%); display: flex;
+    justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    opacity: 0; transition: opacity 0.3s, bottom 0.3s; font-size: 14px; border: 1px solid var(--accent);
+  }
+  #snackbar.show { visibility: visible; opacity: 1; bottom: 90px; }
+  .undo-btn {
+    color: var(--accent); font-weight: bold; cursor: pointer; border: none; background: none;
+    margin-left: 15px; font-family: inherit; font-size: 14px; padding: 5px 10px; border-radius: 6px;
+  }
 </style>
 </head>
 <body>
@@ -251,6 +264,11 @@
 </div>
 
 <div class="history" id="history"></div>
+
+<div id="snackbar">
+  <span>Calculation deleted</span>
+  <button class="undo-btn" onclick="undoDelete()">UNDO</button>
+</div>
 
 <div class="bottom-nav">
   <a href="shopping.html" class="nav-btn">
@@ -321,6 +339,11 @@
 <script>
 let data = JSON.parse(localStorage.getItem("proData") || "[]");
 let activeInput = null;
+
+// Undo State Variables
+let deletedItemData = null;
+let deletedItemIndex = null;
+let undoTimeout = null;
 
 function openCalcPanel() {
   document.getElementById("price").value = "";
@@ -449,9 +472,45 @@ function loadHistoryItem(p, w, u, tv, tu) {
 
 function deleteHistory(event, index) {
   event.stopPropagation(); 
+  
+  // 1. Save data for undo before deleting
+  deletedItemData = data[index];
+  deletedItemIndex = index;
+  
+  // 2. Delete the item
   data.splice(index, 1); 
   localStorage.setItem("proData", JSON.stringify(data)); 
   render(); 
+  
+  // 3. Show Snackbar
+  showUndoSnackbar();
+}
+
+function showUndoSnackbar() {
+  const snackbar = document.getElementById("snackbar");
+  snackbar.classList.add("show");
+  
+  clearTimeout(undoTimeout);
+  undoTimeout = setTimeout(() => {
+    snackbar.classList.remove("show");
+    deletedItemData = null; // Clear memory after 5 seconds
+    deletedItemIndex = null;
+  }, 5000);
+}
+
+function undoDelete() {
+  if (!deletedItemData) return;
+  
+  // Put the item exactly back where it was
+  data.splice(deletedItemIndex, 0, deletedItemData);
+  localStorage.setItem("proData", JSON.stringify(data)); 
+  render();
+  
+  // Hide Snackbar
+  document.getElementById("snackbar").classList.remove("show");
+  deletedItemData = null;
+  deletedItemIndex = null;
+  clearTimeout(undoTimeout);
 }
 
 function render() {
