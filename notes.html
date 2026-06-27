@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Notes Pro V6</title>
+<title>Smart Notes Pro V7</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -77,11 +77,11 @@
   
   .note-text { font-size: 14px; white-space: pre-wrap; line-height: 1.5; }
   
-  /* Multiple Media Grids */
-  .images-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; width: 100%; }
+  /* Multiple Media Grids (Fixed Images Size) */
+  .images-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px; width: 100%; }
   .audio-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; width: 100%; }
   
-  .note-img { height: 80px; border-radius: 6px; object-fit: cover; cursor: pointer; border: 1px solid var(--bg-input); }
+  .note-img { max-width: 100%; max-height: 250px; border-radius: 8px; object-fit: contain; cursor: pointer; border: 1px solid var(--bg-input); }
   audio { width: 100%; height: 40px; }
 
   /* Checkboxes */
@@ -133,7 +133,7 @@
     position: relative; z-index: 2; background: transparent; border: none; color: var(--text-main);
     resize: none; outline: none; margin: 0; width: 100%; height: 100%;
     padding: 15px; font-family: 'Poppins', sans-serif; font-size: 15px; line-height: 1.5;
-    box-sizing: border-box; caret-color: var(--text-main); /* Cursor color */
+    box-sizing: border-box; caret-color: var(--text-main);
   }
 
   /* Toolbars & Previews */
@@ -149,9 +149,9 @@
   .media-btn.recording { background: var(--danger); animation: pulse 1.5s infinite; }
   @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-  .preview-section { display: flex; flex-wrap: wrap; gap: 10px; }
-  .preview-wrapper { position: relative; }
-  .preview-img { height: 100px; border-radius: 8px; border: 1px solid var(--accent); object-fit: cover; }
+  .preview-section { display: flex; flex-direction: column; gap: 15px; }
+  .preview-wrapper { position: relative; display: inline-block; }
+  .preview-img { max-width: 100%; max-height: 200px; border-radius: 8px; border: 1px solid var(--accent); object-fit: contain; }
   .btn-remove-media {
     position: absolute; top: -5px; right: -5px; background: var(--danger); color: white;
     border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 10px; z-index: 5;
@@ -205,7 +205,7 @@
       <span style="font-weight: 600; font-size: 16px;">Edit Note</span>
       <button class="btn-close-editor" onclick="closeEditor()">✕ Save & Close</button>
     </div>
-    <input type="text" id="editorSearch" class="editor-search" placeholder="🔍 Find & Highlight word..." oninput="findInEditor()">
+    <input type="text" id="editorSearch" class="editor-search" placeholder="🔍 Find word to scroll to..." oninput="findInEditor()">
   </div>
   
   <div class="editor-body">
@@ -245,7 +245,7 @@
 /* =========================================
    1. IndexedDB Engine Setup
    ========================================= */
-const DB_NAME = "ProSmartNotesV6";
+const DB_NAME = "ProSmartNotesV7";
 const STORE_NAME = "notes_multimedia";
 let db;
 let currentEditingId = null; 
@@ -306,7 +306,7 @@ function filterNotes() {
    ========================================= */
 function applyHighlights(text, query) {
   let escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  if (!query) return escaped.replace(/\n$/g, '\n\n'); // Keep line breaks synced
+  if (!query) return escaped.replace(/\n$/g, '\n\n'); 
   const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const regex = new RegExp(`(${escapedQuery})`, 'gi');
   return escaped.replace(regex, '<mark>$1</mark>').replace(/\n$/g, '\n\n');
@@ -323,9 +323,20 @@ function handleScroll() {
   document.getElementById("backdrop").scrollLeft = document.getElementById("noteText").scrollLeft;
 }
 
+// Naya find function jo bas scroll karega, select nahi karega
 function findInEditor() {
-  handleInput(); // Ye sirf background mein highlight karega!
-  // Cursor hijacking hata di gayi hai taaki aap aaram se edit kar sako.
+  handleInput(); // Ye pehle highlight mark add karega
+  const query = document.getElementById("editorSearch").value;
+  
+  if (query) {
+    const mark = document.querySelector("#highlights mark");
+    if (mark) {
+      const textarea = document.getElementById("noteText");
+      // Scroll to the highlighted word without hijacking selection
+      textarea.scrollTop = mark.offsetTop - 30;
+      handleScroll(); // Sync the background layer scroll
+    }
+  }
 }
 
 function openEditor(noteId = null) {
@@ -341,11 +352,8 @@ function openEditor(noteId = null) {
       const note = e.target.result;
       if (note) {
         document.getElementById("noteText").value = note.text || "";
-        
-        // COPY the arrays safely so we don't mess up original references
         currentMedia.images = note.images ? [...note.images] : (note.img ? [note.img] : []);
         currentMedia.audios = note.audios ? [...note.audios] : (note.audio ? [note.audio] : []);
-        
         updatePreviewUI();
         handleInput(); 
       }
@@ -432,7 +440,7 @@ window.toggleTask = function(event, noteId, taskIndex) {
 };
 
 /* =========================================
-   5. Media Management (Multiple Audio/Img FIXED)
+   5. Media Management
    ========================================= */
 document.getElementById("imageInput").addEventListener("change", function(e) {
   const files = e.target.files;
@@ -472,7 +480,6 @@ async function toggleRecording() {
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
         const reader = new FileReader();
         reader.onload = () => { 
-          // Push strictly into array
           currentMedia.audios.push(reader.result); 
           updatePreviewUI(); 
         };
@@ -492,17 +499,18 @@ function removeAudio(index) { currentMedia.audios.splice(index, 1); updatePrevie
 
 function updatePreviewUI() {
   const previewSection = document.getElementById("previewSection");
-  let htmlString = "";
+  let htmlString = `<div style="display: flex; gap: 10px; flex-wrap: wrap; width: 100%;">`;
   
   currentMedia.images.forEach((imgData, index) => {
     htmlString += `<div class="preview-wrapper"><img class="preview-img" src="${imgData}"><button class="btn-remove-media" onclick="removeImage(${index})">✕</button></div>`;
   });
+  htmlString += `</div><div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">`;
 
   currentMedia.audios.forEach((audioData, index) => {
-    htmlString += `<div class="audio-wrapper"><audio controls src="${audioData}"></audio><button class="btn-remove-media" onclick="removeAudio(${index})" style="top:-10px;">✕</button></div>`;
+    htmlString += `<div class="audio-wrapper"><audio controls src="${audioData}"></audio><button class="btn-remove-media" onclick="removeAudio(${index})" style="top:-5px;">✕</button></div>`;
   });
   
-  // Assign completely instead of += to avoid DOM glitches
+  htmlString += `</div>`;
   previewSection.innerHTML = htmlString;
 }
 
