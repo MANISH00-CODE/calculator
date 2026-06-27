@@ -63,7 +63,7 @@
   .btn-add { 
     padding: 12px; border-radius: 10px; border: none; font-size: 15px; 
     font-weight: 600; cursor: pointer; background: var(--accent); color: white;
-    font-family: 'Poppins', sans-serif; width: 100%; margin-top: 5px;
+    font-family: 'Poppins', sans-serif; width: 100%; margin-top: 5px; transition: 0.3s;
   }
 
   /* Custom Suggestion Box */
@@ -94,14 +94,20 @@
   .entry-right { display: flex; align-items: center; gap: 12px; }
   .entry-amount { font-size: 16px; font-weight: 700; color: var(--danger); }
 
-  .controls { display: flex; gap: 10px; align-items: center; }
+  .controls { display: flex; gap: 8px; align-items: center; }
   .drag-handle { cursor: grab; font-size: 18px; color: var(--text-muted); padding: 5px; }
+  
+  .btn-edit { 
+    background: rgba(245, 158, 11, 0.1); color: var(--warning); border: none; 
+    border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer;
+  }
+  
   .btn-delete { 
     background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; 
     border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer;
   }
 
-  /* Overlays (Deposit & Analytics) */
+  /* Overlays */
   .overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-main);
     z-index: 200; display: none; flex-direction: column;
@@ -123,34 +129,13 @@
   .analytics-result h3 { margin: 0 0 10px 0; font-size: 14px; color: var(--text-muted); }
   .analytics-result .total-val { font-size: 28px; font-weight: bold; color: var(--danger); }
 
-  /* Data Table Styling (Excel Like) inside Analytics */
   .data-table-wrapper {
-    overflow-x: auto;
-    width: 100%;
-    background: var(--bg-card);
-    border-radius: 10px;
-    border: 1px solid var(--bg-input);
+    overflow-x: auto; width: 100%; background: var(--bg-card); border-radius: 10px; border: 1px solid var(--bg-input);
   }
-  .data-table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: left;
-    font-size: 13px;
-    white-space: nowrap;
-  }
-  .data-table th {
-    background: var(--bg-input);
-    color: var(--text-muted);
-    padding: 10px 12px;
-    font-weight: 600;
-  }
-  .data-table td {
-    padding: 10px 12px;
-    border-bottom: 1px solid var(--bg-input);
-  }
-  .data-table tr:hover td {
-    background: rgba(255, 255, 255, 0.05);
-  }
+  .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; white-space: nowrap; }
+  .data-table th { background: var(--bg-input); color: var(--text-muted); padding: 10px 12px; font-weight: 600; }
+  .data-table td { padding: 10px 12px; border-bottom: 1px solid var(--bg-input); }
+  .data-table tr:hover td { background: rgba(255, 255, 255, 0.05); }
 
   /* Undo Snackbar */
   #snackbar {
@@ -208,7 +193,7 @@
     <input type="number" id="itemPrice" placeholder="₹ Price" min="0" step="any">
   </div>
 
-  <button class="btn-add" onclick="addExpense()">➕ Add Expense</button>
+  <button class="btn-add" id="btnAddUpdate" onclick="addExpense()">➕ Add Expense</button>
 </div>
 
 <div id="history-container"></div>
@@ -263,11 +248,9 @@
             <th>Price</th>
           </tr>
         </thead>
-        <tbody id="analyticsTableBody">
-          </tbody>
+        <tbody id="analyticsTableBody"></tbody>
       </table>
     </div>
-
   </div>
 </div>
 
@@ -290,11 +273,13 @@ const DB_NAME = "SmartShopV4";
 let db;
 let uniqueItemsDict = {}; 
 let allExpensesCache = []; 
-let currentFilteredData = []; // Store current filtered data for table and CSV
+let currentFilteredData = []; 
 
 let lastDeletedData = null;
 let lastDeletedType = null; 
 let undoTimeout = null;
+
+let currentEditId = null; // Track item being edited
 
 const request = indexedDB.open(DB_NAME, 1);
 request.onupgradeneeded = (e) => {
@@ -318,16 +303,11 @@ function getIsoDates() {
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
-  
-  return {
-    full: `${year}-${month}-${day}`, 
-    month: `${year}-${month}`,       
-    year: `${year}`                  
-  };
+  return { full: `${year}-${month}-${day}`, month: `${year}-${month}`, year: `${year}` };
 }
 
 /* =========================================
-   3. Auto-Fill Suggestions
+   3. Auto-Fill & Suggestions
    ========================================= */
 const nameInput = document.getElementById("itemName");
 const sugBox = document.getElementById("suggestionBox");
@@ -343,8 +323,9 @@ nameInput.addEventListener("input", (e) => {
     matches.forEach(m => {
       const div = document.createElement("div");
       div.className = "suggestion-item";
-      div.innerHTML = `<strong>${m}</strong> <span style="color:var(--text-muted); font-size:11px;">(₹${uniqueItemsDict[m].price})</span>`;
+      div.innerHTML = `<strong>${m}</strong> <span style="color:var(--text-muted); font-size:11px;">(${uniqueItemsDict[m].qty} ${uniqueItemsDict[m].unit} - ₹${uniqueItemsDict[m].price})</span>`;
       div.onclick = () => {
+        // Auto-fill all inputs based on the clicked suggestion
         document.getElementById("itemName").value = m;
         document.getElementById("itemQty").value = uniqueItemsDict[m].qty;
         document.getElementById("itemUnit").value = uniqueItemsDict[m].unit;
@@ -355,10 +336,24 @@ nameInput.addEventListener("input", (e) => {
     });
   } else { sugBox.style.display = "none"; }
 });
+
+// Auto-fill when user leaves the name input box without clicking suggestions
+nameInput.addEventListener("blur", (e) => {
+  const val = e.target.value.trim();
+  if(!val) return;
+  const matchKey = Object.keys(uniqueItemsDict).find(k => k.toLowerCase() === val.toLowerCase());
+  if (matchKey) {
+    const item = uniqueItemsDict[matchKey];
+    if(!document.getElementById("itemQty").value) document.getElementById("itemQty").value = item.qty;
+    document.getElementById("itemUnit").value = item.unit; // Default back to previous unit
+    if(!document.getElementById("itemPrice").value) document.getElementById("itemPrice").value = item.price;
+  }
+});
+
 document.addEventListener("click", (e) => { if (e.target !== nameInput) sugBox.style.display = "none"; });
 
 /* =========================================
-   4. Add Data
+   4. Add / Update Data
    ========================================= */
 function addExpense() {
   const name = document.getElementById("itemName").value.trim();
@@ -366,36 +361,63 @@ function addExpense() {
   const unit = document.getElementById("itemUnit").value;
   const price = parseFloat(document.getElementById("itemPrice").value);
 
-  // Snackbar custom alert
   if (!name || !qty || !price) {
-    document.getElementById("snackText").innerText = "Please fill Name, Qty, and Price!";
-    document.getElementById("undoBtnAction").style.display = "none";
-    document.getElementById("snackbar").classList.add("show");
-    setTimeout(() => { 
-        document.getElementById("snackbar").classList.remove("show"); 
-        setTimeout(() => document.getElementById("undoBtnAction").style.display = "block", 300);
-    }, 2500);
+    showCustomAlert("Please fill Name, Qty, and Price!");
     return;
   }
 
   const tx = db.transaction("expenses", "readwrite");
-  const iso = getIsoDates();
-  
-  tx.objectStore("expenses").add({
-    name, qty, unit, price,
-    dateStr: getDisplayDate(),
-    isoDay: iso.full,
-    isoMonth: iso.month,
-    isoYear: iso.year,
-    order: Date.now()
-  });
+  const store = tx.objectStore("expenses");
+
+  if (currentEditId) {
+    // UPDATE EXISTING (Keep old date and order)
+    store.get(currentEditId).onsuccess = (e) => {
+      const existingData = e.target.result;
+      if (existingData) {
+        existingData.name = name;
+        existingData.qty = qty;
+        existingData.unit = unit;
+        existingData.price = price;
+        store.put(existingData);
+      }
+    };
+  } else {
+    // ADD NEW
+    const iso = getIsoDates();
+    store.add({
+      name, qty, unit, price,
+      dateStr: getDisplayDate(),
+      isoDay: iso.full, isoMonth: iso.month, isoYear: iso.year,
+      order: Date.now()
+    });
+  }
 
   tx.oncomplete = () => {
-    document.getElementById("itemName").value = "";
-    document.getElementById("itemQty").value = "";
-    document.getElementById("itemPrice").value = "";
+    resetInputs();
     loadAllData();
   };
+}
+
+function resetInputs() {
+  document.getElementById("itemName").value = "";
+  document.getElementById("itemQty").value = "";
+  document.getElementById("itemPrice").value = "";
+  
+  // Reset Edit Mode
+  currentEditId = null;
+  const btn = document.getElementById("btnAddUpdate");
+  btn.innerText = "➕ Add Expense";
+  btn.style.background = "var(--accent)";
+}
+
+function showCustomAlert(msg) {
+  document.getElementById("snackText").innerText = msg;
+  document.getElementById("undoBtnAction").style.display = "none";
+  document.getElementById("snackbar").classList.add("show");
+  setTimeout(() => { 
+      document.getElementById("snackbar").classList.remove("show"); 
+      setTimeout(() => document.getElementById("undoBtnAction").style.display = "block", 300);
+  }, 2500);
 }
 
 function addDeposit() {
@@ -439,6 +461,7 @@ function loadAllData() {
           <span class="entry-amount">-₹${exp.price}</span>
           <div class="controls">
             <span class="drag-handle">↕️</span>
+            <button class="btn-edit" onclick="editItem(event, ${exp.id})">✏️</button>
             <button class="btn-delete" onclick="deleteItem(event, ${exp.id}, 'expenses')">🗑️</button>
           </div>
         </div>
@@ -467,15 +490,35 @@ function loadAllData() {
       balEl.innerText = `₹ ${balance.toLocaleString('en-IN')}`;
       balEl.style.color = balance < 0 ? "var(--danger)" : "var(--success)";
       
-      // Update analytics table instantly if overlay is open
       if(document.getElementById("analyticsOverlay").classList.contains("active")) runAnalytics();
     }
   };
 }
 
 /* =========================================
-   6. Delete & Undo
+   6. Edit, Delete & Undo
    ========================================= */
+function editItem(event, id) {
+  event.stopPropagation();
+  const tx = db.transaction("expenses", "readonly");
+  tx.objectStore("expenses").get(id).onsuccess = (e) => {
+    const exp = e.target.result;
+    if (exp) {
+      document.getElementById("itemName").value = exp.name;
+      document.getElementById("itemQty").value = exp.qty;
+      document.getElementById("itemUnit").value = exp.unit;
+      document.getElementById("itemPrice").value = exp.price;
+      
+      currentEditId = id; // Store ID for updating
+      const btn = document.getElementById("btnAddUpdate");
+      btn.innerText = "✔️ Update Expense";
+      btn.style.background = "var(--warning)";
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll back to input boxes
+    }
+  };
+}
+
 function deleteItem(event, id, storeName) {
   event.stopPropagation();
   const tx = db.transaction(storeName, "readwrite");
@@ -486,7 +529,10 @@ function deleteItem(event, id, storeName) {
     lastDeletedType = storeName;
     store.delete(id);
   };
-  tx.oncomplete = () => { loadAllData(); showSnackbar(); };
+  tx.oncomplete = () => { 
+    if (currentEditId === id) resetInputs(); // If deleted while editing, reset edit mode
+    loadAllData(); showSnackbar(); 
+  };
 }
 
 function showSnackbar() {
@@ -549,10 +595,7 @@ function saveNewOrder() {
 function openDepositPanel() { document.getElementById("depositOverlay").classList.add("active"); }
 function closeDepositPanel() { document.getElementById("depositOverlay").classList.remove("active"); }
 
-function openAnalytics() { 
-  document.getElementById("analyticsOverlay").classList.add("active"); 
-  runAnalytics(); 
-}
+function openAnalytics() { document.getElementById("analyticsOverlay").classList.add("active"); runAnalytics(); }
 function closeAnalytics() { document.getElementById("analyticsOverlay").classList.remove("active"); }
 
 function runAnalytics() {
@@ -560,8 +603,7 @@ function runAnalytics() {
   const customInput = document.getElementById("customFilterDate");
   const iso = getIsoDates();
   
-  let targetIso = "";
-  let label = "";
+  let targetIso = ""; let label = "";
 
   if (type === "custom") {
     customInput.style.display = "block";
@@ -570,8 +612,7 @@ function runAnalytics() {
       document.getElementById("analyticsLabel").innerText = "Select a date below";
       document.getElementById("analyticsTotal").innerText = "₹ 0";
       document.getElementById("analyticsTableBody").innerHTML = "";
-      currentFilteredData = [];
-      return;
+      currentFilteredData = []; return;
     }
     label = `Spent on ${targetIso}`;
   } else {
@@ -581,8 +622,7 @@ function runAnalytics() {
     else if(type === "year") { targetIso = iso.year; label = "Total Spent This Year"; }
   }
 
-  let sum = 0;
-  currentFilteredData = []; // Clear current data
+  let sum = 0; currentFilteredData = []; 
 
   allExpensesCache.forEach(exp => {
     let match = false;
@@ -590,16 +630,11 @@ function runAnalytics() {
     else if(type === "month") { if(exp.isoMonth === targetIso) match = true; }
     else if(type === "year") { if(exp.isoYear === targetIso) match = true; }
 
-    if (match) {
-        sum += exp.price;
-        currentFilteredData.push(exp);
-    }
+    if (match) { sum += exp.price; currentFilteredData.push(exp); }
   });
 
   document.getElementById("analyticsLabel").innerText = label;
   document.getElementById("analyticsTotal").innerText = `₹ ${sum.toLocaleString('en-IN')}`;
-  
-  // Render the table with only filtered data
   renderAnalyticsTable();
 }
 
@@ -613,9 +648,7 @@ function renderAnalyticsTable() {
   }
 
   currentFilteredData.forEach(exp => {
-    // Extracting just date (removing time) for cleaner table view
     const dateOnly = exp.dateStr.split(" | ")[0]; 
-    
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td style="color: var(--text-muted); font-size: 11px; white-space: normal;">${dateOnly}</td>
@@ -629,14 +662,7 @@ function renderAnalyticsTable() {
 
 function exportCSV() {
   if (currentFilteredData.length === 0) {
-    document.getElementById("snackText").innerText = "No data to export!";
-    document.getElementById("undoBtnAction").style.display = "none";
-    document.getElementById("snackbar").classList.add("show");
-    setTimeout(() => { 
-        document.getElementById("snackbar").classList.remove("show"); 
-        setTimeout(() => document.getElementById("undoBtnAction").style.display = "block", 300);
-    }, 2500);
-    return;
+    showCustomAlert("No data to export!"); return;
   }
   
   let csv = "Date & Time,Item Name,Quantity,Unit,Price (INR)\n";
@@ -651,9 +677,7 @@ function exportCSV() {
   const link = document.createElement("a");
   link.setAttribute("href", url);
   link.setAttribute("download", `Filtered_Expenses_${getIsoDates().full}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  document.body.appendChild(link); link.click(); document.body.removeChild(link);
 }
 </script>
 </body>
