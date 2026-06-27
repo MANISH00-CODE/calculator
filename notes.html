@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Notes Pro</title>
+<title>Smart Notes Pro V3</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -23,19 +23,29 @@
     color: var(--text-main); overflow-x: hidden; padding-bottom: 80px; 
   }
 
-  /* Top Header */
+  /* Top Header & Search */
   .top { 
-    padding: 15px; background: var(--bg-card); box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
-    display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10;
+    padding: 15px 15px 5px 15px; background: var(--bg-card); 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 10;
   }
-  .top h2 { margin: 0; font-size: 20px; color: var(--accent); }
-  
+  .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .header-row h2 { margin: 0; font-size: 20px; color: var(--accent); }
   .header-actions { display: flex; gap: 10px; }
+  
   .btn-small { 
     background: var(--bg-input); color: var(--text-main); border: none; 
     padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; 
-    font-family: 'Poppins', sans-serif; transition: 0.2s;
+    font-family: 'Poppins', sans-serif; transition: 0.2s; font-weight: 600;
   }
+
+  /* Smart Search Bar */
+  .search-wrapper { position: relative; width: 100%; padding-bottom: 10px; }
+  .search-input {
+    width: 100%; padding: 10px 15px; background: var(--bg-main); border: 1px solid var(--bg-input); 
+    border-radius: 8px; color: var(--text-main); font-family: 'Poppins', sans-serif; font-size: 13px;
+    outline: none; box-sizing: border-box; transition: 0.3s;
+  }
+  .search-input:focus { border-color: var(--accent); }
 
   /* Floating Add Button */
   .fab-add {
@@ -64,11 +74,15 @@
     border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; 
     justify-content: center; font-size: 14px; cursor: pointer;
   }
+  
   .note-text { font-size: 14px; white-space: pre-wrap; line-height: 1.5; }
-  .note-img { max-width: 100%; border-radius: 8px; max-height: 200px; object-fit: cover; }
+  
+  /* Multiple Images Grid */
+  .images-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; }
+  .note-img { height: 80px; border-radius: 6px; object-fit: cover; cursor: pointer; border: 1px solid var(--bg-input); }
   audio { width: 100%; height: 40px; margin-top: 5px; }
 
-  /* Checkbox and Task Styles */
+  /* Checkboxes */
   .task-checkbox { margin: 0 6px 0 0; vertical-align: middle; cursor: pointer; accent-color: var(--success); width: 16px; height: 16px; }
   .task-done { text-decoration: line-through; color: var(--text-muted); transition: 0.2s; }
 
@@ -80,26 +94,30 @@
   .editor-overlay.active { display: flex; }
 
   .editor-header {
-    padding: 15px; background: var(--bg-card); display: flex; 
-    justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    padding: 10px 15px; background: var(--bg-card); display: flex; flex-direction: column; gap: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   }
-  .btn-close-editor {
-    background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none;
-    padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer;
+  .editor-top-row { display: flex; justify-content: space-between; align-items: center; }
+  .btn-close-editor { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+  
+  /* In-Editor Search */
+  .editor-search {
+    width: 100%; padding: 8px 12px; background: var(--bg-main); border: 1px solid var(--bg-input);
+    border-radius: 6px; color: var(--text-main); font-size: 12px; font-family: 'Poppins', sans-serif; outline: none;
   }
 
   .editor-body { flex: 1; padding: 15px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
   
   .rich-input-container {
     position: relative; background: var(--bg-card); border-radius: 12px;
-    border: 2px solid var(--bg-input); display: flex; flex-direction: column; min-height: 200px;
+    border: 2px solid var(--bg-input); display: flex; flex-direction: column; min-height: 300px;
   }
   .rich-input-container:focus-within { border-color: var(--accent); }
   
   textarea {
     flex: 1; width: 100%; padding: 15px; background: transparent; border: none;
     color: var(--text-main); font-family: 'Poppins', sans-serif; font-size: 15px;
-    resize: none; outline: none; box-sizing: border-box;
+    resize: none; outline: none; box-sizing: border-box; line-height: 1.5;
   }
 
   .inline-toolbar {
@@ -107,21 +125,22 @@
     border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; align-items: center;
   }
   .media-btn {
-    background: var(--bg-input); color: var(--text-main); border: none;
-    width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center;
-    justify-content: center; font-size: 18px; cursor: pointer; transition: 0.2s;
+    background: var(--bg-input); color: var(--text-main); border: none; width: 36px; height: 36px; 
+    border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; transition: 0.2s;
   }
   .media-btn:active { transform: scale(0.9); }
   .media-btn.recording { background: var(--danger); animation: pulse 1.5s infinite; }
   @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-  .preview-section { display: flex; flex-direction: column; gap: 10px; }
-  .preview-wrapper { position: relative; max-width: 100%; }
-  .preview-img { max-width: 100%; border-radius: 8px; max-height: 180px; object-fit: cover; }
+  /* Editor Preview Section */
+  .preview-section { display: flex; flex-wrap: wrap; gap: 10px; }
+  .preview-wrapper { position: relative; }
+  .preview-img { height: 100px; border-radius: 8px; border: 1px solid var(--accent); object-fit: cover; }
   .btn-remove-media {
-    position: absolute; top: 5px; right: 5px; background: var(--danger); color: white;
-    border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 12px;
+    position: absolute; top: -5px; right: -5px; background: var(--danger); color: white;
+    border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 10px;
   }
+  .audio-wrapper { width: 100%; position: relative; margin-top: 10px; }
 
   /* Undo Snackbar */
   #snackbar {
@@ -132,43 +151,32 @@
     opacity: 0; transition: opacity 0.3s, bottom 0.3s; font-size: 14px; border: 1px solid var(--accent);
   }
   #snackbar.show { visibility: visible; opacity: 1; bottom: 90px; }
-  .undo-btn {
-    color: var(--accent); font-weight: bold; cursor: pointer; border: none; background: none;
-    margin-left: 15px; font-family: inherit; font-size: 14px; padding: 5px 10px; border-radius: 6px;
-  }
-  .undo-btn:hover { background: rgba(14, 165, 233, 0.1); }
+  .undo-btn { color: var(--accent); font-weight: bold; cursor: pointer; border: none; background: none; margin-left: 15px; font-family: inherit; font-size: 14px; padding: 5px 10px; border-radius: 6px; }
 
   /* Bottom Nav */
-  .bottom-nav {
-    position: fixed; bottom: 0; left: 0; width: 100%; height: 60px;
-    background: var(--bg-card); display: flex; justify-content: space-around;
-    align-items: center; box-shadow: 0 -4px 10px rgba(0,0,0,0.3); z-index: 100;
-  }
-  .nav-btn {
-    background: none; border: none; color: var(--text-muted); font-size: 11px;
-    display: flex; flex-direction: column; align-items: center; cursor: pointer;
-    text-decoration: none; transition: 0.2s;
-  }
+  .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--bg-card); display: flex; justify-content: space-around; align-items: center; box-shadow: 0 -4px 10px rgba(0,0,0,0.3); z-index: 100; }
+  .nav-btn { background: none; border: none; color: var(--text-muted); font-size: 11px; display: flex; flex-direction: column; align-items: center; cursor: pointer; text-decoration: none; transition: 0.2s; }
   .nav-btn span { font-size: 20px; margin-bottom: 2px; }
   .nav-btn.active { color: var(--accent); font-weight: 600; }
-  .action-fab {
-    background: var(--accent); color: white; width: 50px; height: 50px;
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-size: 24px; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.4);
-    cursor: pointer; text-decoration: none; margin-top: -20px; 
-  }
+  .action-fab { background: var(--accent); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.4); cursor: pointer; text-decoration: none; margin-top: -20px; }
 </style>
 </head>
 <body>
 
-<input type="file" id="imageInput" accept="image/*" style="display: none;">
+<input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
 <input type="file" id="importInput" accept=".json" style="display: none;">
 
 <div class="top">
-  <h2>📝 Smart Notes</h2>
-  <div class="header-actions">
-    <button class="btn-small" onclick="exportNotes()">📤 Export</button>
-    <button class="btn-small" onclick="document.getElementById('importInput').click()">📥 Import</button>
+  <div class="header-row">
+    <h2>📝 Smart Notes</h2>
+    <div class="header-actions">
+      <button class="btn-small" onclick="exportNotes()">📤 Export</button>
+      <button class="btn-small" onclick="document.getElementById('importInput').click()">📥 Import</button>
+    </div>
+  </div>
+  <div class="search-wrapper">
+    <input type="search" id="globalSearch" class="search-input" list="wordSuggestions" placeholder="🔍 Search in notes..." oninput="filterNotes()">
+    <datalist id="wordSuggestions"></datalist>
   </div>
 </div>
 
@@ -178,8 +186,11 @@
 
 <div class="editor-overlay" id="editorOverlay">
   <div class="editor-header">
-    <span style="font-weight: 600; font-size: 16px;">Edit Note</span>
-    <button class="btn-close-editor" onclick="closeEditor()">✕ Save & Close</button>
+    <div class="editor-top-row">
+      <span style="font-weight: 600; font-size: 16px;">Edit Note</span>
+      <button class="btn-close-editor" onclick="closeEditor()">✕ Save & Close</button>
+    </div>
+    <input type="text" id="editorSearch" class="editor-search" placeholder="🔍 Find word in this note..." oninput="findInEditor()">
   </div>
   
   <div class="editor-body">
@@ -211,13 +222,14 @@
 /* =========================================
    1. IndexedDB Engine Setup
    ========================================= */
-const DB_NAME = "ProSmartNotesV2";
+const DB_NAME = "ProSmartNotesV4";
 const STORE_NAME = "notes_multimedia";
 let db;
 let currentEditingId = null; 
-let currentMedia = { img: null, audio: null };
+// Naya System: Ab 'images' ek Array hai
+let currentMedia = { images: [], audio: null };
+let allNotesCache = []; // For fast global searching
 
-// Undo State Variables
 let lastDeletedNote = null;
 let undoTimeout = null;
 
@@ -231,23 +243,57 @@ request.onupgradeneeded = (e) => {
 };
 request.onsuccess = (e) => { db = e.target.result; loadNotes(); };
 
-/* =========================================
-   2. Date Formatting
-   ========================================= */
 function getFormattedDate() {
-  const date = new Date();
-  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  return `${date.getDate()} ${monthNames[date.getMonth()]}, ${dayNames[date.getDay()]}, ${date.getFullYear()}`;
+  const d = new Date();
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${d.getDate()} ${months[d.getMonth()]}, ${d.getFullYear()} | ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
 }
 
 /* =========================================
-   3. Editor Logic & Hardware Back
+   2. Smart Global Search & Auto-Suggest
+   ========================================= */
+function updateWordSuggestions() {
+  let words = new Set();
+  allNotesCache.forEach(note => {
+    if (note.text) {
+      // Find all words, removing special chars
+      let matchedWords = note.text.toLowerCase().match(/[a-z0-9\u0900-\u097F]+/g);
+      if (matchedWords) matchedWords.forEach(w => { if(w.length > 2) words.add(w) });
+    }
+  });
+
+  const datalist = document.getElementById("wordSuggestions");
+  datalist.innerHTML = "";
+  words.forEach(w => { datalist.innerHTML += `<option value="${w}">`; });
+}
+
+function filterNotes() {
+  const query = document.getElementById("globalSearch").value.toLowerCase().trim();
+  
+  // Sort Logic: Match wale top par aayenge
+  let sortedNotes = [...allNotesCache].sort((a, b) => {
+    let aMatch = (a.text && a.text.toLowerCase().includes(query)) ? 1 : 0;
+    let bMatch = (b.text && b.text.toLowerCase().includes(query)) ? 1 : 0;
+    
+    // Agar dono match karte hain ya dono nahi karte, toh original date (order) se sort rahenge
+    if (aMatch === bMatch) return b.order - a.order;
+    return bMatch - aMatch; // Jo match karega wo oopar (1 > 0)
+  });
+
+  // Agar query empty hai toh normal sort
+  if (!query) sortedNotes = [...allNotesCache].sort((a, b) => b.order - a.order);
+
+  renderNotesList(sortedNotes);
+}
+
+/* =========================================
+   3. Editor Logic & In-Editor Find
    ========================================= */
 function openEditor(noteId = null) {
   currentEditingId = noteId;
-  currentMedia = { img: null, audio: null };
+  currentMedia = { images: [], audio: null };
   document.getElementById("noteText").value = "";
+  document.getElementById("editorSearch").value = "";
   document.getElementById("previewSection").innerHTML = "";
   
   if (noteId) {
@@ -256,7 +302,10 @@ function openEditor(noteId = null) {
       const note = e.target.result;
       if (note) {
         document.getElementById("noteText").value = note.text || "";
-        currentMedia.img = note.img;
+        // Handle legacy single image backward compatibility
+        if(note.images) currentMedia.images = note.images;
+        else if (note.img) currentMedia.images = [note.img]; 
+        
         currentMedia.audio = note.audio;
         updatePreviewUI();
       }
@@ -266,10 +315,23 @@ function openEditor(noteId = null) {
   history.pushState({ isEditing: true }, "");
 }
 
-window.addEventListener('popstate', function (event) {
-  if (document.getElementById("editorOverlay").classList.contains("active")) {
-    closeEditor(false); 
+// VS Code style In-Editor Find
+function findInEditor() {
+  const query = document.getElementById("editorSearch").value.toLowerCase();
+  const textarea = document.getElementById("noteText");
+  const text = textarea.value.toLowerCase();
+  
+  if (!query) return;
+
+  const index = text.indexOf(query);
+  if (index !== -1) {
+    textarea.focus();
+    textarea.setSelectionRange(index, index + query.length);
   }
+}
+
+window.addEventListener('popstate', function (event) {
+  if (document.getElementById("editorOverlay").classList.contains("active")) closeEditor(false); 
 });
 
 function closeEditor(shouldPopHistory = true) {
@@ -280,7 +342,7 @@ function closeEditor(shouldPopHistory = true) {
 
 function autoSaveCurrentNote() {
   const text = document.getElementById("noteText").value.trim();
-  if (!text && !currentMedia.img && !currentMedia.audio) return;
+  if (!text && currentMedia.images.length === 0 && !currentMedia.audio) return;
 
   const tx = db.transaction(STORE_NAME, "readwrite");
   const store = tx.objectStore(STORE_NAME);
@@ -289,106 +351,92 @@ function autoSaveCurrentNote() {
     store.get(currentEditingId).onsuccess = (e) => {
       const note = e.target.result;
       if (note) {
-        note.text = text; note.img = currentMedia.img; note.audio = currentMedia.audio;
+        note.text = text; 
+        note.images = currentMedia.images; 
+        note.audio = currentMedia.audio;
         store.put(note);
       }
     };
   } else {
-    store.add({ text: text, img: currentMedia.img, audio: currentMedia.audio, date: getFormattedDate(), order: Date.now() });
+    store.add({ 
+      text: text, images: currentMedia.images, audio: currentMedia.audio, 
+      date: getFormattedDate(), order: Date.now() 
+    });
   }
   tx.oncomplete = () => loadNotes();
 }
 
 /* =========================================
-   NEW: Insert Checkbox Logic
+   4. Checkbox Logic
    ========================================= */
 function insertCheckbox() {
   const textarea = document.getElementById("noteText");
   const startPos = textarea.selectionStart;
-  const endPos = textarea.selectionEnd;
   const text = textarea.value;
-  
-  const textBefore = text.substring(0, startPos);
-  const textAfter = text.substring(endPos, text.length);
-  
-  // Insert special unicode characters for checkbox (☐ empty, ☑ checked)
-  textarea.value = textBefore + "☐ " + textAfter;
-  
-  // Set cursor right after the newly inserted checkbox
+  textarea.value = text.substring(0, startPos) + "☐ " + text.substring(textarea.selectionEnd, text.length);
   textarea.selectionStart = textarea.selectionEnd = startPos + 2;
   textarea.focus();
 }
 
-// Function to convert normal text to HTML with active checkboxes and strike-through
 function renderNoteText(text, noteId) {
   if (!text) return '';
-  // Encode HTML to prevent issues
   let escaped = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  
   let checkboxIndex = 0;
-  // Match the checkbox (☐ or ☑) and the text after it until the end of the line
   return escaped.replace(/(☐|☑)(.*?)(?=\n|$)/g, (match, box, content) => {
     let isChecked = box === '☑';
     let idx = checkboxIndex++;
-    let textClass = isChecked ? 'class="task-done"' : '';
-    let checkedAttr = isChecked ? 'checked' : '';
-    
-    return `<input type="checkbox" class="task-checkbox" ${checkedAttr} onclick="toggleTask(event, ${noteId}, ${idx})"><span ${textClass}>${content}</span>`;
+    return `<input type="checkbox" class="task-checkbox" ${isChecked ? 'checked' : ''} onclick="toggleTask(event, ${noteId}, ${idx})"><span ${isChecked ? 'class="task-done"' : ''}>${content}</span>`;
   });
 }
 
-// Toggle checkbox state inside the database
 window.toggleTask = function(event, noteId, taskIndex) {
-  event.stopPropagation(); // Stops the note editor from opening when clicking the checkbox
-  
+  event.stopPropagation(); 
   const tx = db.transaction(STORE_NAME, "readwrite");
   const store = tx.objectStore(STORE_NAME);
-  
   store.get(noteId).onsuccess = (e) => {
     const note = e.target.result;
     if (note && note.text) {
       let currentIdx = 0;
       note.text = note.text.replace(/(☐|☑)/g, (match) => {
-        if (currentIdx === taskIndex) {
-          currentIdx++;
-          return match === '☐' ? '☑' : '☐'; // Flip state
-        }
-        currentIdx++;
-        return match;
+        if (currentIdx === taskIndex) { currentIdx++; return match === '☐' ? '☑' : '☐'; }
+        currentIdx++; return match;
       });
       store.put(note);
     }
   };
-  tx.oncomplete = () => loadNotes(); // Refresh to show strike-through
+  tx.oncomplete = () => loadNotes(); 
 };
 
 /* =========================================
-   4. Media Management
+   5. Media Management (MULTIPLE IMAGES)
    ========================================= */
 document.getElementById("imageInput").addEventListener("change", function(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(event) {
-    const img = new Image();
-    img.onload = function() {
-      const canvas = document.createElement("canvas");
-      const MAX_WIDTH = 800;
-      let width = img.width, height = img.height;
-      if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
-      canvas.width = width; canvas.height = height;
-      canvas.getContext("2d").drawImage(img, 0, 0, width, height);
-      currentMedia.img = canvas.toDataURL("image/jpeg", 0.7); 
-      updatePreviewUI();
+  const files = e.target.files;
+  if (!files || files.length === 0) return;
+
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 800;
+        let width = img.width, height = img.height;
+        if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
+        canvas.width = width; canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        
+        // Push compressed image to Array
+        currentMedia.images.push(canvas.toDataURL("image/jpeg", 0.7)); 
+        updatePreviewUI();
+      };
+      img.src = event.target.result;
     };
-    img.src = event.target.result;
-  };
-  reader.readAsDataURL(file);
+    reader.readAsDataURL(file);
+  });
 });
 
-let mediaRecorder;
-let audioChunks = [];
-let isRecording = false;
+let mediaRecorder; let audioChunks = []; let isRecording = false;
 
 async function toggleRecording() {
   const btn = document.getElementById("inlineVoiceBtn");
@@ -410,120 +458,128 @@ async function toggleRecording() {
       btn.innerHTML = "⏹️"; btn.classList.add("recording"); status.innerText = "Recording...";
     } catch (err) { alert("Microphone permission denied!"); }
   } else {
-    mediaRecorder.stop();
-    isRecording = false;
+    mediaRecorder.stop(); isRecording = false;
     btn.innerHTML = "🎙️"; btn.classList.remove("recording"); status.innerText = "";
   }
 }
 
-function removeMedia(type) { currentMedia[type] = null; updatePreviewUI(); }
+function removeImage(index) { currentMedia.images.splice(index, 1); updatePreviewUI(); }
+function removeAudio() { currentMedia.audio = null; updatePreviewUI(); }
 
 function updatePreviewUI() {
   const previewSection = document.getElementById("previewSection");
   previewSection.innerHTML = "";
-  if (currentMedia.img) {
-    previewSection.innerHTML += `<div class="preview-wrapper"><img class="preview-img" src="${currentMedia.img}"><button class="btn-remove-media" onclick="removeMedia('img')">✕</button></div>`;
-  }
+  
+  // Render Multiple Images
+  currentMedia.images.forEach((imgData, index) => {
+    previewSection.innerHTML += `
+      <div class="preview-wrapper">
+        <img class="preview-img" src="${imgData}">
+        <button class="btn-remove-media" onclick="removeImage(${index})">✕</button>
+      </div>`;
+  });
+
+  // Render Audio
   if (currentMedia.audio) {
-    previewSection.innerHTML += `<div class="preview-wrapper"><audio controls src="${currentMedia.audio}"></audio><button class="btn-remove-media" onclick="removeMedia('audio')" style="top:-5px;">✕</button></div>`;
+    previewSection.innerHTML += `
+      <div class="audio-wrapper">
+        <audio controls src="${currentMedia.audio}"></audio>
+        <button class="btn-remove-media" onclick="removeAudio()" style="top:-10px;">✕</button>
+      </div>`;
   }
 }
 
 /* =========================================
-   5. Rendering, Deleting & UNDO Logic
+   6. Rendering & Deleting Logic
    ========================================= */
 function loadNotes() {
-  const container = document.getElementById("notes-container");
-  container.innerHTML = "";
-  
   const tx = db.transaction(STORE_NAME, "readonly");
+  allNotesCache = [];
+  
   tx.objectStore(STORE_NAME).index("order").openCursor(null, "prev").onsuccess = (e) => {
     const cursor = e.target.result;
     if (cursor) {
-      const note = cursor.value;
-      const card = document.createElement("div");
-      card.className = "note-card";
-      card.dataset.id = note.id;
-      card.onclick = (event) => {
-        // Prevent opening editor if clicking on Delete, Drag, Audio, OR CHECKBOX
-        if(!event.target.closest('.btn-delete') && 
-           !event.target.closest('.drag-handle') && 
-           !event.target.classList.contains('task-checkbox') && 
-           event.target.tagName !== 'AUDIO') {
-          openEditor(note.id);
-        }
-      };
-      
-      let mediaHtml = "";
-      if (note.img) mediaHtml += `<img class="note-img" src="${note.img}">`;
-      if (note.audio) mediaHtml += `<audio controls src="${note.audio}"></audio>`;
-
-      // Replaced standard text rendering with our new renderNoteText function
-      card.innerHTML = `
-        <div class="note-header">
-          <span class="note-date">${note.date}</span>
-          <div class="note-controls">
-            <span class="drag-handle">↕️</span>
-            <button class="btn-delete" onclick="deleteNote(event, ${note.id})">🗑️</button>
-          </div>
-        </div>
-        ${note.text ? `<div class="note-text">${renderNoteText(note.text, note.id)}</div>` : ''}
-        ${mediaHtml}
-      `;
-      setupTouchDrag(card); container.appendChild(card); cursor.continue();
+      allNotesCache.push(cursor.value);
+      cursor.continue();
+    } else {
+      updateWordSuggestions(); // Update dictionary for auto-suggest
+      filterNotes(); // Initial render handles sort
     }
   };
 }
 
-// DELETE with UNDO feature
+function renderNotesList(notesArray) {
+  const container = document.getElementById("notes-container");
+  container.innerHTML = "";
+  
+  if(notesArray.length === 0) {
+     container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px; font-size: 13px;">No matching notes found.</div>`;
+     return;
+  }
+
+  notesArray.forEach(note => {
+    const card = document.createElement("div");
+    card.className = "note-card";
+    card.dataset.id = note.id;
+    card.onclick = (event) => {
+      if(!event.target.closest('.btn-delete') && !event.target.closest('.drag-handle') && 
+         !event.target.classList.contains('task-checkbox') && event.target.tagName !== 'AUDIO' && event.target.tagName !== 'IMG') {
+        openEditor(note.id);
+      }
+    };
+    
+    // Support legacy 'img' or new 'images' array
+    let imagesArr = note.images ? note.images : (note.img ? [note.img] : []);
+    let imgHtml = "";
+    if (imagesArr.length > 0) {
+      imgHtml = `<div class="images-grid">` + imagesArr.map(img => `<img class="note-img" src="${img}">`).join('') + `</div>`;
+    }
+    
+    let audioHtml = note.audio ? `<audio controls src="${note.audio}"></audio>` : "";
+
+    card.innerHTML = `
+      <div class="note-header">
+        <span class="note-date">${note.date}</span>
+        <div class="note-controls">
+          <span class="drag-handle">↕️</span>
+          <button class="btn-delete" onclick="deleteNote(event, ${note.id})">🗑️</button>
+        </div>
+      </div>
+      ${note.text ? `<div class="note-text">${renderNoteText(note.text, note.id)}</div>` : ''}
+      ${imgHtml}
+      ${audioHtml}
+    `;
+    setupTouchDrag(card); 
+    container.appendChild(card);
+  });
+}
+
 function deleteNote(event, id) {
   event.stopPropagation(); 
-  
   const tx = db.transaction(STORE_NAME, "readwrite");
   const store = tx.objectStore(STORE_NAME);
-  
-  store.get(id).onsuccess = (e) => {
-    lastDeletedNote = e.target.result;
-    store.delete(id);
-  };
-
-  tx.oncomplete = () => {
-    loadNotes();
-    showUndoToast();
-  };
+  store.get(id).onsuccess = (e) => { lastDeletedNote = e.target.result; store.delete(id); };
+  tx.oncomplete = () => { loadNotes(); showUndoToast(); };
 }
 
 function showUndoToast() {
   const snackbar = document.getElementById("snackbar");
   snackbar.classList.add("show");
-  
   clearTimeout(undoTimeout);
-  undoTimeout = setTimeout(() => {
-    snackbar.classList.remove("show");
-    lastDeletedNote = null; 
-  }, 5000);
+  undoTimeout = setTimeout(() => { snackbar.classList.remove("show"); lastDeletedNote = null; }, 5000);
 }
 
 function undoDelete() {
   if (!lastDeletedNote) return;
-  
   const tx = db.transaction(STORE_NAME, "readwrite");
-  const store = tx.objectStore(STORE_NAME);
-  store.add(lastDeletedNote); 
-  
-  tx.oncomplete = () => {
-    loadNotes();
-    document.getElementById("snackbar").classList.remove("show");
-    lastDeletedNote = null;
-    clearTimeout(undoTimeout);
-  };
+  tx.objectStore(STORE_NAME).add(lastDeletedNote); 
+  tx.oncomplete = () => { loadNotes(); document.getElementById("snackbar").classList.remove("show"); lastDeletedNote = null; clearTimeout(undoTimeout); };
 }
 
 /* =========================================
-   6. Drag & Drop Engine
+   7. Drag & Drop & Export
    ========================================= */
 let draggedElement = null;
-
 function setupTouchDrag(card) {
   const handle = card.querySelector('.drag-handle');
   handle.addEventListener('mousedown', () => { card.setAttribute('draggable', 'true'); });
@@ -545,16 +601,10 @@ function setupTouchDrag(card) {
   handle.addEventListener('touchend', () => { if (draggedElement) { draggedElement.classList.remove('dragging'); draggedElement = null; saveNewOrder(); } });
 }
 
-document.getElementById('notes-container').addEventListener('dragover', (e) => {
-  e.preventDefault();
-  const draggingCard = document.querySelector('.dragging');
-  const cards = [...document.querySelectorAll('.note-card:not(.dragging)')];
-  let nextCard = cards.find(card => e.clientY <= card.getBoundingClientRect().top + card.offsetHeight / 2);
-  if (nextCard) document.getElementById('notes-container').insertBefore(draggingCard, nextCard);
-  else document.getElementById('notes-container').appendChild(draggingCard);
-});
-
 function saveNewOrder() {
+  // Only save order if search is empty (to prevent messing up order when filtered)
+  if(document.getElementById("globalSearch").value) return; 
+
   const cards = document.querySelectorAll('.note-card');
   const tx = db.transaction(STORE_NAME, "readwrite");
   const store = tx.objectStore(STORE_NAME);
@@ -563,11 +613,9 @@ function saveNewOrder() {
     const id = parseInt(card.dataset.id);
     store.get(id).onsuccess = (e) => { const note = e.target.result; if (note) { note.order = baseTime - index; store.put(note); } };
   });
+  tx.oncomplete = () => loadNotes(); // Reload pure order
 }
 
-/* =========================================
-   7. Export / Import Functions
-   ========================================= */
 function exportNotes() {
   const tx = db.transaction(STORE_NAME, "readonly");
   tx.objectStore(STORE_NAME).getAll().onsuccess = (e) => {
