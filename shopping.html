@@ -46,9 +46,8 @@
   .wallet-title { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
   .wallet-balance { font-size: 32px; font-weight: 700; margin-top: 5px; }
 
-  /* Input Section (4 Fields) */
+  /* Input Section */
   .input-section { padding: 0 15px 15px 15px; display: flex; flex-direction: column; gap: 10px; position: relative; }
-  
   .input-wrapper { position: relative; }
   input, select { 
     width: 100%; padding: 12px; background: var(--bg-input); border: 2px solid transparent; 
@@ -56,7 +55,6 @@
     font-size: 14px; outline: none; box-sizing: border-box;
   }
   input:focus, select:focus { border-color: var(--accent); }
-  
   .row-inputs { display: flex; gap: 10px; }
   .row-inputs > * { flex: 1; }
 
@@ -78,34 +76,25 @@
 
   /* History List */
   #history-container { padding: 0 15px; display: flex; flex-direction: column; gap: 12px; }
-  
   .entry-card {
     background: var(--bg-card); padding: 15px; border-radius: 12px; 
     display: flex; justify-content: space-between; align-items: center;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; touch-action: pan-y;
     border-left: 4px solid var(--danger);
   }
-  .entry-card.dragging { opacity: 0.5; transform: scale(0.98); border: 2px dashed var(--accent); }
-
+  .entry-card.dragging, tr.dragging { opacity: 0.5; background: rgba(255, 255, 255, 0.1); }
+  
   .entry-info { display: flex; flex-direction: column; gap: 2px; }
   .entry-name { font-size: 15px; font-weight: 600; }
   .entry-meta { font-size: 11px; color: var(--text-muted); }
-  
   .entry-right { display: flex; align-items: center; gap: 12px; }
   .entry-amount { font-size: 16px; font-weight: 700; color: var(--danger); }
 
   .controls { display: flex; gap: 8px; align-items: center; }
   .drag-handle { cursor: grab; font-size: 18px; color: var(--text-muted); padding: 5px; }
   
-  .btn-edit { 
-    background: rgba(245, 158, 11, 0.1); color: var(--warning); border: none; 
-    border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer;
-  }
-  
-  .btn-delete { 
-    background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; 
-    border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer;
-  }
+  .btn-edit { background: rgba(245, 158, 11, 0.1); color: var(--warning); border: none; border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; }
+  .btn-delete { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; }
 
   /* Overlays */
   .overlay {
@@ -116,10 +105,7 @@
   .overlay-header { padding: 15px; background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; }
   .overlay-body { padding: 15px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
   
-  .deposit-card {
-    background: var(--bg-card); padding: 12px 15px; border-radius: 10px; display: flex; 
-    justify-content: space-between; align-items: center; border-left: 4px solid var(--success);
-  }
+  .deposit-card { background: var(--bg-card); padding: 12px 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--success); }
 
   /* Analytics Styling */
   .analytics-result {
@@ -133,9 +119,12 @@
     overflow-x: auto; width: 100%; background: var(--bg-card); border-radius: 10px; border: 1px solid var(--bg-input);
   }
   .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; white-space: nowrap; }
-  .data-table th { background: var(--bg-input); color: var(--text-muted); padding: 10px 12px; font-weight: 600; }
-  .data-table td { padding: 10px 12px; border-bottom: 1px solid var(--bg-input); }
+  .data-table th { background: var(--bg-input); color: var(--text-muted); padding: 10px 8px; font-weight: 600; }
+  .data-table td { padding: 10px 8px; border-bottom: 1px solid var(--bg-input); }
   .data-table tr:hover td { background: rgba(255, 255, 255, 0.05); }
+
+  /* Checkbox styling */
+  .row-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
 
   /* Undo Snackbar */
   #snackbar {
@@ -149,9 +138,7 @@
   .undo-btn { color: var(--accent); font-weight: bold; cursor: pointer; border: none; background: none; font-size: 14px; }
 
   /* Bottom Navigation */
-  .bottom-nav {
-    position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--bg-card); display: flex; justify-content: space-around; align-items: center; box-shadow: 0 -4px 10px rgba(0,0,0,0.3); z-index: 100;
-  }
+  .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--bg-card); display: flex; justify-content: space-around; align-items: center; box-shadow: 0 -4px 10px rgba(0,0,0,0.3); z-index: 100; }
   .nav-btn { background: none; border: none; color: var(--text-muted); font-size: 11px; display: flex; flex-direction: column; align-items: center; cursor: pointer; text-decoration: none; }
   .nav-btn span { font-size: 20px; margin-bottom: 2px; }
   .nav-btn.active { color: var(--accent); font-weight: 600; }
@@ -229,7 +216,7 @@
     <input type="date" id="customFilterDate" style="display:none;" onchange="runAnalytics()">
     
     <div class="analytics-result">
-      <h3 id="analyticsLabel">Total Spent</h3>
+      <h3 id="analyticsLabel">Total of Selected</h3>
       <div class="total-val" id="analyticsTotal">₹ 0</div>
     </div>
 
@@ -242,10 +229,12 @@
       <table class="data-table">
         <thead>
           <tr>
+            <th style="width: 20px;">✔</th>
             <th>Date</th>
             <th>Item</th>
             <th>Qty</th>
             <th>Price</th>
+            <th style="width: 20px; text-align: center;">↕️</th>
           </tr>
         </thead>
         <tbody id="analyticsTableBody"></tbody>
@@ -279,7 +268,7 @@ let lastDeletedData = null;
 let lastDeletedType = null; 
 let undoTimeout = null;
 
-let currentEditId = null; // Track item being edited
+let currentEditId = null; 
 
 const request = indexedDB.open(DB_NAME, 1);
 request.onupgradeneeded = (e) => {
@@ -290,12 +279,14 @@ request.onupgradeneeded = (e) => {
 request.onsuccess = (e) => { db = e.target.result; loadAllData(); };
 
 /* =========================================
-   2. Date Formatting
+   2. Date Formatting (Updated with Day)
    ========================================= */
 function getDisplayDate() {
   const d = new Date();
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${d.getDate()} ${months[d.getMonth()]}, ${d.getFullYear()} | ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  // Added Day of week
+  return `${d.getDate()} ${months[d.getMonth()]}, ${d.getFullYear()} (${days[d.getDay()]}) | ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
 }
 
 function getIsoDates() {
@@ -325,7 +316,6 @@ nameInput.addEventListener("input", (e) => {
       div.className = "suggestion-item";
       div.innerHTML = `<strong>${m}</strong> <span style="color:var(--text-muted); font-size:11px;">(${uniqueItemsDict[m].qty} ${uniqueItemsDict[m].unit} - ₹${uniqueItemsDict[m].price})</span>`;
       div.onclick = () => {
-        // Auto-fill all inputs based on the clicked suggestion
         document.getElementById("itemName").value = m;
         document.getElementById("itemQty").value = uniqueItemsDict[m].qty;
         document.getElementById("itemUnit").value = uniqueItemsDict[m].unit;
@@ -337,7 +327,6 @@ nameInput.addEventListener("input", (e) => {
   } else { sugBox.style.display = "none"; }
 });
 
-// Auto-fill when user leaves the name input box without clicking suggestions
 nameInput.addEventListener("blur", (e) => {
   const val = e.target.value.trim();
   if(!val) return;
@@ -345,7 +334,7 @@ nameInput.addEventListener("blur", (e) => {
   if (matchKey) {
     const item = uniqueItemsDict[matchKey];
     if(!document.getElementById("itemQty").value) document.getElementById("itemQty").value = item.qty;
-    document.getElementById("itemUnit").value = item.unit; // Default back to previous unit
+    document.getElementById("itemUnit").value = item.unit; 
     if(!document.getElementById("itemPrice").value) document.getElementById("itemPrice").value = item.price;
   }
 });
@@ -370,7 +359,6 @@ function addExpense() {
   const store = tx.objectStore("expenses");
 
   if (currentEditId) {
-    // UPDATE EXISTING (Keep old date and order)
     store.get(currentEditId).onsuccess = (e) => {
       const existingData = e.target.result;
       if (existingData) {
@@ -382,7 +370,6 @@ function addExpense() {
       }
     };
   } else {
-    // ADD NEW
     const iso = getIsoDates();
     store.add({
       name, qty, unit, price,
@@ -392,18 +379,13 @@ function addExpense() {
     });
   }
 
-  tx.oncomplete = () => {
-    resetInputs();
-    loadAllData();
-  };
+  tx.oncomplete = () => { resetInputs(); loadAllData(); };
 }
 
 function resetInputs() {
   document.getElementById("itemName").value = "";
   document.getElementById("itemQty").value = "";
   document.getElementById("itemPrice").value = "";
-  
-  // Reset Edit Mode
   currentEditId = null;
   const btn = document.getElementById("btnAddUpdate");
   btn.innerText = "➕ Add Expense";
@@ -466,7 +448,8 @@ function loadAllData() {
           </div>
         </div>
       `;
-      setupTouchDrag(card); expContainer.appendChild(card);
+      setupTouchDrag(card, "history-container", saveNewOrder); 
+      expContainer.appendChild(card);
       cursor.continue();
     }
   };
@@ -509,12 +492,11 @@ function editItem(event, id) {
       document.getElementById("itemUnit").value = exp.unit;
       document.getElementById("itemPrice").value = exp.price;
       
-      currentEditId = id; // Store ID for updating
+      currentEditId = id; 
       const btn = document.getElementById("btnAddUpdate");
       btn.innerText = "✔️ Update Expense";
       btn.style.background = "var(--warning)";
-      
-      window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll back to input boxes
+      window.scrollTo({ top: 0, behavior: 'smooth' }); 
     }
   };
 }
@@ -530,7 +512,7 @@ function deleteItem(event, id, storeName) {
     store.delete(id);
   };
   tx.oncomplete = () => { 
-    if (currentEditId === id) resetInputs(); // If deleted while editing, reset edit mode
+    if (currentEditId === id) resetInputs(); 
     loadAllData(); showSnackbar(); 
   };
 }
@@ -556,36 +538,47 @@ function undoDelete() {
 }
 
 /* =========================================
-   7. Drag & Drop
+   7. Drag & Drop Logic (Reusable)
    ========================================= */
 let draggedElement = null;
-function setupTouchDrag(card) {
+function setupTouchDrag(card, containerId, callback = null) {
   const handle = card.querySelector('.drag-handle');
+  if(!handle) return;
+  
   handle.addEventListener('mousedown', () => { card.setAttribute('draggable', 'true'); });
   card.addEventListener('dragstart', () => { draggedElement = card; setTimeout(() => card.classList.add('dragging'), 0); });
-  card.addEventListener('dragend', () => { card.classList.remove('dragging'); card.removeAttribute('draggable'); saveNewOrder(); });
+  card.addEventListener('dragend', () => { card.classList.remove('dragging'); card.removeAttribute('draggable'); if(callback) callback(); });
+  
+  // Touch Events
   handle.addEventListener('touchstart', (e) => { draggedElement = card; card.classList.add('dragging'); e.preventDefault(); }, { passive: false });
   handle.addEventListener('touchmove', (e) => {
     if (!draggedElement) return; e.preventDefault();
     const touch = e.touches[0];
     const target = document.elementFromPoint(touch.clientX, touch.clientY);
-    const targetCard = target ? target.closest('.entry-card') : null;
-    if (targetCard && targetCard !== draggedElement) {
-      const container = document.getElementById("history-container");
-      const targetRect = targetCard.getBoundingClientRect();
-      if (touch.clientY < targetRect.top + targetRect.height / 2) container.insertBefore(draggedElement, targetCard);
-      else container.insertBefore(draggedElement, targetCard.nextSibling);
+    const container = document.getElementById(containerId);
+    
+    // Find valid sibling (either entry-card or tr)
+    const targetEl = target ? target.closest(card.tagName.toLowerCase() === 'tr' ? 'tr' : '.entry-card') : null;
+    
+    if (targetEl && targetEl !== draggedElement && targetEl.parentElement === container) {
+      const targetRect = targetEl.getBoundingClientRect();
+      if (touch.clientY < targetRect.top + targetRect.height / 2) container.insertBefore(draggedElement, targetEl);
+      else container.insertBefore(draggedElement, targetEl.nextSibling);
     }
   }, { passive: false });
-  handle.addEventListener('touchend', () => { if (draggedElement) { draggedElement.classList.remove('dragging'); draggedElement = null; saveNewOrder(); } });
+  handle.addEventListener('touchend', () => { if (draggedElement) { draggedElement.classList.remove('dragging'); draggedElement = null; if(callback) callback(); } });
 }
+
 function saveNewOrder() {
   const cards = document.querySelectorAll('.entry-card');
   const tx = db.transaction("expenses", "readwrite");
   let baseTime = Date.now();
   cards.forEach((card, index) => {
     const id = parseInt(card.dataset.id);
-    tx.objectStore("expenses").get(id).onsuccess = (e) => { const entry = e.target.result; if (entry) { entry.order = baseTime - index; tx.objectStore("expenses").put(entry); } };
+    tx.objectStore("expenses").get(id).onsuccess = (e) => { 
+        const entry = e.target.result; 
+        if (entry) { entry.order = baseTime - index; tx.objectStore("expenses").put(entry); } 
+    };
   });
 }
 
@@ -603,38 +596,32 @@ function runAnalytics() {
   const customInput = document.getElementById("customFilterDate");
   const iso = getIsoDates();
   
-  let targetIso = ""; let label = "";
+  let targetIso = ""; 
 
   if (type === "custom") {
     customInput.style.display = "block";
     targetIso = customInput.value;
     if(!targetIso) {
-      document.getElementById("analyticsLabel").innerText = "Select a date below";
       document.getElementById("analyticsTotal").innerText = "₹ 0";
       document.getElementById("analyticsTableBody").innerHTML = "";
       currentFilteredData = []; return;
     }
-    label = `Spent on ${targetIso}`;
   } else {
     customInput.style.display = "none";
-    if(type === "today") { targetIso = iso.full; label = "Total Spent Today"; }
-    else if(type === "month") { targetIso = iso.month; label = "Total Spent This Month"; }
-    else if(type === "year") { targetIso = iso.year; label = "Total Spent This Year"; }
+    if(type === "today") targetIso = iso.full;
+    else if(type === "month") targetIso = iso.month;
+    else if(type === "year") targetIso = iso.year;
   }
 
-  let sum = 0; currentFilteredData = []; 
-
+  currentFilteredData = []; 
   allExpensesCache.forEach(exp => {
     let match = false;
     if(type === "today" || type === "custom") { if(exp.isoDay === targetIso) match = true; }
     else if(type === "month") { if(exp.isoMonth === targetIso) match = true; }
     else if(type === "year") { if(exp.isoYear === targetIso) match = true; }
-
-    if (match) { sum += exp.price; currentFilteredData.push(exp); }
+    if (match) currentFilteredData.push(exp);
   });
 
-  document.getElementById("analyticsLabel").innerText = label;
-  document.getElementById("analyticsTotal").innerText = `₹ ${sum.toLocaleString('en-IN')}`;
   renderAnalyticsTable();
 }
 
@@ -643,30 +630,66 @@ function renderAnalyticsTable() {
   tbody.innerHTML = "";
   
   if (currentFilteredData.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No data found for this filter.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No data found for this filter.</td></tr>`;
+    updateSelectedTotal();
     return;
   }
 
   currentFilteredData.forEach(exp => {
     const dateOnly = exp.dateStr.split(" | ")[0]; 
     const tr = document.createElement("tr");
+    tr.dataset.price = exp.price; // Store price for easy calculation
+    tr.dataset.fullData = JSON.stringify(exp); // Store for CSV export
+
     tr.innerHTML = `
+      <td><input type="checkbox" class="row-checkbox" checked onchange="updateSelectedTotal()"></td>
       <td style="color: var(--text-muted); font-size: 11px; white-space: normal;">${dateOnly}</td>
       <td style="font-weight: 600; white-space: normal;">${exp.name}</td>
       <td>${exp.qty} ${exp.unit}</td>
       <td style="color: var(--danger); font-weight: bold;">₹${exp.price}</td>
+      <td style="text-align: center;"><span class="drag-handle" style="font-size: 14px;">↕️</span></td>
     `;
+    
+    // Add Drag & Drop functionality to Table Rows
+    setupTouchDrag(tr, "analyticsTableBody");
     tbody.appendChild(tr);
   });
+  
+  updateSelectedTotal(); // Calculate initial total for checked items
+}
+
+function updateSelectedTotal() {
+  const rows = document.querySelectorAll("#analyticsTableBody tr");
+  let sum = 0;
+  
+  rows.forEach(tr => {
+    const checkbox = tr.querySelector('.row-checkbox');
+    if (checkbox && checkbox.checked) {
+      sum += parseFloat(tr.dataset.price || 0);
+    }
+  });
+
+  document.getElementById("analyticsTotal").innerText = `₹ ${sum.toLocaleString('en-IN')}`;
 }
 
 function exportCSV() {
-  if (currentFilteredData.length === 0) {
-    showCustomAlert("No data to export!"); return;
+  const rows = document.querySelectorAll("#analyticsTableBody tr");
+  let csvData = [];
+  
+  rows.forEach(tr => {
+    const checkbox = tr.querySelector('.row-checkbox');
+    // Export ONLY selected (checked) items
+    if (checkbox && checkbox.checked && tr.dataset.fullData) {
+      csvData.push(JSON.parse(tr.dataset.fullData));
+    }
+  });
+
+  if (csvData.length === 0) {
+    showCustomAlert("No checked items to export!"); return;
   }
   
   let csv = "Date & Time,Item Name,Quantity,Unit,Price (INR)\n";
-  currentFilteredData.forEach(exp => {
+  csvData.forEach(exp => {
     const safeName = exp.name.replace(/"/g, '""');
     const safeDate = exp.dateStr.replace(/"/g, '""');
     csv += `"${safeDate}","${safeName}",${exp.qty},"${exp.unit}",${exp.price}\n`;
