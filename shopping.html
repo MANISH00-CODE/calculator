@@ -47,22 +47,29 @@
     font-family: 'Poppins', sans-serif; transition: 0.2s; font-weight: 600;
   }
 
-  /* Wallet Balance */
+  /* Multiple Wallet Display Update */
+  .wallets-wrapper {
+    display: flex; gap: 12px; overflow-x: auto; padding: 15px; padding-bottom: 5px;
+    scrollbar-width: none; /* Firefox */
+  }
+  .wallets-wrapper::-webkit-scrollbar { display: none; /* Chrome/Safari */ }
+  
   .wallet-card {
-    margin: 15px; padding: 20px; background: linear-gradient(135deg, var(--bg-card), #0f172a);
+    min-width: 140px; flex: 0 0 auto;
+    padding: 15px; background: linear-gradient(135deg, var(--bg-card), #0f172a);
     border-radius: 12px; border: 1px solid var(--bg-input); text-align: center;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   }
-  .wallet-title { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-  .wallet-balance { font-size: 32px; font-weight: 700; margin-top: 5px; }
+  .wallet-title { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
+  .wallet-balance { font-size: 22px; font-weight: 700; margin-top: 5px; white-space: nowrap; }
 
   /* Input Section */
-  .input-section { padding: 0 15px 15px 15px; display: flex; flex-direction: column; gap: 10px; position: relative; }
+  .input-section { padding: 10px 15px 15px 15px; display: flex; flex-direction: column; gap: 10px; position: relative; }
   .input-wrapper { position: relative; width: 100%; }
   input, select { 
     width: 100%; padding: 12px; background: var(--bg-input); border: 2px solid transparent; 
     border-radius: 10px; color: var(--text-main); font-family: 'Poppins', sans-serif; 
-    font-size: 14px; outline: none; box-sizing: border-box; /* Fixed box sizing */
+    font-size: 14px; outline: none; box-sizing: border-box;
   }
   input:focus, select:focus { border-color: var(--accent); }
   .row-inputs { display: flex; gap: 10px; }
@@ -121,7 +128,7 @@
   /* Analytics Styling */
   .analytics-result {
     background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px dashed var(--accent);
-    text-align: center; margin-top: 10px;
+    text-align: center; margin-top: 10px; flex-shrink: 0;
   }
   .analytics-result h3 { margin: 0 0 10px 0; font-size: 14px; color: var(--text-muted); }
   .analytics-result .total-val { font-size: 28px; font-weight: bold; color: var(--danger); }
@@ -133,14 +140,22 @@
   .cb-label:hover { border-color: var(--accent); }
   .cb-label input { width: auto; margin: 0; accent-color: var(--accent); cursor: pointer; }
 
-  .data-table-wrapper { overflow-x: auto; width: 100%; background: var(--bg-card); border-radius: 10px; border: 1px solid var(--bg-input); }
+  /* Analytics Container Fix */
+  .data-table-wrapper { 
+    overflow-x: auto; 
+    overflow-y: visible; /* Allows natural expansion downwards */
+    width: 100%; 
+    background: var(--bg-card); 
+    border-radius: 10px; 
+    flex-grow: 1; /* Lets it take up the rest of the available space naturally */
+  }
   .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; white-space: nowrap; }
-  .data-table th { background: var(--bg-input); color: var(--text-muted); padding: 10px 8px; font-weight: 600; }
+  .data-table th { background: var(--bg-input); color: var(--text-muted); padding: 10px 8px; font-weight: 600; position: sticky; top: 0; z-index: 5; }
   .data-table td { padding: 10px 8px; border-bottom: 1px solid var(--bg-input); }
   .data-table tr:hover td { background: rgba(255, 255, 255, 0.05); }
   .row-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
 
-  /* Undo Snackbar - Used instead of intrusive alerts */
+  /* Undo Snackbar */
   #snackbar {
     visibility: hidden; min-width: 250px; background-color: var(--bg-input); color: #fff;
     text-align: center; border-radius: 10px; padding: 15px 20px; position: fixed;
@@ -169,9 +184,9 @@
   </div>
 </div>
 
-<div class="wallet-card">
-  <div class="wallet-title">Total Remaining Balance</div>
-  <div class="wallet-balance" id="walletBalance">₹ 0</div>
+<!-- Dynamic Budgets Container (Replaced Single Wallet) -->
+<div class="wallets-wrapper" id="wallets-container">
+  <!-- JavaScript will generate Budget Cards here -->
 </div>
 
 <div class="input-section">
@@ -198,7 +213,6 @@
 
   <!-- Budget Source & Payment Method -->
   <div class="row-inputs">
-    <!-- Changed Default Budget Source to "Online" -->
     <select id="expenseBudgetSource">
       <option value="Online">Online (Default)</option>
     </select>
@@ -214,12 +228,12 @@
     </select>
   </div>
   
-  <!-- Cash Given (Visible if Note is selected) -->
+  <!-- Cash Given -->
   <div class="row-inputs" id="cashCalculationRow" style="display: none; margin-top: 5px;">
     <input type="number" id="cashGiven" placeholder="Cash Given (₹)">
   </div>
 
-  <!-- The Two Smart Buttons -->
+  <!-- Smart Buttons -->
   <div class="row-inputs" style="margin-top: 5px;">
     <button class="btn-action btn-continue" id="btnContinue" onclick="processExpense(true)">🔄 Continue Item</button>
     <button class="btn-action btn-add" id="btnAddUpdate" onclick="processExpense(false)">➕ Add Expense</button>
@@ -241,7 +255,6 @@
         <div class="suggestions-box" id="depositSuggestionBox"></div>
       </div>
       <input type="number" id="depositAmount" placeholder="Amount (₹)" style="flex: 1;">
-      <!-- Added ID to button for dynamically changing text between Add/Update -->
       <button id="btnDepositSubmit" class="btn-small" style="background: var(--success); color: white; padding: 0 15px;" onclick="addDeposit()">Add</button>
     </div>
     <div id="deposit-history-container" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;"></div>
@@ -254,7 +267,7 @@
     <span style="font-weight: 600;">📊 Expense Analytics</span>
     <button class="btn-small" style="background: rgba(239, 68, 68, 0.1); color: var(--danger);" onclick="closeAnalytics()">✕ Close</button>
   </div>
-  <div class="overlay-body">
+  <div class="overlay-body" style="overflow-y: auto;">
     
     <!-- Date Filter -->
     <label style="font-size:12px; color:var(--text-muted);">Select Date Filter</label>
@@ -284,6 +297,7 @@
        <button class="btn-small" style="background: var(--success); color: white;" onclick="exportCSV()">⬇️ Export CSV</button>
     </div>
     
+    <!-- Restrictive container removed, lets content flow -->
     <div class="data-table-wrapper">
       <table class="data-table">
         <thead>
@@ -328,9 +342,8 @@ let lastDeletedData = null;
 let lastDeletedType = null; 
 let undoTimeout = null;
 let currentEditId = null; 
-let currentEditDepositId = null; // Track which budget is being edited
+let currentEditDepositId = null; 
 
-// Tracker for Transaction Grouping
 let activeTransactionId = null;
 
 const request = indexedDB.open(DB_NAME, 1);
@@ -395,9 +408,7 @@ nameInput.addEventListener("input", (e) => {
         document.getElementById("itemUnit").value = uniqueItemsDict[m].unit;
         document.getElementById("itemPrice").value = uniqueItemsDict[m].price;
         
-        // Auto-fill budget/payment only if we are NOT in a continued transaction
         if(!activeTransactionId) {
-          // Defaulting to Online if previous was mapped
           document.getElementById("expenseBudgetSource").value = uniqueItemsDict[m].budgetSource || "Online";
           document.getElementById("expensePaymentMethod").value = uniqueItemsDict[m].paymentMethod || "Online";
           handlePaymentMethodChange();
@@ -432,14 +443,13 @@ depNameInput.addEventListener("input", (e) => {
 document.addEventListener("click", (e) => { if (e.target !== depNameInput) depSugBox.style.display = "none"; });
 
 /* =========================================
-   4. Add / Update Data with GROUPING & BUDGETS
+   4. Add / Update Data
    ========================================= */
 function processExpense(isContinue) {
   const name = document.getElementById("itemName").value.trim();
   const qty = parseFloat(document.getElementById("itemQty").value);
   const unit = document.getElementById("itemUnit").value;
   const price = parseFloat(document.getElementById("itemPrice").value);
-  // Replaced "General" with "Online" default
   const budgetSource = document.getElementById("expenseBudgetSource").value || "Online"; 
   const paymentMethod = document.getElementById("expensePaymentMethod").value || "Online";
   const cashGiven = parseFloat(document.getElementById("cashGiven").value) || 0;
@@ -453,7 +463,6 @@ function processExpense(isContinue) {
   const store = tx.objectStore("expenses");
 
   if (currentEditId) {
-    // Edit existing
     store.get(currentEditId).onsuccess = (e) => {
       const existingData = e.target.result;
       if (existingData) {
@@ -464,26 +473,22 @@ function processExpense(isContinue) {
       }
     };
   } else {
-    // New Add
-    if (!activeTransactionId) { activeTransactionId = Date.now(); } // Start/Maintain grouping ID
-    
+    if (!activeTransactionId) { activeTransactionId = Date.now(); } 
     const iso = getIsoDates();
     store.add({
       name, qty, unit, price, budgetSource, paymentMethod, cashGiven,
-      transactionId: activeTransactionId, // Groups items in DB
+      transactionId: activeTransactionId,
       dateStr: getDisplayDate(), isoDay: iso.full, isoMonth: iso.month, isoYear: iso.year, order: Date.now()
     });
   }
 
   tx.oncomplete = () => { 
     if (isContinue) {
-      // Clear only item details, keep Transaction Group, Budget, Payment info
       document.getElementById("itemName").value = "";
       document.getElementById("itemQty").value = "";
       document.getElementById("itemPrice").value = "";
       document.getElementById("itemName").focus();
     } else {
-      // Full reset, Transaction Complete
       resetInputs(); 
     }
     loadAllData(); 
@@ -491,7 +496,7 @@ function processExpense(isContinue) {
 }
 
 function resetInputs() {
-  activeTransactionId = null; // Break the grouping chain
+  activeTransactionId = null; 
   currentEditId = null;
   
   document.getElementById("itemName").value = "";
@@ -506,7 +511,6 @@ function resetInputs() {
 }
 
 function showCustomAlert(msg) {
-  // Uses snackbar, NO popup alerts used to prevent workflow interruption
   document.getElementById("snackText").innerText = msg;
   document.getElementById("undoBtnAction").style.display = "none";
   document.getElementById("snackbar").classList.add("show");
@@ -523,7 +527,7 @@ function addDeposit() {
   
   const tx = db.transaction("deposits", "readwrite");
   const store = tx.objectStore("deposits");
-  const dateStr = getDisplayDate(); // Captures exact Date, Time, Day, Year
+  const dateStr = getDisplayDate(); 
 
   if (currentEditDepositId) {
     store.get(currentEditDepositId).onsuccess = (e) => {
@@ -531,7 +535,7 @@ function addDeposit() {
       if(data) {
         data.name = name;
         data.amount = amt;
-        data.dateStr = dateStr; // Update timestamp when edited
+        data.dateStr = dateStr; 
         store.put(data);
       }
     };
@@ -548,7 +552,6 @@ function addDeposit() {
   };
 }
 
-// Function to trigger edit mode for budgets
 function editDeposit(id) {
   const tx = db.transaction("deposits", "readonly");
   tx.objectStore("deposits").get(id).onsuccess = (e) => {
@@ -563,13 +566,12 @@ function editDeposit(id) {
 }
 
 /* =========================================
-   5. Load & Render Data (With Individual Budget Calcs)
+   5. Load Data & Separation Magic
    ========================================= */
 function loadAllData() {
-  let totalDeposits = 0;
   uniqueItemsDict = {}; allExpensesCache = []; uniqueBudgets.clear();
   
-  let budgetDepositSums = {}; // Map to track total deposited per budget source
+  let budgetDepositSums = {}; 
   
   const expContainer = document.getElementById("history-container");
   const depContainer = document.getElementById("deposit-history-container");
@@ -580,11 +582,9 @@ function loadAllData() {
     const cursor = e.target.result;
     if (cursor) {
       const dep = cursor.value;
-      totalDeposits += dep.amount;
       uniqueBudgets.add(dep.name); 
       budgetDepositSums[dep.name] = (budgetDepositSums[dep.name] || 0) + dep.amount;
 
-      // Budget Cards now have specific remaining ID for live calculation updates
       depContainer.innerHTML += `
         <div class="deposit-card">
           <div style="flex:1;">
@@ -602,26 +602,24 @@ function loadAllData() {
       cursor.continue();
     } else {
       updateBudgetDropdown(); 
-      loadExpensesData(totalDeposits, budgetDepositSums); 
+      loadExpensesData(budgetDepositSums); 
     }
   };
 }
 
 function updateBudgetDropdown() {
   const dropdown = document.getElementById("expenseBudgetSource");
-  const currVal = dropdown.value; // Store current value to re-select
+  const currVal = dropdown.value; 
   dropdown.innerHTML = '<option value="Online">Online (Default)</option>';
   uniqueBudgets.forEach(name => { dropdown.innerHTML += `<option value="${name}">${name}</option>`; });
   
-  // Re-select value if it was saved
   if(Array.from(dropdown.options).some(opt => opt.value === currVal)) {
     dropdown.value = currVal;
   }
 }
 
-function loadExpensesData(totalDeposits, budgetDepositSums) {
-  let totalExpenses = 0;
-  let budgetExpenseSums = {}; // Map to track total expenses per specific budget
+function loadExpensesData(budgetDepositSums) {
+  let budgetExpenseSums = {}; 
 
   const expContainer = document.getElementById("history-container");
   const txExp = db.transaction("expenses", "readonly");
@@ -630,10 +628,9 @@ function loadExpensesData(totalDeposits, budgetDepositSums) {
     const cursor = e.target.result;
     if (cursor) {
       const exp = cursor.value;
-      totalExpenses += exp.price;
       allExpensesCache.push(exp); 
       
-      const budgSrc = exp.budgetSource || "Online"; // Maps correctly to Online fallback
+      const budgSrc = exp.budgetSource || "Online"; 
       budgetExpenseSums[budgSrc] = (budgetExpenseSums[budgSrc] || 0) + exp.price;
 
       if (!uniqueItemsDict[exp.name]) {
@@ -648,7 +645,6 @@ function loadExpensesData(totalDeposits, budgetDepositSums) {
       const card = document.createElement("div");
       card.className = "entry-card";
       card.dataset.id = exp.id;
-      // UI Remains exact same as individual items
       card.innerHTML = `
         <div class="entry-info">
           <span class="entry-name">${exp.name}</span>
@@ -670,13 +666,35 @@ function loadExpensesData(totalDeposits, budgetDepositSums) {
       expContainer.appendChild(card);
       cursor.continue();
     } else {
-      // 1. Update Global Wallet Balance at the top
-      const balance = totalDeposits - totalExpenses;
-      const balEl = document.getElementById("walletBalance");
-      balEl.innerText = `₹ ${balance.toLocaleString('en-IN')}`;
-      balEl.style.color = balance < 0 ? "var(--danger)" : "var(--success)";
       
-      // 2. Update specific Budget Balances in the Deposit List (Deducting from selected budget)
+      // 1. Update Frontend Multiple Budget Cards
+      const walletsContainer = document.getElementById("wallets-container");
+      walletsContainer.innerHTML = "";
+
+      // Online (Default) always shows as Expenses
+      const onlineExpense = budgetExpenseSums["Online"] || 0;
+      walletsContainer.innerHTML += `
+        <div class="wallet-card">
+          <div class="wallet-title">Online Total Spent</div>
+          <div class="wallet-balance" style="color: var(--danger);">₹ ${onlineExpense.toLocaleString('en-IN')}</div>
+        </div>
+      `;
+
+      // Created Budgets show remaining balance (Deposit - Expense)
+      for (const [budgetName, depositAmt] of Object.entries(budgetDepositSums)) {
+          const expAmt = budgetExpenseSums[budgetName] || 0;
+          const balance = depositAmt - expAmt;
+          const colorClass = balance < 0 ? "var(--danger)" : "var(--success)";
+          
+          walletsContainer.innerHTML += `
+            <div class="wallet-card">
+              <div class="wallet-title">${budgetName} Balance</div>
+              <div class="wallet-balance" style="color: ${colorClass};">₹ ${balance.toLocaleString('en-IN')}</div>
+            </div>
+          `;
+      }
+
+      // 2. Update Budget Panel Overlays
       const txDep2 = db.transaction("deposits", "readonly");
       txDep2.objectStore("deposits").openCursor().onsuccess = (e2) => {
          const depCursor = e2.target.result;
@@ -789,12 +807,11 @@ function saveNewOrder() {
 }
 
 /* =========================================
-   8. Overlays, Analytics & EXCEL EXPORT MAGIC 
+   8. Overlays, Analytics & EXCEL EXPORT
    ========================================= */
 function openDepositPanel() { document.getElementById("depositOverlay").classList.add("active"); }
 function closeDepositPanel() { 
     document.getElementById("depositOverlay").classList.remove("active");
-    // Reset edit state when panel is closed
     currentEditDepositId = null; 
     document.getElementById("depositName").value = "";
     document.getElementById("depositAmount").value = "";
@@ -903,17 +920,15 @@ function exportCSV() {
 
   if (csvData.length === 0) { showCustomAlert("No checked items to export!"); return; }
   
-  // Step 1: Calculate Group Totals for the "Continue Item" Logic
   const transactionStats = {};
   csvData.forEach(exp => {
-    const tId = exp.transactionId || exp.id; // Unique identifier fallback
+    const tId = exp.transactionId || exp.id; 
     if (!transactionStats[tId]) {
       transactionStats[tId] = { totalSpent: 0, isFirstProcessed: false };
     }
     transactionStats[tId].totalSpent += exp.price;
   });
 
-  // Step 2: Generate CSV Rows (The Hyphen Logic)
   let csv = "Date & Time,Item Name,Quantity,Unit,Budget Source,Price (INR),Payment Method,Cash Given,Change Received\n";
   
   csvData.forEach(exp => {
@@ -925,20 +940,17 @@ function exportCSV() {
     
     let displayPayMeth, displayCash, displayChange;
 
-    // Check if this is the FIRST row of a grouped transaction
     if (!transactionStats[tId].isFirstProcessed) {
       displayPayMeth = payMeth;
       displayCash = exp.cashGiven > 0 ? exp.cashGiven : "-";
       
-      // Calculate Change Received for whole group
       if (exp.cashGiven > 0 && exp.cashGiven >= transactionStats[tId].totalSpent) {
         displayChange = (exp.cashGiven - transactionStats[tId].totalSpent).toFixed(2);
       } else {
         displayChange = "-";
       }
-      transactionStats[tId].isFirstProcessed = true; // Mark as processed
+      transactionStats[tId].isFirstProcessed = true; 
     } else {
-      // For all subsequent rows in the same transaction, show HYPHEN
       displayPayMeth = "-";
       displayCash = "-";
       displayChange = "-";
