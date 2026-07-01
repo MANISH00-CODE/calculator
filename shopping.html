@@ -62,7 +62,7 @@
   input, select { 
     width: 100%; padding: 12px; background: var(--bg-input); border: 2px solid transparent; 
     border-radius: 10px; color: var(--text-main); font-family: 'Poppins', sans-serif; 
-    font-size: 14px; outline: none; box-sizing: border-box;
+    font-size: 14px; outline: none; box-sizing: border-box; /* Fixed box sizing */
   }
   input:focus, select:focus { border-color: var(--accent); }
   .row-inputs { display: flex; gap: 10px; }
@@ -140,7 +140,7 @@
   .data-table tr:hover td { background: rgba(255, 255, 255, 0.05); }
   .row-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
 
-  /* Undo Snackbar */
+  /* Undo Snackbar - Used instead of intrusive alerts */
   #snackbar {
     visibility: hidden; min-width: 250px; background-color: var(--bg-input); color: #fff;
     text-align: center; border-radius: 10px; padding: 15px 20px; position: fixed;
@@ -170,7 +170,7 @@
 </div>
 
 <div class="wallet-card">
-  <div class="wallet-title">Remaining Balance</div>
+  <div class="wallet-title">Total Remaining Balance</div>
   <div class="wallet-balance" id="walletBalance">₹ 0</div>
 </div>
 
@@ -198,8 +198,9 @@
 
   <!-- Budget Source & Payment Method -->
   <div class="row-inputs">
+    <!-- Changed Default Budget Source to "Online" -->
     <select id="expenseBudgetSource">
-      <option value="General">Select Budget...</option>
+      <option value="Online">Online (Default)</option>
     </select>
     <select id="expensePaymentMethod" onchange="handlePaymentMethodChange()">
       <option value="Online">Online</option>
@@ -240,7 +241,8 @@
         <div class="suggestions-box" id="depositSuggestionBox"></div>
       </div>
       <input type="number" id="depositAmount" placeholder="Amount (₹)" style="flex: 1;">
-      <button class="btn-small" style="background: var(--success); color: white; padding: 0 15px;" onclick="addDeposit()">Add</button>
+      <!-- Added ID to button for dynamically changing text between Add/Update -->
+      <button id="btnDepositSubmit" class="btn-small" style="background: var(--success); color: white; padding: 0 15px;" onclick="addDeposit()">Add</button>
     </div>
     <div id="deposit-history-container" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;"></div>
   </div>
@@ -326,6 +328,7 @@ let lastDeletedData = null;
 let lastDeletedType = null; 
 let undoTimeout = null;
 let currentEditId = null; 
+let currentEditDepositId = null; // Track which budget is being edited
 
 // Tracker for Transaction Grouping
 let activeTransactionId = null;
@@ -394,7 +397,8 @@ nameInput.addEventListener("input", (e) => {
         
         // Auto-fill budget/payment only if we are NOT in a continued transaction
         if(!activeTransactionId) {
-          document.getElementById("expenseBudgetSource").value = uniqueItemsDict[m].budgetSource || "General";
+          // Defaulting to Online if previous was mapped
+          document.getElementById("expenseBudgetSource").value = uniqueItemsDict[m].budgetSource || "Online";
           document.getElementById("expensePaymentMethod").value = uniqueItemsDict[m].paymentMethod || "Online";
           handlePaymentMethodChange();
         }
@@ -428,15 +432,16 @@ depNameInput.addEventListener("input", (e) => {
 document.addEventListener("click", (e) => { if (e.target !== depNameInput) depSugBox.style.display = "none"; });
 
 /* =========================================
-   4. Add / Update Data with GROUPING
+   4. Add / Update Data with GROUPING & BUDGETS
    ========================================= */
 function processExpense(isContinue) {
   const name = document.getElementById("itemName").value.trim();
   const qty = parseFloat(document.getElementById("itemQty").value);
   const unit = document.getElementById("itemUnit").value;
   const price = parseFloat(document.getElementById("itemPrice").value);
-  const budgetSource = document.getElementById("expenseBudgetSource").value;
-  const paymentMethod = document.getElementById("expensePaymentMethod").value;
+  // Replaced "General" with "Online" default
+  const budgetSource = document.getElementById("expenseBudgetSource").value || "Online"; 
+  const paymentMethod = document.getElementById("expensePaymentMethod").value || "Online";
   const cashGiven = parseFloat(document.getElementById("cashGiven").value) || 0;
 
   if (!name || !qty || !price) {
@@ -501,6 +506,7 @@ function resetInputs() {
 }
 
 function showCustomAlert(msg) {
+  // Uses snackbar, NO popup alerts used to prevent workflow interruption
   document.getElementById("snackText").innerText = msg;
   document.getElementById("undoBtnAction").style.display = "none";
   document.getElementById("snackbar").classList.add("show");
@@ -514,17 +520,56 @@ function addDeposit() {
   const name = document.getElementById("depositName").value.trim();
   const amt = parseFloat(document.getElementById("depositAmount").value);
   if (!name || !amt || amt <= 0) { showCustomAlert("Please fill Budget Name & Amount!"); return; }
+  
   const tx = db.transaction("deposits", "readwrite");
-  tx.objectStore("deposits").add({ name: name, amount: amt, dateStr: getDisplayDate(), order: Date.now() });
-  tx.oncomplete = () => { document.getElementById("depositAmount").value = ""; loadAllData(); };
+  const store = tx.objectStore("deposits");
+  const dateStr = getDisplayDate(); // Captures exact Date, Time, Day, Year
+
+  if (currentEditDepositId) {
+    store.get(currentEditDepositId).onsuccess = (e) => {
+      const data = e.target.result;
+      if(data) {
+        data.name = name;
+        data.amount = amt;
+        data.dateStr = dateStr; // Update timestamp when edited
+        store.put(data);
+      }
+    };
+  } else {
+    store.add({ name: name, amount: amt, dateStr: dateStr, order: Date.now() });
+  }
+
+  tx.oncomplete = () => { 
+    document.getElementById("depositName").value = "";
+    document.getElementById("depositAmount").value = "";
+    currentEditDepositId = null;
+    document.getElementById("btnDepositSubmit").innerText = "Add";
+    loadAllData(); 
+  };
+}
+
+// Function to trigger edit mode for budgets
+function editDeposit(id) {
+  const tx = db.transaction("deposits", "readonly");
+  tx.objectStore("deposits").get(id).onsuccess = (e) => {
+    const dep = e.target.result;
+    if(dep) {
+      document.getElementById("depositName").value = dep.name;
+      document.getElementById("depositAmount").value = dep.amount;
+      currentEditDepositId = id;
+      document.getElementById("btnDepositSubmit").innerText = "Update";
+    }
+  };
 }
 
 /* =========================================
-   5. Load & Render Data
+   5. Load & Render Data (With Individual Budget Calcs)
    ========================================= */
 function loadAllData() {
-  let totalExpenses = 0; let totalDeposits = 0;
+  let totalDeposits = 0;
   uniqueItemsDict = {}; allExpensesCache = []; uniqueBudgets.clear();
+  
+  let budgetDepositSums = {}; // Map to track total deposited per budget source
   
   const expContainer = document.getElementById("history-container");
   const depContainer = document.getElementById("deposit-history-container");
@@ -537,20 +582,27 @@ function loadAllData() {
       const dep = cursor.value;
       totalDeposits += dep.amount;
       uniqueBudgets.add(dep.name); 
+      budgetDepositSums[dep.name] = (budgetDepositSums[dep.name] || 0) + dep.amount;
+
+      // Budget Cards now have specific remaining ID for live calculation updates
       depContainer.innerHTML += `
         <div class="deposit-card">
-          <div>
+          <div style="flex:1;">
             <strong style="font-size:14px; color:var(--text-main);">${dep.name}</strong><br>
-            <strong style="color:var(--success);">+ ₹${dep.amount}</strong><br>
+            <span style="font-size:12px; color:var(--text-muted);">Budget Limit: ₹${dep.amount}</span><br>
+            <strong style="color:var(--success); font-size: 13px;" id="rem-${dep.id}">Calculating...</strong><br>
             <span style="font-size:11px; color:var(--text-muted);">${dep.dateStr}</span>
           </div>
-          <button class="btn-delete" onclick="deleteItem(event, ${dep.id}, 'deposits')">🗑️</button>
+          <div class="controls">
+            <button class="btn-edit" onclick="editDeposit(${dep.id})">✏️</button>
+            <button class="btn-delete" onclick="deleteItem(event, ${dep.id}, 'deposits')">🗑️</button>
+          </div>
         </div>
       `;
       cursor.continue();
     } else {
       updateBudgetDropdown(); 
-      loadExpensesData(totalDeposits); 
+      loadExpensesData(totalDeposits, budgetDepositSums); 
     }
   };
 }
@@ -558,7 +610,7 @@ function loadAllData() {
 function updateBudgetDropdown() {
   const dropdown = document.getElementById("expenseBudgetSource");
   const currVal = dropdown.value; // Store current value to re-select
-  dropdown.innerHTML = '<option value="General">General (Default)</option>';
+  dropdown.innerHTML = '<option value="Online">Online (Default)</option>';
   uniqueBudgets.forEach(name => { dropdown.innerHTML += `<option value="${name}">${name}</option>`; });
   
   // Re-select value if it was saved
@@ -567,8 +619,10 @@ function updateBudgetDropdown() {
   }
 }
 
-function loadExpensesData(totalDeposits) {
+function loadExpensesData(totalDeposits, budgetDepositSums) {
   let totalExpenses = 0;
+  let budgetExpenseSums = {}; // Map to track total expenses per specific budget
+
   const expContainer = document.getElementById("history-container");
   const txExp = db.transaction("expenses", "readonly");
   
@@ -579,6 +633,9 @@ function loadExpensesData(totalDeposits) {
       totalExpenses += exp.price;
       allExpensesCache.push(exp); 
       
+      const budgSrc = exp.budgetSource || "Online"; // Maps correctly to Online fallback
+      budgetExpenseSums[budgSrc] = (budgetExpenseSums[budgSrc] || 0) + exp.price;
+
       if (!uniqueItemsDict[exp.name]) {
          uniqueItemsDict[exp.name] = { 
            qty: exp.qty, unit: exp.unit, price: exp.price, 
@@ -587,7 +644,6 @@ function loadExpensesData(totalDeposits) {
       }
 
       const payMode = exp.paymentMethod || "Online";
-      const budgSrc = exp.budgetSource || "General";
 
       const card = document.createElement("div");
       card.className = "entry-card";
@@ -614,11 +670,30 @@ function loadExpensesData(totalDeposits) {
       expContainer.appendChild(card);
       cursor.continue();
     } else {
+      // 1. Update Global Wallet Balance at the top
       const balance = totalDeposits - totalExpenses;
       const balEl = document.getElementById("walletBalance");
       balEl.innerText = `₹ ${balance.toLocaleString('en-IN')}`;
       balEl.style.color = balance < 0 ? "var(--danger)" : "var(--success)";
       
+      // 2. Update specific Budget Balances in the Deposit List (Deducting from selected budget)
+      const txDep2 = db.transaction("deposits", "readonly");
+      txDep2.objectStore("deposits").openCursor().onsuccess = (e2) => {
+         const depCursor = e2.target.result;
+         if(depCursor) {
+            const dep = depCursor.value;
+            const remEl = document.getElementById(`rem-${dep.id}`);
+            if(remEl) {
+               const totalDepForName = budgetDepositSums[dep.name] || 0;
+               const totalExpForName = budgetExpenseSums[dep.name] || 0;
+               const remainingForName = totalDepForName - totalExpForName;
+               remEl.innerText = `Budget Left: ₹${remainingForName.toLocaleString('en-IN')}`;
+               remEl.style.color = remainingForName < 0 ? "var(--danger)" : "var(--success)";
+            }
+            depCursor.continue();
+         }
+      }
+
       if(document.getElementById("analyticsOverlay").classList.contains("active")) runAnalytics();
     }
   };
@@ -717,7 +792,14 @@ function saveNewOrder() {
    8. Overlays, Analytics & EXCEL EXPORT MAGIC 
    ========================================= */
 function openDepositPanel() { document.getElementById("depositOverlay").classList.add("active"); }
-function closeDepositPanel() { document.getElementById("depositOverlay").classList.remove("active"); }
+function closeDepositPanel() { 
+    document.getElementById("depositOverlay").classList.remove("active");
+    // Reset edit state when panel is closed
+    currentEditDepositId = null; 
+    document.getElementById("depositName").value = "";
+    document.getElementById("depositAmount").value = "";
+    document.getElementById("btnDepositSubmit").innerText = "Add";
+}
 
 function openAnalytics() { 
   document.getElementById("analyticsOverlay").classList.add("active"); 
@@ -728,7 +810,7 @@ function closeAnalytics() { document.getElementById("analyticsOverlay").classLis
 
 function renderBudgetCheckboxes() {
   const container = document.getElementById("analyticsBudgetFilters");
-  let html = `<label class="cb-label"><input type="checkbox" class="budget-filter-cb" value="General" checked onchange="runAnalytics()"> General</label>`;
+  let html = `<label class="cb-label"><input type="checkbox" class="budget-filter-cb" value="Online" checked onchange="runAnalytics()"> Online</label>`;
   uniqueBudgets.forEach(b => {
     html += `<label class="cb-label"><input type="checkbox" class="budget-filter-cb" value="${b}" checked onchange="runAnalytics()"> ${b}</label>`;
   });
@@ -765,7 +847,7 @@ function runAnalytics() {
     else if(type === "month") { if(exp.isoMonth === targetIso) dateMatch = true; }
     else if(type === "year") { if(exp.isoYear === targetIso) dateMatch = true; }
     
-    const expBudget = exp.budgetSource || "General";
+    const expBudget = exp.budgetSource || "Online";
     let budgetMatch = checkedBudgets.includes(expBudget);
 
     if (dateMatch && budgetMatch) currentFilteredData.push(exp);
@@ -837,7 +919,7 @@ function exportCSV() {
   csvData.forEach(exp => {
     const safeName = exp.name.replace(/"/g, '""');
     const safeDate = exp.dateStr.replace(/"/g, '""');
-    const budgSrc = exp.budgetSource || "General";
+    const budgSrc = exp.budgetSource || "Online";
     const payMeth = exp.paymentMethod || "Online";
     const tId = exp.transactionId || exp.id;
     
