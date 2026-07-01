@@ -121,7 +121,17 @@
   }
   .overlay.active { display: flex; }
   .overlay-header { padding: 15px; background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; }
-  .overlay-body { padding: 15px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+  
+  /* FIXED: Ab poora page scroll hoga */
+  .overlay-body { 
+    padding: 15px; 
+    flex: 1; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 15px;
+    overflow-y: auto; 
+    height: 100%;
+  }
   
   .deposit-card { background: var(--bg-card); padding: 12px 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--success); }
 
@@ -140,15 +150,18 @@
   .cb-label:hover { border-color: var(--accent); }
   .cb-label input { width: auto; margin: 0; accent-color: var(--accent); cursor: pointer; }
 
-  /* Analytics Container Fix */
+  /* FIXED: Table ka dabba hata diya gaya hai, content ke hisab se bada hoga */
   .data-table-wrapper { 
     overflow-x: auto; 
-    overflow-y: visible; /* Allows natural expansion downwards */
     width: 100%; 
     background: var(--bg-card); 
     border-radius: 10px; 
-    flex-grow: 1; /* Lets it take up the rest of the available space naturally */
+    border: 1px solid var(--bg-input);
+    flex-grow: 0; 
+    height: auto; 
+    margin-bottom: 20px;
   }
+  
   .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; white-space: nowrap; }
   .data-table th { background: var(--bg-input); color: var(--text-muted); padding: 10px 8px; font-weight: 600; position: sticky; top: 0; z-index: 5; }
   .data-table td { padding: 10px 8px; border-bottom: 1px solid var(--bg-input); }
@@ -184,19 +197,15 @@
   </div>
 </div>
 
-<!-- Dynamic Budgets Container (Replaced Single Wallet) -->
 <div class="wallets-wrapper" id="wallets-container">
-  <!-- JavaScript will generate Budget Cards here -->
-</div>
+  </div>
 
 <div class="input-section">
-  <!-- Item Name -->
   <div class="input-wrapper">
     <input type="text" id="itemName" placeholder="Item Name (e.g. Kurkure)" autocomplete="off">
     <div class="suggestions-box" id="suggestionBox"></div>
   </div>
   
-  <!-- Qty, Unit, Price -->
   <div class="row-inputs">
     <input type="number" id="itemQty" placeholder="Qty" min="0.01" step="any">
     <select id="itemUnit">
@@ -211,7 +220,6 @@
     <input type="number" id="itemPrice" placeholder="₹ Price" min="0" step="any">
   </div>
 
-  <!-- Budget Source & Payment Method -->
   <div class="row-inputs">
     <select id="expenseBudgetSource">
       <option value="Online">Online (Default)</option>
@@ -228,12 +236,10 @@
     </select>
   </div>
   
-  <!-- Cash Given -->
   <div class="row-inputs" id="cashCalculationRow" style="display: none; margin-top: 5px;">
     <input type="number" id="cashGiven" placeholder="Cash Given (₹)">
   </div>
 
-  <!-- Smart Buttons -->
   <div class="row-inputs" style="margin-top: 5px;">
     <button class="btn-action btn-continue" id="btnContinue" onclick="processExpense(true)">🔄 Continue Item</button>
     <button class="btn-action btn-add" id="btnAddUpdate" onclick="processExpense(false)">➕ Add Expense</button>
@@ -242,7 +248,6 @@
 
 <div id="history-container"></div>
 
-<!-- 💰 Budget / Deposit Overlay -->
 <div class="overlay" id="depositOverlay">
   <div class="overlay-header">
     <span style="font-weight: 600;">💰 Budget History</span>
@@ -261,15 +266,13 @@
   </div>
 </div>
 
-<!-- 📊 Analytics Overlay -->
 <div class="overlay" id="analyticsOverlay">
   <div class="overlay-header">
     <span style="font-weight: 600;">📊 Expense Analytics</span>
     <button class="btn-small" style="background: rgba(239, 68, 68, 0.1); color: var(--danger);" onclick="closeAnalytics()">✕ Close</button>
   </div>
-  <div class="overlay-body" style="overflow-y: auto;">
+  <div class="overlay-body">
     
-    <!-- Date Filter -->
     <label style="font-size:12px; color:var(--text-muted);">Select Date Filter</label>
     <select id="filterType" onchange="runAnalytics()">
       <option value="today">Today's Expense</option>
@@ -279,12 +282,10 @@
     </select>
     <input type="date" id="customFilterDate" style="display:none;" onchange="runAnalytics()">
     
-    <!-- Budget Checkbox Filter -->
     <div style="margin-top: 5px;">
       <label style="font-size:12px; color:var(--text-muted);">Filter by Budget Source</label>
       <div id="analyticsBudgetFilters" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px;">
-        <!-- Checkboxes generated dynamically -->
-      </div>
+        </div>
     </div>
     
     <div class="analytics-result">
@@ -297,7 +298,6 @@
        <button class="btn-small" style="background: var(--success); color: white;" onclick="exportCSV()">⬇️ Export CSV</button>
     </div>
     
-    <!-- Restrictive container removed, lets content flow -->
     <div class="data-table-wrapper">
       <table class="data-table">
         <thead>
