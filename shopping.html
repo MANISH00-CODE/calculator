@@ -44,7 +44,8 @@
   .chip { background: #000; color: var(--text-muted); border: 1px solid #334155; padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; }
   .chip.active { background: var(--bg-main); color: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px rgba(14, 165, 233, 0.6); font-weight: 600; }
 
-  .note-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 5px; }
+  /* FIX: 4 Columns ka grid bana diya taaki 5 aur Coins fit ho jayein */
+  .note-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 5px; }
   .note-grid input { padding: 8px; font-size: 12px; text-align: center; }
   .note-label { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; display: block; text-align: center;}
   .note-wrapper { display: flex; flex-direction: column; }
@@ -53,7 +54,6 @@
   .btn-continue { background: rgba(14, 165, 233, 0.1); color: var(--accent); border: 1px solid var(--accent); }
   .btn-add { background: var(--accent); color: white; }
 
-  /* Temp Cart Section */
   #cartSection { background: rgba(0,0,0,0.2); border: 1px solid var(--bg-input); border-radius: 8px; padding: 10px; display: none; }
   #cartItemsList { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; max-height: 120px; overflow-y: auto; }
   .cart-item-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px; }
@@ -156,6 +156,8 @@
       <div class="note-wrapper"><span class="note-label">50</span><input type="number" id="g50" placeholder="x" min="0" oninput="calcGiven()"></div>
       <div class="note-wrapper"><span class="note-label">20</span><input type="number" id="g20" placeholder="x" min="0" oninput="calcGiven()"></div>
       <div class="note-wrapper"><span class="note-label">10</span><input type="number" id="g10" placeholder="x" min="0" oninput="calcGiven()"></div>
+      <div class="note-wrapper"><span class="note-label">5</span><input type="number" id="g5" placeholder="x" min="0" oninput="calcGiven()"></div>
+      <div class="note-wrapper"><span class="note-label">Coins(₹1)</span><input type="number" id="g1" placeholder="₹" min="0" oninput="calcGiven()"></div>
     </div>
     <div style="margin-top: 10px; display: flex; gap: 10px;">
         <input type="number" id="cashGiven" placeholder="Total Given (₹)" disabled style="font-weight: bold;">
@@ -172,6 +174,8 @@
       <div class="note-wrapper"><span class="note-label">50</span><input type="number" id="r50" placeholder="x" min="0"></div>
       <div class="note-wrapper"><span class="note-label">20</span><input type="number" id="r20" placeholder="x" min="0"></div>
       <div class="note-wrapper"><span class="note-label">10</span><input type="number" id="r10" placeholder="x" min="0"></div>
+      <div class="note-wrapper"><span class="note-label">5</span><input type="number" id="r5" placeholder="x" min="0"></div>
+      <div class="note-wrapper"><span class="note-label">Coins(₹1)</span><input type="number" id="r1" placeholder="₹" min="0"></div>
     </div>
   </div>
 
@@ -205,6 +209,8 @@
               <div class="note-wrapper"><span class="note-label">50</span><input type="number" id="b50" placeholder="x" min="0" oninput="calcBudgetNotes()"></div>
               <div class="note-wrapper"><span class="note-label">20</span><input type="number" id="b20" placeholder="x" min="0" oninput="calcBudgetNotes()"></div>
               <div class="note-wrapper"><span class="note-label">10</span><input type="number" id="b10" placeholder="x" min="0" oninput="calcBudgetNotes()"></div>
+              <div class="note-wrapper"><span class="note-label">5</span><input type="number" id="b5" placeholder="x" min="0" oninput="calcBudgetNotes()"></div>
+              <div class="note-wrapper"><span class="note-label">Coins(₹1)</span><input type="number" id="b1" placeholder="₹" min="0" oninput="calcBudgetNotes()"></div>
             </div>
         </div>
 
@@ -263,8 +269,7 @@
     <button class="btn-small" style="background: rgba(239, 68, 68, 0.1); color: var(--danger);" onclick="closeNotesSummary()">✕ Close</button>
   </div>
   <div class="overlay-body" id="notesSummaryBody">
-    <!-- Data yahan aayega -->
-  </div>
+    </div>
 </div>
 
 <div id="snackbar"><span id="snackText">Deleted</span><button class="undo-btn" id="undoBtnAction" onclick="undoDelete()">UNDO</button></div>
@@ -276,17 +281,17 @@
 </div>
 
 <script>
-/* DB Setup & Globals */
+/* * IMPORTANT: Agar tumhara purana data gayab hai toh yahan "SmartShopV10" ko 
+  * badal kar "SmartShopV9" ya apna purana DB name likh lo. Code update hoga par data safe rahega!
+*/
 const DB_NAME = "SmartShopV10"; 
 let db;
 let uniqueItemsDict = {}; let allExpensesCache = []; let currentFilteredData = []; 
 let uniqueBudgets = new Set(); 
 
-/* NEW GLOBALS */
 let targetTransactionId = null; 
 let budgetDepositedNotes = {}; 
 
-/* Cart Variables */
 let currentCart = [];
 let cartTotal = 0;
 
@@ -310,8 +315,8 @@ function getDisplayDate() { const d = new Date(); const m = ["Jan","Feb","Mar","
 function getIsoDates() { const d = new Date(); const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0'); return { full: `${y}-${m}-${day}`, month: `${y}-${m}`, year: `${y}` }; }
 function showCustomAlert(msg) { document.getElementById("snackText").innerText = msg; document.getElementById("undoBtnAction").style.display = "none"; document.getElementById("snackbar").classList.add("show"); setTimeout(() => { document.getElementById("snackbar").classList.remove("show"); setTimeout(() => document.getElementById("undoBtnAction").style.display = "block", 300); }, 2500); }
 
-/* Note Calculators */
-const notesArr = [500, 200, 100, 50, 20, 10];
+/* Note Calculators (ADDED 5 & 1) */
+const notesArr = [500, 200, 100, 50, 20, 10, 5, 1];
 
 function calcGiven() {
     let total = 0;
@@ -399,7 +404,6 @@ nameInput.addEventListener("input", (e) => {
   } else { sugBox.style.display = "none"; }
 });
 document.addEventListener("click", (e) => { if (e.target !== nameInput) sugBox.style.display = "none"; });
-
 
 /* --- Cart System Logic --- */
 function addToCart() {
@@ -610,7 +614,8 @@ function loadAllData() {
           noteStr = "<br><span style='font-size:11px; color:var(--warning);'>Added Notes: ";
           let totalCount = 0;
           for(let n in dep.notes) {
-              noteStr += `${n}x${dep.notes[n]} | `;
+              let lbl = n == 1 ? "Coins" : `₹${n}`;
+              noteStr += `${lbl}x${dep.notes[n]} | `;
               totalCount += parseInt(dep.notes[n]);
           }
           noteStr += `<b>(Count: ${totalCount})</b></span>`;
@@ -635,20 +640,6 @@ function loadAllData() {
       loadGroupedExpenses(budgetDepositSums); 
     }
   };
-}
-
-function showBudgetNotes(notes, name) {
-    if(!notes || Object.keys(notes).length === 0) {
-        showCustomAlert(`${name} budget mein koi notes data save nahi hai.`);
-        return;
-    }
-    let msg = `${name} Budget ke Notes:\n---------------------\n`;
-    for(let n in notes) {
-        if(notes[n] > 0) {
-             msg += `₹${n} ka Note: ${notes[n]} psc\n`;
-        }
-    }
-    alert(msg);
 }
 
 function loadGroupedExpenses(budgetDepositSums) {
@@ -678,17 +669,14 @@ function loadGroupedExpenses(budgetDepositSums) {
       cursor.continue();
     } else {
       
-      // NEW FIX: Yaha par actual Notes ka Plus-Minus calculate ho raha hai
       Object.values(groups).forEach(g => {
           let bName = g.budget;
           if (g.pay === 'Cash' && budgetDepositedNotes[bName]) {
-              // Deduct Given Notes from Budget
               if (g.gNotes) {
                   for (let n in g.gNotes) {
                       budgetDepositedNotes[bName][n] = (budgetDepositedNotes[bName][n] || 0) - parseInt(g.gNotes[n]);
                   }
               }
-              // Add Received Notes (Change) to Budget
               if (g.rNotes && g.cash > g.total) {
                   for (let n in g.rNotes) {
                       budgetDepositedNotes[bName][n] = (budgetDepositedNotes[bName][n] || 0) + parseInt(g.rNotes[n]);
@@ -704,10 +692,8 @@ function loadGroupedExpenses(budgetDepositSums) {
       for (const [name, depAmt] of Object.entries(budgetDepositSums)) {
           const bal = depAmt - (budgetExpenseSums[name] || 0);
           
-          let noteData = JSON.stringify(budgetDepositedNotes[name] || {});
-          
           walletsContainer.innerHTML += `
-          <div class="wallet-card" style="cursor:pointer;" onclick='showBudgetNotes(${noteData}, "${name}")'>
+          <div class="wallet-card" style="cursor:pointer;" onclick="openNotesSummary()">
             <div class="wallet-title">${name}</div>
             <div class="wallet-balance" style="color: ${bal < 0 ? 'var(--danger)' : 'var(--success)'};">₹ ${bal.toLocaleString('en-IN')}</div>
           </div>`;
@@ -726,7 +712,8 @@ function loadGroupedExpenses(budgetDepositSums) {
                  notesMetaStr += `<br><span style="color:var(--warning); font-size:11px;">Given Notes: `;
                  let gCount = 0;
                  for(let n in g.gNotes) {
-                     notesMetaStr += `${n}x${g.gNotes[n]} | `;
+                     let lbl = n == 1 ? "Coins" : `₹${n}`;
+                     notesMetaStr += `${lbl}x${g.gNotes[n]} | `;
                      gCount += parseInt(g.gNotes[n]);
                  }
                  notesMetaStr += `<b>(Count: ${gCount})</b></span>`;
@@ -739,7 +726,8 @@ function loadGroupedExpenses(budgetDepositSums) {
                      notesMetaStr += " (";
                      let rCount = 0;
                      for(let n in g.rNotes) {
-                         notesMetaStr += `${n}x${g.rNotes[n]} | `;
+                         let lbl = n == 1 ? "Coins" : `₹${n}`;
+                         notesMetaStr += `${lbl}x${g.rNotes[n]} | `;
                          rCount += parseInt(g.rNotes[n]);
                      }
                      notesMetaStr = notesMetaStr.substring(0, notesMetaStr.length - 3);
@@ -884,7 +872,6 @@ function exportCSV() {
   const a = document.createElement("a"); a.href = url; a.download = `Export_${Date.now()}.csv`; a.click();
 }
 
-// --- NEW FIX: SHOW TOTAL AMOUNT & HIDE ZERO NOTES ---
 function openNotesSummary() {
     const body = document.getElementById("notesSummaryBody");
     body.innerHTML = "";
@@ -896,21 +883,20 @@ function openNotesSummary() {
             let noteDetails = "";
             let hasValidNotes = false;
             
-            // Note sorting (500, 200, 100...)
             let sortedNotes = Object.keys(notes).sort((a,b) => b - a);
             
             for (let n of sortedNotes) {
                 let noteValue = parseInt(n);
                 let noteCount = parseInt(notes[n]);
                 
-                // Sirf wahi note dikhao jo bache hue hain (> 0)
                 if(noteCount > 0) {
                     hasValidNotes = true;
                     let lineTotal = noteValue * noteCount;
+                    let lbl = n == 1 ? "Coins (Khulle)" : `₹${n} ka Note`;
                     
                     noteDetails += `
                     <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:8px 0; font-size:13px;">
-                        <span>₹${n} ka Note <b>x ${noteCount}</b></span> 
+                        <span>${lbl} <b>x ${noteCount}</b></span> 
                         <span style="color:var(--text-main);">₹${lineTotal.toLocaleString('en-IN')}</span>
                     </div>`;
                     totalAmount += lineTotal;
