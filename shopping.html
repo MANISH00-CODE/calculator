@@ -33,7 +33,6 @@
     color: var(--text-main); overflow-x: hidden; padding-bottom: 80px; 
   }
 
-  /* Top Header */
   .top { 
     padding: 15px; background: var(--bg-card); box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
     display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10;
@@ -47,12 +46,11 @@
     font-family: 'Poppins', sans-serif; transition: 0.2s; font-weight: 600;
   }
 
-  /* Multiple Wallet Display Update */
   .wallets-wrapper {
     display: flex; gap: 12px; overflow-x: auto; padding: 15px; padding-bottom: 5px;
-    scrollbar-width: none; /* Firefox */
+    scrollbar-width: none; 
   }
-  .wallets-wrapper::-webkit-scrollbar { display: none; /* Chrome/Safari */ }
+  .wallets-wrapper::-webkit-scrollbar { display: none; }
   
   .wallet-card {
     min-width: 140px; flex: 0 0 auto;
@@ -63,26 +61,38 @@
   .wallet-title { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
   .wallet-balance { font-size: 22px; font-weight: 700; margin-top: 5px; white-space: nowrap; }
 
-  /* Input Section */
-  .input-section { padding: 10px 15px 15px 15px; display: flex; flex-direction: column; gap: 10px; position: relative; }
-  .input-wrapper { position: relative; width: 100%; }
+  /* Smart Input Section CSS */
+  .input-section { padding: 10px 15px 15px 15px; display: flex; flex-direction: column; gap: 12px; }
+  .row-inputs { display: flex; gap: 10px; width: 100%; position: relative;}
+  .row-inputs > * { flex: 1; }
+  
   input, select { 
-    width: 100%; padding: 12px; background: var(--bg-input); border: 2px solid transparent; 
-    border-radius: 10px; color: var(--text-main); font-family: 'Poppins', sans-serif; 
+    width: 100%; padding: 12px; background: var(--bg-input); border: 1px solid transparent; 
+    border-radius: 8px; color: var(--text-main); font-family: 'Poppins', sans-serif; 
     font-size: 14px; outline: none; box-sizing: border-box;
   }
   input:focus, select:focus { border-color: var(--accent); }
-  .row-inputs { display: flex; gap: 10px; }
-  .row-inputs > * { flex: 1; }
+  
+  /* Chips UI for Budget & Payment */
+  .chips-container { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    background: #000; color: var(--text-muted); border: 1px solid #334155; 
+    padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 500;
+    cursor: pointer; transition: all 0.3s ease; white-space: nowrap;
+  }
+  .chip.active {
+    background: var(--bg-main); color: var(--accent); border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(14, 165, 233, 0.6); font-weight: 600;
+  }
 
   .btn-action { 
-    padding: 12px; border-radius: 10px; border: none; font-size: 14px; 
+    padding: 12px; border-radius: 8px; border: none; font-size: 14px; 
     font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; transition: 0.3s;
   }
   .btn-continue { background: rgba(14, 165, 233, 0.1); color: var(--accent); border: 1px solid var(--accent); }
   .btn-add { background: var(--accent); color: white; }
 
-  /* Custom Suggestion Box */
+  /* Suggestions */
   .suggestions-box {
     position: absolute; top: 100%; left: 0; width: 100%; background: var(--bg-card);
     border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 20;
@@ -92,25 +102,27 @@
   .suggestion-item:last-child { border-bottom: none; }
   .suggestion-item:hover { background: var(--bg-input); }
 
-  /* History List */
+  /* History List & Grouping */
   #history-container { padding: 0 15px; display: flex; flex-direction: column; gap: 12px; }
-  .entry-card {
-    background: var(--bg-card); padding: 15px; border-radius: 12px; 
-    display: flex; justify-content: space-between; align-items: center;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; touch-action: pan-y;
-    border-left: 4px solid var(--danger);
-  }
-  .entry-card.dragging, tr.dragging { opacity: 0.5; background: rgba(255, 255, 255, 0.1); }
   
+  .group-card { background: var(--bg-card); border-radius: 12px; border-left: 4px solid var(--accent); box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden; }
+  .group-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+  .group-header:hover { background: rgba(255,255,255,0.02); }
+  .group-title { font-size: 14px; font-weight: 600; }
+  .group-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px;}
+  .group-total { font-size: 16px; font-weight: 700; color: var(--danger); }
+  
+  .group-body { display: none; background: rgba(0,0,0,0.2); border-top: 1px solid var(--bg-input); padding: 10px; flex-direction: column; gap: 10px; }
+  .entry-card {
+    background: transparent; padding: 5px; 
+    display: flex; justify-content: space-between; align-items: center;
+  }
   .entry-info { display: flex; flex-direction: column; gap: 2px; }
-  .entry-name { font-size: 15px; font-weight: 600; }
-  .entry-meta { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+  .entry-name { font-size: 14px; font-weight: 500; }
+  .entry-meta { font-size: 11px; color: var(--text-muted); }
   .entry-right { display: flex; align-items: center; gap: 12px; }
-  .entry-amount { font-size: 16px; font-weight: 700; color: var(--danger); }
 
   .controls { display: flex; gap: 8px; align-items: center; }
-  .drag-handle { cursor: grab; font-size: 18px; color: var(--text-muted); padding: 5px; }
-  
   .btn-edit { background: rgba(245, 158, 11, 0.1); color: var(--warning); border: none; border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; }
   .btn-delete { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; }
 
@@ -121,54 +133,23 @@
   }
   .overlay.active { display: flex; }
   .overlay-header { padding: 15px; background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; }
-  
-  /* FIXED: Ab poora page scroll hoga */
-  .overlay-body { 
-    padding: 15px; 
-    flex: 1; 
-    display: flex; 
-    flex-direction: column; 
-    gap: 15px;
-    overflow-y: auto; 
-    height: 100%;
-  }
+  .overlay-body { padding: 15px; flex: 1; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; height: 100%; }
   
   .deposit-card { background: var(--bg-card); padding: 12px 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--success); }
 
   /* Analytics Styling */
-  .analytics-result {
-    background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px dashed var(--accent);
-    text-align: center; margin-top: 10px; flex-shrink: 0;
-  }
+  .analytics-result { background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px dashed var(--accent); text-align: center; margin-top: 10px; flex-shrink: 0; }
   .analytics-result h3 { margin: 0 0 10px 0; font-size: 14px; color: var(--text-muted); }
   .analytics-result .total-val { font-size: 28px; font-weight: bold; color: var(--danger); }
-
-  .cb-label {
-    display: inline-flex; align-items: center; gap: 5px; background: var(--bg-input); 
-    padding: 5px 10px; border-radius: 20px; font-size: 12px; cursor: pointer; border: 1px solid transparent;
-  }
-  .cb-label:hover { border-color: var(--accent); }
+  .cb-label { display: inline-flex; align-items: center; gap: 5px; background: var(--bg-input); padding: 5px 10px; border-radius: 20px; font-size: 12px; cursor: pointer; }
   .cb-label input { width: auto; margin: 0; accent-color: var(--accent); cursor: pointer; }
 
-  /* FIXED: Table ka dabba hata diya gaya hai, content ke hisab se bada hoga */
-  .data-table-wrapper { 
-    overflow-x: auto; 
-    width: 100%; 
-    background: var(--bg-card); 
-    border-radius: 10px; 
-    border: 1px solid var(--bg-input);
-    flex-grow: 0; 
-    height: auto; 
-    margin-bottom: 20px;
-  }
-  
+  /* Full Table View Fix */
+  .data-table-wrapper { overflow-x: auto; width: 100%; background: var(--bg-card); border-radius: 10px; border: 1px solid var(--bg-input); flex-grow: 0; height: auto; margin-bottom: 20px; }
   .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; white-space: nowrap; }
-  .data-table th { background: var(--bg-input); color: var(--text-muted); padding: 10px 8px; font-weight: 600; position: sticky; top: 0; z-index: 5; }
+  .data-table th { background: var(--bg-input); color: var(--text-muted); padding: 10px 8px; font-weight: 600; }
   .data-table td { padding: 10px 8px; border-bottom: 1px solid var(--bg-input); }
-  .data-table tr:hover td { background: rgba(255, 255, 255, 0.05); }
-  .row-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
 
-  /* Undo Snackbar */
   #snackbar {
     visibility: hidden; min-width: 250px; background-color: var(--bg-input); color: #fff;
     text-align: center; border-radius: 10px; padding: 15px 20px; position: fixed;
@@ -179,7 +160,6 @@
   #snackbar.show { visibility: visible; opacity: 1; bottom: 90px; }
   .undo-btn { color: var(--accent); font-weight: bold; cursor: pointer; border: none; background: none; font-size: 14px; }
 
-  /* Bottom Navigation */
   .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--bg-card); display: flex; justify-content: space-around; align-items: center; box-shadow: 0 -4px 10px rgba(0,0,0,0.3); z-index: 100; }
   .nav-btn { background: none; border: none; color: var(--text-muted); font-size: 11px; display: flex; flex-direction: column; align-items: center; cursor: pointer; text-decoration: none; }
   .nav-btn span { font-size: 20px; margin-bottom: 2px; }
@@ -197,52 +177,42 @@
   </div>
 </div>
 
-<div class="wallets-wrapper" id="wallets-container">
-  </div>
+<div class="wallets-wrapper" id="wallets-container"></div>
 
 <div class="input-section">
-  <div class="input-wrapper">
-    <input type="text" id="itemName" placeholder="Item Name (e.g. Kurkure)" autocomplete="off">
+  <div class="chips-container" id="budgetChipsContainer">
+    <div class="chip active" onclick="selectBudget('Online', this)">Online</div>
+    </div>
+
+  <div class="row-inputs" style="position: relative;">
+    <input type="text" id="itemName" placeholder="Item Name" autocomplete="off" style="flex: 2;">
+    <input type="number" id="itemPrice" placeholder="₹ Price" min="0" step="any" style="flex: 1;">
     <div class="suggestions-box" id="suggestionBox"></div>
   </div>
   
   <div class="row-inputs">
-    <input type="number" id="itemQty" placeholder="Qty" min="0.01" step="any">
-    <select id="itemUnit">
+    <input type="number" id="itemQty" placeholder="Qty" min="0.01" step="any" style="flex: 1;">
+    <select id="itemUnit" style="flex: 2;">
       <option value="Packet">Packet</option>
       <option value="Kg">Kg</option>
       <option value="Gram">Gram</option>
       <option value="Liter">Liter</option>
       <option value="Piece">Piece</option>
-      <option value="Box">Box</option>
-      <option value="Dozen">Dozen</option>
     </select>
-    <input type="number" id="itemPrice" placeholder="₹ Price" min="0" step="any">
   </div>
 
-  <div class="row-inputs">
-    <select id="expenseBudgetSource">
-      <option value="Online">Online (Default)</option>
-    </select>
-    <select id="expensePaymentMethod" onchange="handlePaymentMethodChange()">
-      <option value="Online">Online</option>
-      <option value="500 Note">500 Note</option>
-      <option value="200 Note">200 Note</option>
-      <option value="100 Note">100 Note</option>
-      <option value="50 Note">50 Note</option>
-      <option value="20 Note">20 Note</option>
-      <option value="10 Note">10 Note</option>
-      <option value="Coins">Coins</option>
-    </select>
+  <div class="chips-container">
+    <div class="chip active" id="chip-Online" onclick="selectPayment('Online', this)">Online</div>
+    <div class="chip" id="chip-Cash" onclick="selectPayment('Cash', this)">Cash</div>
   </div>
   
-  <div class="row-inputs" id="cashCalculationRow" style="display: none; margin-top: 5px;">
+  <div id="cashCalculationRow" style="display: none;">
     <input type="number" id="cashGiven" placeholder="Cash Given (₹)">
   </div>
 
-  <div class="row-inputs" style="margin-top: 5px;">
-    <button class="btn-action btn-continue" id="btnContinue" onclick="processExpense(true)">🔄 Continue Item</button>
-    <button class="btn-action btn-add" id="btnAddUpdate" onclick="processExpense(false)">➕ Add Expense</button>
+  <div class="row-inputs">
+    <button class="btn-action btn-continue" id="btnContinue" style="display: none;" onclick="processExpense(true)">🔄 Continue Item</button>
+    <button class="btn-action btn-add" id="btnAddUpdate" onclick="processExpense(false)">➕ Finish & Add</button>
   </div>
 </div>
 
@@ -255,14 +225,14 @@
   </div>
   <div class="overlay-body">
     <div style="display: flex; gap: 8px;">
-      <div class="input-wrapper" style="flex: 2;">
+      <div style="flex: 2; position: relative;">
         <input type="text" id="depositName" placeholder="Budget Name" autocomplete="off">
         <div class="suggestions-box" id="depositSuggestionBox"></div>
       </div>
       <input type="number" id="depositAmount" placeholder="Amount (₹)" style="flex: 1;">
       <button id="btnDepositSubmit" class="btn-small" style="background: var(--success); color: white; padding: 0 15px;" onclick="addDeposit()">Add</button>
     </div>
-    <div id="deposit-history-container" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;"></div>
+    <div id="deposit-history-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
   </div>
 </div>
 
@@ -272,7 +242,6 @@
     <button class="btn-small" style="background: rgba(239, 68, 68, 0.1); color: var(--danger);" onclick="closeAnalytics()">✕ Close</button>
   </div>
   <div class="overlay-body">
-    
     <label style="font-size:12px; color:var(--text-muted);">Select Date Filter</label>
     <select id="filterType" onchange="runAnalytics()">
       <option value="today">Today's Expense</option>
@@ -284,8 +253,7 @@
     
     <div style="margin-top: 5px;">
       <label style="font-size:12px; color:var(--text-muted);">Filter by Budget Source</label>
-      <div id="analyticsBudgetFilters" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px;">
-        </div>
+      <div id="analyticsBudgetFilters" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px;"></div>
     </div>
     
     <div class="analytics-result">
@@ -294,32 +262,20 @@
     </div>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-       <span style="font-size: 14px; font-weight: 600; color: var(--text-main);">📋 Filtered Data</span>
+       <span style="font-size: 14px; font-weight: 600;">📋 Filtered Data</span>
        <button class="btn-small" style="background: var(--success); color: white;" onclick="exportCSV()">⬇️ Export CSV</button>
     </div>
     
     <div class="data-table-wrapper">
       <table class="data-table">
-        <thead>
-          <tr>
-            <th style="width: 20px;">✔</th>
-            <th>Date</th>
-            <th>Item</th>
-            <th>Qty</th>
-            <th>Price</th>
-            <th style="width: 20px; text-align: center;">↕️</th>
-          </tr>
-        </thead>
+        <thead><tr><th style="width: 20px;">✔</th><th>Date</th><th>Item</th><th>Qty</th><th>Price</th></tr></thead>
         <tbody id="analyticsTableBody"></tbody>
       </table>
     </div>
   </div>
 </div>
 
-<div id="snackbar">
-  <span id="snackText">Deleted</span>
-  <button class="undo-btn" id="undoBtnAction" onclick="undoDelete()">UNDO</button>
-</div>
+<div id="snackbar"><span id="snackText">Deleted</span><button class="undo-btn" id="undoBtnAction" onclick="undoDelete()">UNDO</button></div>
 
 <div class="bottom-nav">
   <a href="shopping.html" class="nav-btn active"><span>🛒</span>Shopping</a>
@@ -328,23 +284,22 @@
 </div>
 
 <script>
-/* =========================================
-   1. DB & Setup
-   ========================================= */
-const DB_NAME = "SmartShopV7";
+/* DB Setup & Globals */
+const DB_NAME = "SmartShopV8";
 let db;
 let uniqueItemsDict = {}; 
 let allExpensesCache = []; 
 let currentFilteredData = []; 
 let uniqueBudgets = new Set(); 
-
-let lastDeletedData = null;
-let lastDeletedType = null; 
-let undoTimeout = null;
+let activeTransactionId = null;
+let runningTxTotal = 0; 
 let currentEditId = null; 
 let currentEditDepositId = null; 
+let lastDeletedData = null; let lastDeletedType = null; let undoTimeout = null;
 
-let activeTransactionId = null;
+/* Current UI States */
+let selectedBudgetVal = "Online";
+let selectedPaymentVal = "Online";
 
 const request = indexedDB.open(DB_NAME, 1);
 request.onupgradeneeded = (e) => {
@@ -354,65 +309,59 @@ request.onupgradeneeded = (e) => {
 };
 request.onsuccess = (e) => { db = e.target.result; loadAllData(); };
 
-/* =========================================
-   2. Utilities & Suggestions
-   ========================================= */
-function getDisplayDate() {
-  const d = new Date();
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  return `${d.getDate()} ${months[d.getMonth()]}, ${d.getFullYear()} (${days[d.getDay()]}) | ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+/* Utility Functions */
+function getDisplayDate() { const d = new Date(); const m = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]; const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]; return `${d.getDate()} ${m[d.getMonth()]}, ${d.getFullYear()} (${days[d.getDay()]}) | ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`; }
+function getIsoDates() { const d = new Date(); const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0'); return { full: `${y}-${m}-${day}`, month: `${y}-${m}`, year: `${y}` }; }
+function showCustomAlert(msg) { document.getElementById("snackText").innerText = msg; document.getElementById("undoBtnAction").style.display = "none"; document.getElementById("snackbar").classList.add("show"); setTimeout(() => { document.getElementById("snackbar").classList.remove("show"); setTimeout(() => document.getElementById("undoBtnAction").style.display = "block", 300); }, 2500); }
+
+/* UI Interaction: Chips */
+function selectBudget(val, el) {
+  selectedBudgetVal = val;
+  const container = document.getElementById("budgetChipsContainer");
+  container.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  if(el) el.classList.add('active');
 }
 
-function getIsoDates() {
-  const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return { full: `${year}-${month}-${day}`, month: `${year}-${month}`, year: `${year}` };
-}
-
-function handlePaymentMethodChange() {
-  const method = document.getElementById("expensePaymentMethod").value;
-  const calcRow = document.getElementById("cashCalculationRow");
-  const givenInput = document.getElementById("cashGiven");
-
-  if (method.includes("Note")) {
-    calcRow.style.display = "flex";
-    const noteVal = parseInt(method.split(" ")[0]);
-    if (!isNaN(noteVal)) { givenInput.value = noteVal; } 
-    else { givenInput.value = ""; }
+function selectPayment(val, el) {
+  selectedPaymentVal = val;
+  document.getElementById("chip-Online").classList.remove('active');
+  document.getElementById("chip-Cash").classList.remove('active');
+  el.classList.add('active');
+  
+  if (val === 'Cash') {
+    document.getElementById("cashCalculationRow").style.display = "block";
+    document.getElementById("btnContinue").style.display = "block";
   } else {
-    calcRow.style.display = "none";
-    givenInput.value = "";
+    document.getElementById("cashCalculationRow").style.display = "none";
+    document.getElementById("btnContinue").style.display = "none";
+    document.getElementById("cashGiven").value = "";
   }
 }
 
+function renderBudgetChips() {
+  const container = document.getElementById("budgetChipsContainer");
+  container.innerHTML = `<div class="chip ${selectedBudgetVal === 'Online' ? 'active' : ''}" onclick="selectBudget('Online', this)">Online</div>`;
+  uniqueBudgets.forEach(name => {
+    const isActive = selectedBudgetVal === name ? 'active' : '';
+    container.innerHTML += `<div class="chip ${isActive}" onclick="selectBudget('${name}', this)">${name}</div>`;
+  });
+}
+
+/* Suggestions */
 const nameInput = document.getElementById("itemName");
 const sugBox = document.getElementById("suggestionBox");
 nameInput.addEventListener("input", (e) => {
-  const val = e.target.value.toLowerCase().trim();
-  sugBox.innerHTML = "";
+  const val = e.target.value.toLowerCase().trim(); sugBox.innerHTML = "";
   if (!val) { sugBox.style.display = "none"; return; }
-  
   const matches = Object.keys(uniqueItemsDict).filter(k => k.toLowerCase().includes(val));
   if (matches.length > 0) {
     sugBox.style.display = "block";
     matches.forEach(m => {
-      const div = document.createElement("div");
-      div.className = "suggestion-item";
-      div.innerHTML = `<strong>${m}</strong> <span style="color:var(--text-muted); font-size:11px;">(${uniqueItemsDict[m].qty} ${uniqueItemsDict[m].unit} - ₹${uniqueItemsDict[m].price})</span>`;
+      const div = document.createElement("div"); div.className = "suggestion-item";
+      div.innerHTML = `<strong>${m}</strong> <span style="color:var(--text-muted); font-size:11px;">(₹${uniqueItemsDict[m].price})</span>`;
       div.onclick = () => {
-        document.getElementById("itemName").value = m;
-        document.getElementById("itemQty").value = uniqueItemsDict[m].qty;
-        document.getElementById("itemUnit").value = uniqueItemsDict[m].unit;
-        document.getElementById("itemPrice").value = uniqueItemsDict[m].price;
-        
-        if(!activeTransactionId) {
-          document.getElementById("expenseBudgetSource").value = uniqueItemsDict[m].budgetSource || "Online";
-          document.getElementById("expensePaymentMethod").value = uniqueItemsDict[m].paymentMethod || "Online";
-          handlePaymentMethodChange();
-        }
+        document.getElementById("itemName").value = m; document.getElementById("itemQty").value = uniqueItemsDict[m].qty;
+        document.getElementById("itemUnit").value = uniqueItemsDict[m].unit; document.getElementById("itemPrice").value = uniqueItemsDict[m].price;
         sugBox.style.display = "none";
       };
       sugBox.appendChild(div);
@@ -421,161 +370,92 @@ nameInput.addEventListener("input", (e) => {
 });
 document.addEventListener("click", (e) => { if (e.target !== nameInput) sugBox.style.display = "none"; });
 
-const depNameInput = document.getElementById("depositName");
-const depSugBox = document.getElementById("depositSuggestionBox");
-depNameInput.addEventListener("input", (e) => {
-  const val = e.target.value.toLowerCase().trim();
-  depSugBox.innerHTML = "";
-  if (!val) { depSugBox.style.display = "none"; return; }
-  
-  const matches = Array.from(uniqueBudgets).filter(k => k.toLowerCase().includes(val));
-  if (matches.length > 0) {
-    depSugBox.style.display = "block";
-    matches.forEach(m => {
-      const div = document.createElement("div");
-      div.className = "suggestion-item";
-      div.innerHTML = `<strong>${m}</strong>`;
-      div.onclick = () => { document.getElementById("depositName").value = m; depSugBox.style.display = "none"; };
-      depSugBox.appendChild(div);
-    });
-  } else { depSugBox.style.display = "none"; }
-});
-document.addEventListener("click", (e) => { if (e.target !== depNameInput) depSugBox.style.display = "none"; });
-
-/* =========================================
-   4. Add / Update Data
-   ========================================= */
+/* Add Expense & Auto-Refill Logic */
 function processExpense(isContinue) {
   const name = document.getElementById("itemName").value.trim();
-  const qty = parseFloat(document.getElementById("itemQty").value);
+  const qty = parseFloat(document.getElementById("itemQty").value) || 1;
   const unit = document.getElementById("itemUnit").value;
   const price = parseFloat(document.getElementById("itemPrice").value);
-  const budgetSource = document.getElementById("expenseBudgetSource").value || "Online"; 
-  const paymentMethod = document.getElementById("expensePaymentMethod").value || "Online";
   const cashGiven = parseFloat(document.getElementById("cashGiven").value) || 0;
 
-  if (!name || !qty || !price) {
-    showCustomAlert("Please fill Name, Qty, and Price!");
-    return;
-  }
+  if (!name || !price) { showCustomAlert("Please fill Name and Price!"); return; }
 
   const tx = db.transaction("expenses", "readwrite");
   const store = tx.objectStore("expenses");
 
   if (currentEditId) {
     store.get(currentEditId).onsuccess = (e) => {
-      const existingData = e.target.result;
-      if (existingData) {
-        existingData.name = name; existingData.qty = qty; existingData.unit = unit; 
-        existingData.price = price; existingData.budgetSource = budgetSource; 
-        existingData.paymentMethod = paymentMethod; existingData.cashGiven = cashGiven;
-        store.put(existingData);
+      const existing = e.target.result;
+      if (existing) {
+        existing.name = name; existing.qty = qty; existing.unit = unit; 
+        existing.price = price; existing.budgetSource = selectedBudgetVal; 
+        existing.paymentMethod = selectedPaymentVal; existing.cashGiven = cashGiven;
+        store.put(existing);
       }
     };
   } else {
-    if (!activeTransactionId) { activeTransactionId = Date.now(); } 
+    if (!activeTransactionId) activeTransactionId = Date.now();
+    runningTxTotal += price;
     const iso = getIsoDates();
     store.add({
-      name, qty, unit, price, budgetSource, paymentMethod, cashGiven,
-      transactionId: activeTransactionId,
-      dateStr: getDisplayDate(), isoDay: iso.full, isoMonth: iso.month, isoYear: iso.year, order: Date.now()
+      name, qty, unit, price, budgetSource: selectedBudgetVal, paymentMethod: selectedPaymentVal, cashGiven,
+      transactionId: activeTransactionId, dateStr: getDisplayDate(), isoDay: iso.full, isoMonth: iso.month, isoYear: iso.year, order: Date.now()
     });
   }
 
   tx.oncomplete = () => { 
-    if (isContinue) {
-      document.getElementById("itemName").value = "";
-      document.getElementById("itemQty").value = "";
-      document.getElementById("itemPrice").value = "";
-      document.getElementById("itemName").focus();
-    } else {
+    if (!isContinue && !currentEditId) {
+      // Auto Refill Logic for Cash
+      if (selectedPaymentVal === 'Cash' && cashGiven > 0) {
+         const change = cashGiven - runningTxTotal;
+         if (change > 0 && selectedBudgetVal !== 'Online') {
+             addRefillDeposit(selectedBudgetVal, change);
+         }
+      }
       resetInputs(); 
+    } else if (isContinue) {
+      document.getElementById("itemName").value = ""; document.getElementById("itemPrice").value = "";
+      document.getElementById("itemName").focus();
+      document.getElementById("cashGiven").disabled = true; // Lock cash input in group
+    } else {
+      resetInputs();
     }
     loadAllData(); 
   };
 }
 
 function resetInputs() {
-  activeTransactionId = null; 
-  currentEditId = null;
-  
-  document.getElementById("itemName").value = "";
-  document.getElementById("itemQty").value = "";
-  document.getElementById("itemPrice").value = "";
-  document.getElementById("expensePaymentMethod").value = "Online";
-  handlePaymentMethodChange(); 
-
-  const btn = document.getElementById("btnAddUpdate");
-  btn.innerText = "➕ Add Expense";
-  btn.style.background = "var(--accent)";
+  activeTransactionId = null; runningTxTotal = 0; currentEditId = null;
+  document.getElementById("itemName").value = ""; document.getElementById("itemQty").value = ""; document.getElementById("itemPrice").value = "";
+  document.getElementById("cashGiven").value = ""; document.getElementById("cashGiven").disabled = false;
+  document.getElementById("btnAddUpdate").innerText = "➕ Finish & Add";
 }
 
-function showCustomAlert(msg) {
-  document.getElementById("snackText").innerText = msg;
-  document.getElementById("undoBtnAction").style.display = "none";
-  document.getElementById("snackbar").classList.add("show");
-  setTimeout(() => { 
-      document.getElementById("snackbar").classList.remove("show"); 
-      setTimeout(() => document.getElementById("undoBtnAction").style.display = "block", 300);
-  }, 2500);
+function addRefillDeposit(budgetName, changeAmt) {
+  const tx = db.transaction("deposits", "readwrite");
+  tx.objectStore("deposits").add({ name: budgetName, amount: changeAmt, dateStr: getDisplayDate(), order: Date.now(), isAutoRefill: true });
 }
 
 function addDeposit() {
   const name = document.getElementById("depositName").value.trim();
   const amt = parseFloat(document.getElementById("depositAmount").value);
-  if (!name || !amt || amt <= 0) { showCustomAlert("Please fill Budget Name & Amount!"); return; }
-  
+  if (!name || !amt || amt <= 0) { showCustomAlert("Fill Budget Name & Amount!"); return; }
   const tx = db.transaction("deposits", "readwrite");
-  const store = tx.objectStore("deposits");
-  const dateStr = getDisplayDate(); 
-
   if (currentEditDepositId) {
-    store.get(currentEditDepositId).onsuccess = (e) => {
+    tx.objectStore("deposits").get(currentEditDepositId).onsuccess = (e) => {
       const data = e.target.result;
-      if(data) {
-        data.name = name;
-        data.amount = amt;
-        data.dateStr = dateStr; 
-        store.put(data);
-      }
+      if(data) { data.name = name; data.amount = amt; data.dateStr = getDisplayDate(); tx.objectStore("deposits").put(data); }
     };
-  } else {
-    store.add({ name: name, amount: amt, dateStr: dateStr, order: Date.now() });
-  }
-
-  tx.oncomplete = () => { 
-    document.getElementById("depositName").value = "";
-    document.getElementById("depositAmount").value = "";
-    currentEditDepositId = null;
-    document.getElementById("btnDepositSubmit").innerText = "Add";
-    loadAllData(); 
-  };
+  } else { tx.objectStore("deposits").add({ name, amount: amt, dateStr: getDisplayDate(), order: Date.now() }); }
+  tx.oncomplete = () => { document.getElementById("depositName").value = ""; document.getElementById("depositAmount").value = ""; currentEditDepositId = null; document.getElementById("btnDepositSubmit").innerText = "Add"; loadAllData(); };
 }
 
-function editDeposit(id) {
-  const tx = db.transaction("deposits", "readonly");
-  tx.objectStore("deposits").get(id).onsuccess = (e) => {
-    const dep = e.target.result;
-    if(dep) {
-      document.getElementById("depositName").value = dep.name;
-      document.getElementById("depositAmount").value = dep.amount;
-      currentEditDepositId = id;
-      document.getElementById("btnDepositSubmit").innerText = "Update";
-    }
-  };
-}
-
-/* =========================================
-   5. Load Data & Separation Magic
-   ========================================= */
+/* Load & Render */
 function loadAllData() {
   uniqueItemsDict = {}; allExpensesCache = []; uniqueBudgets.clear();
-  
   let budgetDepositSums = {}; 
-  
-  const expContainer = document.getElementById("history-container");
   const depContainer = document.getElementById("deposit-history-container");
-  expContainer.innerHTML = ""; depContainer.innerHTML = "";
+  depContainer.innerHTML = "";
 
   const txDep = db.transaction("deposits", "readonly");
   txDep.objectStore("deposits").index("order").openCursor(null, "prev").onsuccess = (e) => {
@@ -584,164 +464,101 @@ function loadAllData() {
       const dep = cursor.value;
       uniqueBudgets.add(dep.name); 
       budgetDepositSums[dep.name] = (budgetDepositSums[dep.name] || 0) + dep.amount;
-
+      const refNote = dep.isAutoRefill ? `<span style="color:var(--success); font-size:10px;">(Change Saved)</span>` : '';
+      
       depContainer.innerHTML += `
         <div class="deposit-card">
           <div style="flex:1;">
-            <strong style="font-size:14px; color:var(--text-main);">${dep.name}</strong><br>
-            <span style="font-size:12px; color:var(--text-muted);">Budget Limit: ₹${dep.amount}</span><br>
-            <strong style="color:var(--success); font-size: 13px;" id="rem-${dep.id}">Calculating...</strong><br>
+            <strong style="font-size:14px;">${dep.name} ${refNote}</strong><br>
+            <span style="font-size:12px; color:var(--text-muted);">₹${dep.amount}</span><br>
             <span style="font-size:11px; color:var(--text-muted);">${dep.dateStr}</span>
           </div>
-          <div class="controls">
-            <button class="btn-edit" onclick="editDeposit(${dep.id})">✏️</button>
-            <button class="btn-delete" onclick="deleteItem(event, ${dep.id}, 'deposits')">🗑️</button>
-          </div>
+          <div class="controls"><button class="btn-delete" onclick="deleteItem(event, ${dep.id}, 'deposits')">🗑️</button></div>
         </div>
       `;
       cursor.continue();
     } else {
-      updateBudgetDropdown(); 
-      loadExpensesData(budgetDepositSums); 
+      renderBudgetChips(); 
+      loadGroupedExpenses(budgetDepositSums); 
     }
   };
 }
 
-function updateBudgetDropdown() {
-  const dropdown = document.getElementById("expenseBudgetSource");
-  const currVal = dropdown.value; 
-  dropdown.innerHTML = '<option value="Online">Online (Default)</option>';
-  uniqueBudgets.forEach(name => { dropdown.innerHTML += `<option value="${name}">${name}</option>`; });
-  
-  if(Array.from(dropdown.options).some(opt => opt.value === currVal)) {
-    dropdown.value = currVal;
-  }
-}
-
-function loadExpensesData(budgetDepositSums) {
-  let budgetExpenseSums = {}; 
-
-  const expContainer = document.getElementById("history-container");
+function loadGroupedExpenses(budgetDepositSums) {
+  let budgetExpenseSums = {}; let groups = {};
   const txExp = db.transaction("expenses", "readonly");
   
   txExp.objectStore("expenses").index("order").openCursor(null, "prev").onsuccess = (e) => {
     const cursor = e.target.result;
     if (cursor) {
-      const exp = cursor.value;
-      allExpensesCache.push(exp); 
-      
+      const exp = cursor.value; allExpensesCache.push(exp); 
       const budgSrc = exp.budgetSource || "Online"; 
       budgetExpenseSums[budgSrc] = (budgetExpenseSums[budgSrc] || 0) + exp.price;
 
-      if (!uniqueItemsDict[exp.name]) {
-         uniqueItemsDict[exp.name] = { 
-           qty: exp.qty, unit: exp.unit, price: exp.price, 
-           budgetSource: exp.budgetSource, paymentMethod: exp.paymentMethod 
-         };
-      }
+      if (!uniqueItemsDict[exp.name]) uniqueItemsDict[exp.name] = { qty: exp.qty, unit: exp.unit, price: exp.price };
 
-      const payMode = exp.paymentMethod || "Online";
-
-      const card = document.createElement("div");
-      card.className = "entry-card";
-      card.dataset.id = exp.id;
-      card.innerHTML = `
-        <div class="entry-info">
-          <span class="entry-name">${exp.name}</span>
-          <span class="entry-meta">
-            ${exp.qty} ${exp.unit} | ${exp.dateStr} <br>
-            <span style="color:var(--accent);">💰 ${budgSrc}</span> | 💳 ${payMode}
-          </span>
-        </div>
-        <div class="entry-right">
-          <span class="entry-amount">-₹${exp.price}</span>
-          <div class="controls">
-            <span class="drag-handle">↕️</span>
-            <button class="btn-edit" onclick="editItem(event, ${exp.id})">✏️</button>
-            <button class="btn-delete" onclick="deleteItem(event, ${exp.id}, 'expenses')">🗑️</button>
-          </div>
-        </div>
-      `;
-      setupTouchDrag(card, "history-container", saveNewOrder); 
-      expContainer.appendChild(card);
+      let tId = exp.transactionId || exp.id;
+      if (!groups[tId]) { groups[tId] = { id: tId, items: [], total: 0, date: exp.dateStr.split(' | ')[0], pay: exp.paymentMethod, cash: exp.cashGiven, budget: budgSrc, order: exp.order }; }
+      groups[tId].items.push(exp); groups[tId].total += exp.price;
+      
       cursor.continue();
     } else {
-      
-      // 1. Update Frontend Multiple Budget Cards
-      const walletsContainer = document.getElementById("wallets-container");
-      walletsContainer.innerHTML = "";
-
-      // Online (Default) always shows as Expenses
+      /* Render Front UI Budgets */
+      const walletsContainer = document.getElementById("wallets-container"); walletsContainer.innerHTML = "";
       const onlineExpense = budgetExpenseSums["Online"] || 0;
-      walletsContainer.innerHTML += `
-        <div class="wallet-card">
-          <div class="wallet-title">Online Total Spent</div>
-          <div class="wallet-balance" style="color: var(--danger);">₹ ${onlineExpense.toLocaleString('en-IN')}</div>
-        </div>
-      `;
+      walletsContainer.innerHTML += `<div class="wallet-card"><div class="wallet-title">Online Spent</div><div class="wallet-balance" style="color: var(--danger);">₹ ${onlineExpense.toLocaleString('en-IN')}</div></div>`;
+      
+      for (const [name, depAmt] of Object.entries(budgetDepositSums)) {
+          const bal = depAmt - (budgetExpenseSums[name] || 0);
+          walletsContainer.innerHTML += `<div class="wallet-card"><div class="wallet-title">${name}</div><div class="wallet-balance" style="color: ${bal < 0 ? 'var(--danger)' : 'var(--success)'};">₹ ${bal.toLocaleString('en-IN')}</div></div>`;
+      }
 
-      // Created Budgets show remaining balance (Deposit - Expense)
-      for (const [budgetName, depositAmt] of Object.entries(budgetDepositSums)) {
-          const expAmt = budgetExpenseSums[budgetName] || 0;
-          const balance = depositAmt - expAmt;
-          const colorClass = balance < 0 ? "var(--danger)" : "var(--success)";
-          
-          walletsContainer.innerHTML += `
-            <div class="wallet-card">
-              <div class="wallet-title">${budgetName} Balance</div>
-              <div class="wallet-balance" style="color: ${colorClass};">₹ ${balance.toLocaleString('en-IN')}</div>
+      /* Render Grouped History */
+      const expContainer = document.getElementById("history-container"); expContainer.innerHTML = "";
+      const sortedGroups = Object.values(groups).sort((a,b) => b.order - a.order);
+      
+      sortedGroups.forEach(g => {
+         const title = g.items.map(i=>i.name).join(', ').substring(0,25) + (g.items.length > 1 ? '...' : '');
+         const card = document.createElement('div'); card.className = 'group-card';
+         
+         let innerHtml = `
+            <div class="group-header" onclick="document.getElementById('body-${g.id}').style.display = document.getElementById('body-${g.id}').style.display === 'none' ? 'flex' : 'none'">
+               <div>
+                  <div class="group-title">${title} <span style="font-weight:normal; font-size:12px; color:var(--accent);">(${g.items.length} item)</span></div>
+                  <div class="group-meta">${g.date} | 💰 ${g.budget} | 💳 ${g.pay}</div>
+               </div>
+               <div class="group-total">-₹${g.total}</div>
             </div>
-          `;
-      }
-
-      // 2. Update Budget Panel Overlays
-      const txDep2 = db.transaction("deposits", "readonly");
-      txDep2.objectStore("deposits").openCursor().onsuccess = (e2) => {
-         const depCursor = e2.target.result;
-         if(depCursor) {
-            const dep = depCursor.value;
-            const remEl = document.getElementById(`rem-${dep.id}`);
-            if(remEl) {
-               const totalDepForName = budgetDepositSums[dep.name] || 0;
-               const totalExpForName = budgetExpenseSums[dep.name] || 0;
-               const remainingForName = totalDepForName - totalExpForName;
-               remEl.innerText = `Budget Left: ₹${remainingForName.toLocaleString('en-IN')}`;
-               remEl.style.color = remainingForName < 0 ? "var(--danger)" : "var(--success)";
-            }
-            depCursor.continue();
-         }
-      }
-
+            <div class="group-body" id="body-${g.id}">
+         `;
+         
+         g.items.forEach(exp => {
+            innerHtml += `
+              <div class="entry-card">
+                 <div class="entry-info"><span class="entry-name">${exp.name}</span><span class="entry-meta">${exp.qty} ${exp.unit} | ₹${exp.price}</span></div>
+                 <div class="controls"><button class="btn-edit" onclick="editItem(event, ${exp.id})">✏️</button><button class="btn-delete" onclick="deleteItem(event, ${exp.id}, 'expenses')">🗑️</button></div>
+              </div>
+            `;
+         });
+         card.innerHTML = innerHtml + `</div>`;
+         expContainer.appendChild(card);
+      });
       if(document.getElementById("analyticsOverlay").classList.contains("active")) runAnalytics();
     }
   };
 }
 
-/* =========================================
-   6. Edit, Delete & Undo
-   ========================================= */
 function editItem(event, id) {
   event.stopPropagation();
   const tx = db.transaction("expenses", "readonly");
   tx.objectStore("expenses").get(id).onsuccess = (e) => {
     const exp = e.target.result;
     if (exp) {
-      document.getElementById("itemName").value = exp.name;
-      document.getElementById("itemQty").value = exp.qty;
-      document.getElementById("itemUnit").value = exp.unit;
-      document.getElementById("itemPrice").value = exp.price;
-      if(exp.budgetSource) document.getElementById("expenseBudgetSource").value = exp.budgetSource;
-      if(exp.paymentMethod) {
-        document.getElementById("expensePaymentMethod").value = exp.paymentMethod;
-        handlePaymentMethodChange(); 
-        if(exp.cashGiven) document.getElementById("cashGiven").value = exp.cashGiven;
-      }
-      
-      currentEditId = id; 
-      const btn = document.getElementById("btnAddUpdate");
-      btn.innerText = "✔️ Update Expense";
-      btn.style.background = "var(--warning)";
-      window.scrollTo({ top: 0, behavior: 'smooth' }); 
+      document.getElementById("itemName").value = exp.name; document.getElementById("itemQty").value = exp.qty;
+      document.getElementById("itemUnit").value = exp.unit; document.getElementById("itemPrice").value = exp.price;
+      selectBudget(exp.budgetSource || 'Online'); selectPayment(exp.paymentMethod || 'Online', document.getElementById(`chip-${exp.paymentMethod || 'Online'}`));
+      if(exp.cashGiven) document.getElementById("cashGiven").value = exp.cashGiven;
+      currentEditId = id; document.getElementById("btnAddUpdate").innerText = "✔️ Update"; window.scrollTo({ top: 0, behavior: 'smooth' }); 
     }
   };
 }
@@ -749,222 +566,50 @@ function editItem(event, id) {
 function deleteItem(event, id, storeName) {
   event.stopPropagation();
   const tx = db.transaction(storeName, "readwrite");
-  const store = tx.objectStore(storeName);
-  store.get(id).onsuccess = (e) => { lastDeletedData = e.target.result; lastDeletedType = storeName; store.delete(id); };
-  tx.oncomplete = () => { if (currentEditId === id) resetInputs(); loadAllData(); showSnackbar(); };
+  tx.objectStore(storeName).get(id).onsuccess = (e) => { lastDeletedData = e.target.result; lastDeletedType = storeName; tx.objectStore(storeName).delete(id); };
+  tx.oncomplete = () => { if (currentEditId === id) resetInputs(); loadAllData(); showCustomAlert("Deleted"); document.getElementById("undoBtnAction").style.display="block"; };
 }
+function undoDelete() { if (!lastDeletedData) return; db.transaction(lastDeletedType, "readwrite").objectStore(lastDeletedType).add(lastDeletedData).onsuccess = () => { loadAllData(); }; }
 
-function showSnackbar() {
-  const snackbar = document.getElementById("snackbar");
-  document.getElementById("snackText").innerText = lastDeletedType === 'expenses' ? "Item Deleted" : "Deposit Deleted";
-  document.getElementById("undoBtnAction").style.display = "block";
-  snackbar.classList.add("show");
-  clearTimeout(undoTimeout);
-  undoTimeout = setTimeout(() => { snackbar.classList.remove("show"); lastDeletedData = null; }, 5000);
-}
-
-function undoDelete() {
-  if (!lastDeletedData || !lastDeletedType) return;
-  const tx = db.transaction(lastDeletedType, "readwrite");
-  tx.objectStore(lastDeletedType).add(lastDeletedData);
-  tx.oncomplete = () => { loadAllData(); document.getElementById("snackbar").classList.remove("show"); lastDeletedData = null; clearTimeout(undoTimeout); };
-}
-
-/* =========================================
-   7. Drag & Drop Logic 
-   ========================================= */
-let draggedElement = null;
-function setupTouchDrag(card, containerId, callback = null) {
-  const handle = card.querySelector('.drag-handle');
-  if(!handle) return;
-  handle.addEventListener('mousedown', () => { card.setAttribute('draggable', 'true'); });
-  card.addEventListener('dragstart', () => { draggedElement = card; setTimeout(() => card.classList.add('dragging'), 0); });
-  card.addEventListener('dragend', () => { card.classList.remove('dragging'); card.removeAttribute('draggable'); if(callback) callback(); });
-  handle.addEventListener('touchstart', (e) => { draggedElement = card; card.classList.add('dragging'); e.preventDefault(); }, { passive: false });
-  handle.addEventListener('touchmove', (e) => {
-    if (!draggedElement) return; e.preventDefault();
-    const touch = e.touches[0];
-    const target = document.elementFromPoint(touch.clientX, touch.clientY);
-    const container = document.getElementById(containerId);
-    const targetEl = target ? target.closest(card.tagName.toLowerCase() === 'tr' ? 'tr' : '.entry-card') : null;
-    if (targetEl && targetEl !== draggedElement && targetEl.parentElement === container) {
-      const targetRect = targetEl.getBoundingClientRect();
-      if (touch.clientY < targetRect.top + targetRect.height / 2) container.insertBefore(draggedElement, targetEl);
-      else container.insertBefore(draggedElement, targetEl.nextSibling);
-    }
-  }, { passive: false });
-  handle.addEventListener('touchend', () => { if (draggedElement) { draggedElement.classList.remove('dragging'); draggedElement = null; if(callback) callback(); } });
-}
-
-function saveNewOrder() {
-  const cards = document.querySelectorAll('.entry-card');
-  const tx = db.transaction("expenses", "readwrite");
-  let baseTime = Date.now();
-  cards.forEach((card, index) => {
-    const id = parseInt(card.dataset.id);
-    tx.objectStore("expenses").get(id).onsuccess = (e) => { const entry = e.target.result; if (entry) { entry.order = baseTime - index; tx.objectStore("expenses").put(entry); } };
-  });
-}
-
-/* =========================================
-   8. Overlays, Analytics & EXCEL EXPORT
-   ========================================= */
+/* Overlays & Export */
 function openDepositPanel() { document.getElementById("depositOverlay").classList.add("active"); }
-function closeDepositPanel() { 
-    document.getElementById("depositOverlay").classList.remove("active");
-    currentEditDepositId = null; 
-    document.getElementById("depositName").value = "";
-    document.getElementById("depositAmount").value = "";
-    document.getElementById("btnDepositSubmit").innerText = "Add";
-}
-
-function openAnalytics() { 
-  document.getElementById("analyticsOverlay").classList.add("active"); 
-  renderBudgetCheckboxes(); 
-  runAnalytics(); 
-}
+function closeDepositPanel() { document.getElementById("depositOverlay").classList.remove("active"); currentEditDepositId=null; }
+function openAnalytics() { document.getElementById("analyticsOverlay").classList.add("active"); runAnalytics(); }
 function closeAnalytics() { document.getElementById("analyticsOverlay").classList.remove("active"); }
 
-function renderBudgetCheckboxes() {
-  const container = document.getElementById("analyticsBudgetFilters");
-  let html = `<label class="cb-label"><input type="checkbox" class="budget-filter-cb" value="Online" checked onchange="runAnalytics()"> Online</label>`;
-  uniqueBudgets.forEach(b => {
-    html += `<label class="cb-label"><input type="checkbox" class="budget-filter-cb" value="${b}" checked onchange="runAnalytics()"> ${b}</label>`;
-  });
-  container.innerHTML = html;
-}
-
 function runAnalytics() {
-  const type = document.getElementById("filterType").value;
-  const customInput = document.getElementById("customFilterDate");
-  const iso = getIsoDates();
-  
+  const type = document.getElementById("filterType").value; const customInput = document.getElementById("customFilterDate"); const iso = getIsoDates();
   let targetIso = ""; 
-  if (type === "custom") {
-    customInput.style.display = "block";
-    targetIso = customInput.value;
-    if(!targetIso) {
-      document.getElementById("analyticsTotal").innerText = "₹ 0";
-      document.getElementById("analyticsTableBody").innerHTML = "";
-      currentFilteredData = []; return;
-    }
-  } else {
-    customInput.style.display = "none";
-    if(type === "today") targetIso = iso.full;
-    else if(type === "month") targetIso = iso.month;
-    else if(type === "year") targetIso = iso.year;
-  }
+  if (type === "custom") { customInput.style.display = "block"; targetIso = customInput.value; if(!targetIso) return; }
+  else { customInput.style.display = "none"; targetIso = type === "today" ? iso.full : type === "month" ? iso.month : iso.year; }
 
-  const checkedBudgets = Array.from(document.querySelectorAll('.budget-filter-cb:checked')).map(cb => cb.value);
-
-  currentFilteredData = []; 
-  allExpensesCache.forEach(exp => {
-    let dateMatch = false;
-    if(type === "today" || type === "custom") { if(exp.isoDay === targetIso) dateMatch = true; }
-    else if(type === "month") { if(exp.isoMonth === targetIso) dateMatch = true; }
-    else if(type === "year") { if(exp.isoYear === targetIso) dateMatch = true; }
-    
-    const expBudget = exp.budgetSource || "Online";
-    let budgetMatch = checkedBudgets.includes(expBudget);
-
-    if (dateMatch && budgetMatch) currentFilteredData.push(exp);
+  currentFilteredData = allExpensesCache.filter(exp => {
+    let dMatch = (type==="today"||type==="custom") ? exp.isoDay===targetIso : type==="month" ? exp.isoMonth===targetIso : exp.isoYear===targetIso;
+    return dMatch;
   });
   renderAnalyticsTable();
 }
 
 function renderAnalyticsTable() {
-  const tbody = document.getElementById("analyticsTableBody");
-  tbody.innerHTML = "";
-  if (currentFilteredData.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No data found for this filter.</td></tr>`;
-    updateSelectedTotal(); return;
-  }
-  currentFilteredData.forEach(exp => {
-    const dateOnly = exp.dateStr.split(" | ")[0]; 
-    const tr = document.createElement("tr");
-    tr.dataset.price = exp.price; 
-    tr.dataset.fullData = JSON.stringify(exp); 
-    const pMethod = exp.paymentMethod || "Online";
-
-    tr.innerHTML = `
-      <td><input type="checkbox" class="row-checkbox" checked onchange="updateSelectedTotal()"></td>
-      <td style="color: var(--text-muted); font-size: 11px; white-space: normal;">${dateOnly}</td>
-      <td style="font-weight: 600; white-space: normal;">${exp.name} <br> <span style="font-size: 10px; font-weight: normal; color:var(--accent);">💳 ${pMethod}</span></td>
-      <td>${exp.qty} ${exp.unit}</td>
-      <td style="color: var(--danger); font-weight: bold;">₹${exp.price}</td>
-      <td style="text-align: center;"><span class="drag-handle" style="font-size: 14px;">↕️</span></td>
-    `;
-    setupTouchDrag(tr, "analyticsTableBody");
-    tbody.appendChild(tr);
-  });
-  updateSelectedTotal(); 
-}
-
-function updateSelectedTotal() {
-  const rows = document.querySelectorAll("#analyticsTableBody tr");
+  const tbody = document.getElementById("analyticsTableBody"); tbody.innerHTML = "";
   let sum = 0;
-  rows.forEach(tr => {
-    const checkbox = tr.querySelector('.row-checkbox');
-    if (checkbox && checkbox.checked) { sum += parseFloat(tr.dataset.price || 0); }
+  currentFilteredData.forEach(exp => {
+    sum += exp.price;
+    tbody.innerHTML += `<tr><td><input type="checkbox" class="row-checkbox" checked data-full='${JSON.stringify(exp)}'></td><td>${exp.dateStr.split(" | ")[0]}</td><td>${exp.name} <br>💳 ${exp.paymentMethod}</td><td>${exp.qty} ${exp.unit}</td><td>₹${exp.price}</td></tr>`;
   });
   document.getElementById("analyticsTotal").innerText = `₹ ${sum.toLocaleString('en-IN')}`;
 }
 
 function exportCSV() {
-  const rows = document.querySelectorAll("#analyticsTableBody tr");
-  let csvData = [];
-  rows.forEach(tr => {
-    const checkbox = tr.querySelector('.row-checkbox');
-    if (checkbox && checkbox.checked && tr.dataset.fullData) csvData.push(JSON.parse(tr.dataset.fullData));
+  const rows = document.querySelectorAll('.row-checkbox:checked');
+  if(rows.length===0) { showCustomAlert("No items checked"); return; }
+  let csv = "Date,Name,Qty,Unit,Budget,Price,Payment,Cash Given\n";
+  rows.forEach(r => {
+    const o = JSON.parse(r.getAttribute('data-full'));
+    csv += `"${o.dateStr}","${o.name}",${o.qty},"${o.unit}","${o.budgetSource}",${o.price},"${o.paymentMethod}","${o.cashGiven||'-'}"\n`;
   });
-
-  if (csvData.length === 0) { showCustomAlert("No checked items to export!"); return; }
-  
-  const transactionStats = {};
-  csvData.forEach(exp => {
-    const tId = exp.transactionId || exp.id; 
-    if (!transactionStats[tId]) {
-      transactionStats[tId] = { totalSpent: 0, isFirstProcessed: false };
-    }
-    transactionStats[tId].totalSpent += exp.price;
-  });
-
-  let csv = "Date & Time,Item Name,Quantity,Unit,Budget Source,Price (INR),Payment Method,Cash Given,Change Received\n";
-  
-  csvData.forEach(exp => {
-    const safeName = exp.name.replace(/"/g, '""');
-    const safeDate = exp.dateStr.replace(/"/g, '""');
-    const budgSrc = exp.budgetSource || "Online";
-    const payMeth = exp.paymentMethod || "Online";
-    const tId = exp.transactionId || exp.id;
-    
-    let displayPayMeth, displayCash, displayChange;
-
-    if (!transactionStats[tId].isFirstProcessed) {
-      displayPayMeth = payMeth;
-      displayCash = exp.cashGiven > 0 ? exp.cashGiven : "-";
-      
-      if (exp.cashGiven > 0 && exp.cashGiven >= transactionStats[tId].totalSpent) {
-        displayChange = (exp.cashGiven - transactionStats[tId].totalSpent).toFixed(2);
-      } else {
-        displayChange = "-";
-      }
-      transactionStats[tId].isFirstProcessed = true; 
-    } else {
-      displayPayMeth = "-";
-      displayCash = "-";
-      displayChange = "-";
-    }
-
-    csv += `"${safeDate}","${safeName}",${exp.qty},"${exp.unit}","${budgSrc}",${exp.price},"${displayPayMeth}","${displayCash}","${displayChange}"\n`;
-  });
-  
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", `Pro_Expenses_${getIsoDates().full}.csv`);
-  document.body.appendChild(link); link.click(); document.body.removeChild(link);
+  const url = window.URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  const a = document.createElement("a"); a.href = url; a.download = `Export_${Date.now()}.csv`; a.click();
 }
 </script>
 </body>
