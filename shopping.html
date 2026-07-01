@@ -73,7 +73,7 @@
   }
   input:focus, select:focus { border-color: var(--accent); }
   
-  /* Chips UI for Budget & Payment */
+  /* Chips UI */
   .chips-container { display: flex; gap: 8px; flex-wrap: wrap; }
   .chip {
     background: #000; color: var(--text-muted); border: 1px solid #334155; 
@@ -120,7 +120,6 @@
   .entry-info { display: flex; flex-direction: column; gap: 2px; }
   .entry-name { font-size: 14px; font-weight: 500; }
   .entry-meta { font-size: 11px; color: var(--text-muted); }
-  .entry-right { display: flex; align-items: center; gap: 12px; }
 
   .controls { display: flex; gap: 8px; align-items: center; }
   .btn-edit { background: rgba(245, 158, 11, 0.1); color: var(--warning); border: none; border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; }
@@ -133,19 +132,35 @@
   }
   .overlay.active { display: flex; }
   .overlay-header { padding: 15px; background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; }
-  .overlay-body { padding: 15px; flex: 1; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; height: 100%; }
+  
+  /* FIX: Removed flexbox from overlay-body to prevent squishing */
+  .overlay-body { 
+    padding: 15px; 
+    overflow-y: auto; 
+    display: block; 
+    height: calc(100vh - 60px); 
+  }
+  .overlay-body > * { margin-bottom: 15px; } /* Adds spacing between items naturally */
   
   .deposit-card { background: var(--bg-card); padding: 12px 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--success); }
 
   /* Analytics Styling */
-  .analytics-result { background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px dashed var(--accent); text-align: center; margin-top: 10px; flex-shrink: 0; }
+  .analytics-result { background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px dashed var(--accent); text-align: center; }
   .analytics-result h3 { margin: 0 0 10px 0; font-size: 14px; color: var(--text-muted); }
   .analytics-result .total-val { font-size: 28px; font-weight: bold; color: var(--danger); }
   .cb-label { display: inline-flex; align-items: center; gap: 5px; background: var(--bg-input); padding: 5px 10px; border-radius: 20px; font-size: 12px; cursor: pointer; }
   .cb-label input { width: auto; margin: 0; accent-color: var(--accent); cursor: pointer; }
 
-  /* Full Table View Fix */
-  .data-table-wrapper { overflow-x: auto; width: 100%; background: var(--bg-card); border-radius: 10px; border: 1px solid var(--bg-input); flex-grow: 0; height: auto; margin-bottom: 20px; }
+  /* FIX: Data Table won't squish anymore */
+  .data-table-wrapper { 
+      overflow-x: auto; 
+      width: 100%; 
+      background: var(--bg-card); 
+      border-radius: 10px; 
+      border: 1px solid var(--bg-input); 
+      height: auto !important; 
+      margin-bottom: 40px; 
+  }
   .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; white-space: nowrap; }
   .data-table th { background: var(--bg-input); color: var(--text-muted); padding: 10px 8px; font-weight: 600; }
   .data-table td { padding: 10px 8px; border-bottom: 1px solid var(--bg-input); }
@@ -182,7 +197,7 @@
 <div class="input-section">
   <div class="chips-container" id="budgetChipsContainer">
     <div class="chip active" onclick="selectBudget('Online', this)">Online</div>
-    </div>
+  </div>
 
   <div class="row-inputs" style="position: relative;">
     <input type="text" id="itemName" placeholder="Item Name" autocomplete="off" style="flex: 2;">
@@ -242,18 +257,19 @@
     <button class="btn-small" style="background: rgba(239, 68, 68, 0.1); color: var(--danger);" onclick="closeAnalytics()">✕ Close</button>
   </div>
   <div class="overlay-body">
-    <label style="font-size:12px; color:var(--text-muted);">Select Date Filter</label>
+    
+    <label style="font-size:12px; color:var(--text-muted); display: block; margin-bottom: 5px;">Select Date Filter</label>
     <select id="filterType" onchange="runAnalytics()">
       <option value="today">Today's Expense</option>
       <option value="month">This Month's Expense</option>
       <option value="year">This Year's Expense</option>
       <option value="custom">Select Custom Date...</option>
     </select>
-    <input type="date" id="customFilterDate" style="display:none;" onchange="runAnalytics()">
+    <input type="date" id="customFilterDate" style="display:none; margin-top: 5px;" onchange="runAnalytics()">
     
-    <div style="margin-top: 5px;">
-      <label style="font-size:12px; color:var(--text-muted);">Filter by Budget Source</label>
-      <div id="analyticsBudgetFilters" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px;"></div>
+    <div>
+      <label style="font-size:12px; color:var(--text-muted); display: block; margin-bottom: 5px;">Filter by Budget Source</label>
+      <div id="analyticsBudgetFilters" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
     </div>
     
     <div class="analytics-result">
@@ -261,7 +277,7 @@
       <div class="total-val" id="analyticsTotal">₹ 0</div>
     </div>
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
        <span style="font-size: 14px; font-weight: 600;">📋 Filtered Data</span>
        <button class="btn-small" style="background: var(--success); color: white;" onclick="exportCSV()">⬇️ Export CSV</button>
     </div>
@@ -405,7 +421,6 @@ function processExpense(isContinue) {
 
   tx.oncomplete = () => { 
     if (!isContinue && !currentEditId) {
-      // Auto Refill Logic for Cash
       if (selectedPaymentVal === 'Cash' && cashGiven > 0) {
          const change = cashGiven - runningTxTotal;
          if (change > 0 && selectedBudgetVal !== 'Online') {
@@ -416,7 +431,7 @@ function processExpense(isContinue) {
     } else if (isContinue) {
       document.getElementById("itemName").value = ""; document.getElementById("itemPrice").value = "";
       document.getElementById("itemName").focus();
-      document.getElementById("cashGiven").disabled = true; // Lock cash input in group
+      document.getElementById("cashGiven").disabled = true; 
     } else {
       resetInputs();
     }
@@ -503,7 +518,6 @@ function loadGroupedExpenses(budgetDepositSums) {
       
       cursor.continue();
     } else {
-      /* Render Front UI Budgets */
       const walletsContainer = document.getElementById("wallets-container"); walletsContainer.innerHTML = "";
       const onlineExpense = budgetExpenseSums["Online"] || 0;
       walletsContainer.innerHTML += `<div class="wallet-card"><div class="wallet-title">Online Spent</div><div class="wallet-balance" style="color: var(--danger);">₹ ${onlineExpense.toLocaleString('en-IN')}</div></div>`;
@@ -513,7 +527,6 @@ function loadGroupedExpenses(budgetDepositSums) {
           walletsContainer.innerHTML += `<div class="wallet-card"><div class="wallet-title">${name}</div><div class="wallet-balance" style="color: ${bal < 0 ? 'var(--danger)' : 'var(--success)'};">₹ ${bal.toLocaleString('en-IN')}</div></div>`;
       }
 
-      /* Render Grouped History */
       const expContainer = document.getElementById("history-container"); expContainer.innerHTML = "";
       const sortedGroups = Object.values(groups).sort((a,b) => b.order - a.order);
       
@@ -571,11 +584,25 @@ function deleteItem(event, id, storeName) {
 }
 function undoDelete() { if (!lastDeletedData) return; db.transaction(lastDeletedType, "readwrite").objectStore(lastDeletedType).add(lastDeletedData).onsuccess = () => { loadAllData(); }; }
 
-/* Overlays & Export */
+/* Overlays, Analytics & Export (FIXED CHECKBOXES) */
 function openDepositPanel() { document.getElementById("depositOverlay").classList.add("active"); }
 function closeDepositPanel() { document.getElementById("depositOverlay").classList.remove("active"); currentEditDepositId=null; }
-function openAnalytics() { document.getElementById("analyticsOverlay").classList.add("active"); runAnalytics(); }
+
+function openAnalytics() { 
+  document.getElementById("analyticsOverlay").classList.add("active"); 
+  renderBudgetCheckboxes(); 
+  runAnalytics(); 
+}
 function closeAnalytics() { document.getElementById("analyticsOverlay").classList.remove("active"); }
+
+function renderBudgetCheckboxes() {
+  const container = document.getElementById("analyticsBudgetFilters");
+  let html = `<label class="cb-label"><input type="checkbox" class="budget-filter-cb" value="Online" checked onchange="runAnalytics()"> Online</label>`;
+  uniqueBudgets.forEach(b => {
+    html += `<label class="cb-label"><input type="checkbox" class="budget-filter-cb" value="${b}" checked onchange="runAnalytics()"> ${b}</label>`;
+  });
+  container.innerHTML = html;
+}
 
 function runAnalytics() {
   const type = document.getElementById("filterType").value; const customInput = document.getElementById("customFilterDate"); const iso = getIsoDates();
@@ -583,9 +610,12 @@ function runAnalytics() {
   if (type === "custom") { customInput.style.display = "block"; targetIso = customInput.value; if(!targetIso) return; }
   else { customInput.style.display = "none"; targetIso = type === "today" ? iso.full : type === "month" ? iso.month : iso.year; }
 
+  const checkedBudgets = Array.from(document.querySelectorAll('.budget-filter-cb:checked')).map(cb => cb.value);
+
   currentFilteredData = allExpensesCache.filter(exp => {
     let dMatch = (type==="today"||type==="custom") ? exp.isoDay===targetIso : type==="month" ? exp.isoMonth===targetIso : exp.isoYear===targetIso;
-    return dMatch;
+    let bMatch = checkedBudgets.includes(exp.budgetSource || "Online");
+    return dMatch && bMatch;
   });
   renderAnalyticsTable();
 }
