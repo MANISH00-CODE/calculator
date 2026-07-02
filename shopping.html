@@ -33,7 +33,7 @@
   .wallet-balance { font-size: 22px; font-weight: 700; margin-top: 5px; white-space: nowrap; }
 
   .input-section { padding: 10px 15px 15px 15px; display: flex; flex-direction: column; gap: 12px; }
-  .row-inputs { display: flex; gap: 10px; width: 100%; position: relative;}
+  .row-inputs { display: flex; gap: 10px; width: 100%; position: relative; align-items: center;}
   .row-inputs > * { flex: 1; }
   
   input, select { width: 100%; padding: 12px; background: var(--bg-input); border: 1px solid transparent; border-radius: 8px; color: var(--text-main); font-family: 'Poppins', sans-serif; font-size: 14px; outline: none; box-sizing: border-box; }
@@ -125,9 +125,9 @@
     <div class="chip active" onclick="selectBudget('Online', this)">Online</div>
   </div>
 
-  <div class="row-inputs" style="align-items: center;">
+  <div class="row-inputs">
     <label style="font-size: 12px; color: var(--text-muted); flex: 0.5;">Date:</label>
-    <input type="date" id="entryDate" style="flex: 2; padding: 8px;">
+    <input type="date" id="entryDate" style="flex: 2.5; padding: 8px;">
   </div>
 
   <div class="row-inputs" style="position: relative;">
@@ -236,6 +236,7 @@
   <div class="overlay-body">
     <label style="font-size:12px; color:var(--text-muted); display: block; margin-bottom: 5px;">Select Date Filter</label>
     <select id="filterType" onchange="runAnalytics()">
+      <option value="all">All Expenses</option>
       <option value="today">Today's Expense</option>
       <option value="month">This Month's Expense</option>
       <option value="year">This Year's Expense</option>
@@ -243,22 +244,22 @@
     </select>
     <input type="date" id="customFilterDate" style="display:none; margin-top: 5px;" onchange="runAnalytics()">
     
-    <div>
+    <div style="margin-top: 10px;">
       <label style="font-size:12px; color:var(--text-muted); display: block; margin-bottom: 5px;">Filter by Budget Source</label>
       <div id="analyticsBudgetFilters" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
     </div>
     
-    <div class="analytics-result">
+    <div class="analytics-result" style="margin-top: 15px;">
       <h3 id="analyticsLabel">Total of Selected</h3>
       <div class="total-val" id="analyticsTotal">₹ 0</div>
     </div>
 
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
        <span style="font-size: 14px; font-weight: 600;">📋 Filtered Data</span>
        <button class="btn-small" style="background: var(--success); color: white;" onclick="exportCSV()">⬇️ Export CSV</button>
     </div>
     
-    <div class="data-table-wrapper">
+    <div class="data-table-wrapper" style="margin-top: 10px;">
       <table class="data-table">
         <thead><tr><th style="width: 20px;">✔</th><th>Date</th><th>Item</th><th>Price</th></tr></thead>
         <tbody id="analyticsTableBody"></tbody>
@@ -303,8 +304,15 @@ let selectedBudgetVal = "Online";
 let selectedPaymentVal = "Online";
 let budgetNotesMode = false;
 
-// Set default date picker to today
-document.getElementById('entryDate').value = new Date().toISOString().split('T')[0];
+/* Helper: Generate Local ISO Date String */
+function getLocalIsoDate() {
+    const d = new Date();
+    const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+// Set default date picker to today (Local Date)
+document.getElementById('entryDate').value = getLocalIsoDate();
 
 const request = indexedDB.open(DB_NAME, 1);
 request.onupgradeneeded = (e) => {
@@ -314,7 +322,7 @@ request.onupgradeneeded = (e) => {
 };
 request.onsuccess = (e) => { db = e.target.result; loadAllData(); };
 
-/* Utility Functions - FIX: Now handles Custom Dates from Picker */
+/* Utility Functions */
 function getDisplayDate(customDateStr) { 
     let d = new Date();
     if(customDateStr) {
@@ -496,7 +504,6 @@ function processExpense() {
               existing.paymentMethod = selectedPaymentVal; existing.cashGiven = cashGiven;
               existing.givenNotes = givenNotes; existing.receivedNotes = receivedNotes;
               
-              // FIX: Update the date on edit too
               existing.dateStr = displayDateStr;
               existing.isoDay = isoDates.full;
               existing.isoMonth = isoDates.month;
@@ -564,7 +571,7 @@ function resetInputs() {
   currentEditId = null;
   document.getElementById("itemName").value = ""; document.getElementById("itemPrice").value = "";
   document.getElementById("cashGiven").value = ""; document.getElementById("changeStatus").value = "Change: ₹0";
-  document.getElementById('entryDate').value = new Date().toISOString().split('T')[0]; // Reset date
+  document.getElementById('entryDate').value = getLocalIsoDate(); // Reset Date back to today
   setNoteObj('g', null); setNoteObj('r', null);
   document.getElementById("receivedSection").style.display = "none";
   document.getElementById("btnAddUpdate").innerText = "💾 Save Full Bill & Finish";
@@ -642,22 +649,11 @@ function loadAllData() {
           }
       }
       
-      let noteStr = "";
-      if(dep.notes) {
-          noteStr = "<br><span style='font-size:11px; color:var(--warning);'>Added Notes: ";
-          for(let n in dep.notes) {
-              let lbl = n == 1 ? "Coins" : `₹${n}`;
-              noteStr += `${lbl}x${dep.notes[n]} | `;
-          }
-          if(noteStr.endsWith(" | ")) noteStr = noteStr.slice(0, -3); // FIX: Removed Count
-          noteStr += `</span>`;
-      }
-
       depContainer.innerHTML += `
         <div class="deposit-card">
           <div style="flex:1;">
             <strong style="font-size:14px;">${dep.name}</strong><br>
-            <span style="font-size:12px; color:var(--text-muted);">₹${dep.amount}</span>${noteStr}<br>
+            <span style="font-size:12px; color:var(--text-muted);">₹${dep.amount}</span><br>
             <span style="font-size:11px; color:var(--text-muted);">${dep.dateStr}</span>
           </div>
           <div class="controls">
@@ -723,7 +719,6 @@ function loadGroupedExpenses(budgetDepositSums) {
       
       for (const [name, depAmt] of Object.entries(budgetDepositSums)) {
           const bal = depAmt - (budgetExpenseSums[name] || 0);
-          
           walletsContainer.innerHTML += `
           <div class="wallet-card" style="cursor:pointer;" onclick="openNotesSummary()">
             <div class="wallet-title">${name}</div>
@@ -738,7 +733,6 @@ function loadGroupedExpenses(budgetDepositSums) {
          const title = g.items.map(i=>i.name).join(', ').substring(0,25) + (g.items.length > 1 ? '...' : '');
          const card = document.createElement('div'); card.className = 'group-card';
          
-         // FIX: Removed Count String Completely
          let notesMetaStr = "";
          if(g.pay === 'Cash') {
              if(g.gNotes) {
@@ -810,8 +804,7 @@ function editItem(event, id) {
     if (exp) {
       document.getElementById("itemName").value = exp.name; document.getElementById("itemPrice").value = exp.price;
       
-      // FIX: Set Date Picker to match Item's actual date
-      document.getElementById("entryDate").value = exp.isoDay;
+      document.getElementById("entryDate").value = exp.isoDay; // Display correct past date
       
       selectBudget(exp.budgetSource || 'Online', null); renderBudgetChips();
       selectPayment(exp.paymentMethod || 'Online', document.getElementById(`chip-${exp.paymentMethod || 'Online'}`));
@@ -873,13 +866,21 @@ function renderBudgetCheckboxes() {
 function runAnalytics() {
   const type = document.getElementById("filterType").value; const customInput = document.getElementById("customFilterDate"); const iso = getIsoDates();
   let targetIso = ""; 
-  if (type === "custom") { customInput.style.display = "block"; targetIso = customInput.value; if(!targetIso) return; }
-  else { customInput.style.display = "none"; targetIso = type === "today" ? iso.full : type === "month" ? iso.month : iso.year; }
+  
+  if (type === "custom") { 
+      customInput.style.display = "block"; targetIso = customInput.value; if(!targetIso) return; 
+  } else { 
+      customInput.style.display = "none"; 
+      targetIso = type === "today" ? getLocalIsoDate() : type === "month" ? iso.month : type === "year" ? iso.year : "all"; 
+  }
 
   const checkedBudgets = Array.from(document.querySelectorAll('.budget-filter-cb:checked')).map(cb => cb.value);
 
   currentFilteredData = allExpensesCache.filter(exp => {
-    let dMatch = (type==="today"||type==="custom") ? exp.isoDay===targetIso : type==="month" ? exp.isoMonth===targetIso : exp.isoYear===targetIso;
+    let dMatch = true;
+    if(type !== "all") {
+        dMatch = (type==="today"||type==="custom") ? exp.isoDay===targetIso : type==="month" ? exp.isoMonth===targetIso : exp.isoYear===targetIso;
+    }
     let bMatch = checkedBudgets.includes(exp.budgetSource || "Online");
     return dMatch && bMatch;
   });
@@ -891,7 +892,6 @@ function renderAnalyticsTable() {
   let sum = 0;
   currentFilteredData.forEach(exp => {
     sum += exp.price;
-    // FIX: Using data-id to avoid parsing errors
     tbody.innerHTML += `<tr><td><input type="checkbox" class="row-checkbox" checked data-id='${exp.id}'></td><td>${exp.dateStr.split(" | ")[0]}</td><td>${exp.name} <br>💳 ${exp.paymentMethod}</td><td>₹${exp.price}</td></tr>`;
   });
   document.getElementById("analyticsTotal").innerText = `₹ ${sum.toLocaleString('en-IN')}`;
@@ -908,13 +908,25 @@ function exportCSV() {
     const id = parseInt(r.getAttribute('data-id'));
     const o = currentFilteredData.find(x => x.id === id);
     if(o) {
-        let safeName = o.name.replace(/"/g, '""'); // Handles double quotes inside names
+        let safeName = o.name.replace(/"/g, '""'); // Quotes fixing
         csv += `"${o.dateStr}","${safeName}","${o.budgetSource}",${o.price},"${o.paymentMethod}","${o.cashGiven||'-'}"\n`;
     }
   });
   
-  const url = window.URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-  const a = document.createElement("a"); a.href = url; a.download = `Expense_Export_${Date.now()}.csv`; a.click();
+  // Create Blob With BOM for Excel Compatibility
+  const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = window.URL.createObjectURL(blob);
+  
+  // Safe Download Method for all Browsers
+  const a = document.createElement("a"); 
+  a.style.display = "none";
+  a.href = url; 
+  a.download = `Expense_Export_${Date.now()}.csv`; 
+  document.body.appendChild(a);
+  a.click();
+  
+  // Cleanup
+  setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); }, 100);
 }
 
 function openNotesSummary() {
