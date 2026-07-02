@@ -44,7 +44,6 @@
   .chip { background: #000; color: var(--text-muted); border: 1px solid #334155; padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; }
   .chip.active { background: var(--bg-main); color: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px rgba(14, 165, 233, 0.6); font-weight: 600; }
 
-  /* FIX: 4 Columns ka grid bana diya taaki 5 aur Coins fit ho jayein */
   .note-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 5px; }
   .note-grid input { padding: 8px; font-size: 12px; text-align: center; }
   .note-label { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; display: block; text-align: center;}
@@ -124,6 +123,11 @@
 <div class="input-section">
   <div class="chips-container" id="budgetChipsContainer">
     <div class="chip active" onclick="selectBudget('Online', this)">Online</div>
+  </div>
+
+  <div class="row-inputs" style="align-items: center;">
+    <label style="font-size: 12px; color: var(--text-muted); flex: 0.5;">Date:</label>
+    <input type="date" id="entryDate" style="flex: 2; padding: 8px;">
   </div>
 
   <div class="row-inputs" style="position: relative;">
@@ -268,8 +272,7 @@
     <span style="font-weight: 600;">👛 Budget Notes Summary</span>
     <button class="btn-small" style="background: rgba(239, 68, 68, 0.1); color: var(--danger);" onclick="closeNotesSummary()">✕ Close</button>
   </div>
-  <div class="overlay-body" id="notesSummaryBody">
-    </div>
+  <div class="overlay-body" id="notesSummaryBody"></div>
 </div>
 
 <div id="snackbar"><span id="snackText">Deleted</span><button class="undo-btn" id="undoBtnAction" onclick="undoDelete()">UNDO</button></div>
@@ -281,9 +284,7 @@
 </div>
 
 <script>
-/* * IMPORTANT: Agar tumhara purana data gayab hai toh yahan "SmartShopV10" ko 
-  * badal kar "SmartShopV9" ya apna purana DB name likh lo. Code update hoga par data safe rahega!
-*/
+/* DB Setup & Globals */
 const DB_NAME = "SmartShopV10"; 
 let db;
 let uniqueItemsDict = {}; let allExpensesCache = []; let currentFilteredData = []; 
@@ -302,6 +303,9 @@ let selectedBudgetVal = "Online";
 let selectedPaymentVal = "Online";
 let budgetNotesMode = false;
 
+// Set default date picker to today
+document.getElementById('entryDate').value = new Date().toISOString().split('T')[0];
+
 const request = indexedDB.open(DB_NAME, 1);
 request.onupgradeneeded = (e) => {
   db = e.target.result;
@@ -310,12 +314,31 @@ request.onupgradeneeded = (e) => {
 };
 request.onsuccess = (e) => { db = e.target.result; loadAllData(); };
 
-/* Utility Functions */
-function getDisplayDate() { const d = new Date(); const m = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]; const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]; return `${d.getDate()} ${m[d.getMonth()]}, ${d.getFullYear()} (${days[d.getDay()]}) | ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`; }
-function getIsoDates() { const d = new Date(); const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0'); return { full: `${y}-${m}-${day}`, month: `${y}-${m}`, year: `${y}` }; }
+/* Utility Functions - FIX: Now handles Custom Dates from Picker */
+function getDisplayDate(customDateStr) { 
+    let d = new Date();
+    if(customDateStr) {
+        const [y, m, day] = customDateStr.split('-');
+        d = new Date(y, m-1, day, d.getHours(), d.getMinutes()); 
+    }
+    const mArr = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]; 
+    const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]; 
+    return `${d.getDate()} ${mArr[d.getMonth()]}, ${d.getFullYear()} (${days[d.getDay()]}) | ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`; 
+}
+
+function getIsoDates(customDateStr) { 
+    let d = new Date();
+    if(customDateStr) {
+        const [y, m, day] = customDateStr.split('-');
+        d = new Date(y, m-1, day);
+    }
+    const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0'); 
+    return { full: `${y}-${m}-${day}`, month: `${y}-${m}`, year: `${y}` }; 
+}
+
 function showCustomAlert(msg) { document.getElementById("snackText").innerText = msg; document.getElementById("undoBtnAction").style.display = "none"; document.getElementById("snackbar").classList.add("show"); setTimeout(() => { document.getElementById("snackbar").classList.remove("show"); setTimeout(() => document.getElementById("undoBtnAction").style.display = "block", 300); }, 2500); }
 
-/* Note Calculators (ADDED 5 & 1) */
+/* Note Calculators */
 const notesArr = [500, 200, 100, 50, 20, 10, 5, 1];
 
 function calcGiven() {
@@ -449,6 +472,10 @@ function removeFromCart(index) {
 
 /* Save Full Cart / Edit Item */
 function processExpense() {
+  const selectedDateStr = document.getElementById('entryDate').value;
+  const isoDates = getIsoDates(selectedDateStr);
+  const displayDateStr = getDisplayDate(selectedDateStr);
+
   if (currentEditId) {
       const name = document.getElementById("itemName").value.trim();
       const price = parseFloat(document.getElementById("itemPrice").value);
@@ -468,6 +495,13 @@ function processExpense() {
               existing.name = name; existing.price = price; existing.budgetSource = selectedBudgetVal; 
               existing.paymentMethod = selectedPaymentVal; existing.cashGiven = cashGiven;
               existing.givenNotes = givenNotes; existing.receivedNotes = receivedNotes;
+              
+              // FIX: Update the date on edit too
+              existing.dateStr = displayDateStr;
+              existing.isoDay = isoDates.full;
+              existing.isoMonth = isoDates.month;
+              existing.isoYear = isoDates.year;
+              
               tx.objectStore("expenses").put(existing);
           }
       };
@@ -507,15 +541,13 @@ function processExpense() {
   const store = tx.objectStore("expenses");
   
   const txId = targetTransactionId ? targetTransactionId : Date.now(); 
-  const iso = getIsoDates();
-  const dStr = getDisplayDate();
 
   currentCart.forEach((item, index) => {
       store.add({
           name: item.name, price: item.price, 
           budgetSource: selectedBudgetVal, paymentMethod: selectedPaymentVal, 
           cashGiven: cashGiven, givenNotes: givenNotes, receivedNotes: receivedNotes,
-          transactionId: txId, dateStr: dStr, isoDay: iso.full, isoMonth: iso.month, isoYear: iso.year, order: Date.now() - index
+          transactionId: txId, dateStr: displayDateStr, isoDay: isoDates.full, isoMonth: isoDates.month, isoYear: isoDates.year, order: Date.now() - index
       });
   });
 
@@ -532,6 +564,7 @@ function resetInputs() {
   currentEditId = null;
   document.getElementById("itemName").value = ""; document.getElementById("itemPrice").value = "";
   document.getElementById("cashGiven").value = ""; document.getElementById("changeStatus").value = "Change: ₹0";
+  document.getElementById('entryDate').value = new Date().toISOString().split('T')[0]; // Reset date
   setNoteObj('g', null); setNoteObj('r', null);
   document.getElementById("receivedSection").style.display = "none";
   document.getElementById("btnAddUpdate").innerText = "💾 Save Full Bill & Finish";
@@ -612,13 +645,12 @@ function loadAllData() {
       let noteStr = "";
       if(dep.notes) {
           noteStr = "<br><span style='font-size:11px; color:var(--warning);'>Added Notes: ";
-          let totalCount = 0;
           for(let n in dep.notes) {
               let lbl = n == 1 ? "Coins" : `₹${n}`;
               noteStr += `${lbl}x${dep.notes[n]} | `;
-              totalCount += parseInt(dep.notes[n]);
           }
-          noteStr += `<b>(Count: ${totalCount})</b></span>`;
+          if(noteStr.endsWith(" | ")) noteStr = noteStr.slice(0, -3); // FIX: Removed Count
+          noteStr += `</span>`;
       }
 
       depContainer.innerHTML += `
@@ -706,17 +738,17 @@ function loadGroupedExpenses(budgetDepositSums) {
          const title = g.items.map(i=>i.name).join(', ').substring(0,25) + (g.items.length > 1 ? '...' : '');
          const card = document.createElement('div'); card.className = 'group-card';
          
+         // FIX: Removed Count String Completely
          let notesMetaStr = "";
          if(g.pay === 'Cash') {
              if(g.gNotes) {
                  notesMetaStr += `<br><span style="color:var(--warning); font-size:11px;">Given Notes: `;
-                 let gCount = 0;
                  for(let n in g.gNotes) {
                      let lbl = n == 1 ? "Coins" : `₹${n}`;
                      notesMetaStr += `${lbl}x${g.gNotes[n]} | `;
-                     gCount += parseInt(g.gNotes[n]);
                  }
-                 notesMetaStr += `<b>(Count: ${gCount})</b></span>`;
+                 if(notesMetaStr.endsWith(" | ")) notesMetaStr = notesMetaStr.slice(0, -3);
+                 notesMetaStr += `</span>`;
              }
              
              if(g.cash > g.total) {
@@ -724,14 +756,14 @@ function loadGroupedExpenses(budgetDepositSums) {
                  notesMetaStr += `<br><span style="color:var(--success); font-size:11px;">Change Rcvd: ₹${chgAmt}`;
                  if(g.rNotes) {
                      notesMetaStr += " (";
-                     let rCount = 0;
+                     let added = false;
                      for(let n in g.rNotes) {
                          let lbl = n == 1 ? "Coins" : `₹${n}`;
                          notesMetaStr += `${lbl}x${g.rNotes[n]} | `;
-                         rCount += parseInt(g.rNotes[n]);
+                         added = true;
                      }
-                     notesMetaStr = notesMetaStr.substring(0, notesMetaStr.length - 3);
-                     notesMetaStr += ` | <b>Count: ${rCount}</b>)`;
+                     if(added && notesMetaStr.endsWith(" | ")) notesMetaStr = notesMetaStr.slice(0, -3);
+                     notesMetaStr += `)`;
                  }
                  notesMetaStr += "</span>";
              }
@@ -777,6 +809,10 @@ function editItem(event, id) {
     const exp = e.target.result;
     if (exp) {
       document.getElementById("itemName").value = exp.name; document.getElementById("itemPrice").value = exp.price;
+      
+      // FIX: Set Date Picker to match Item's actual date
+      document.getElementById("entryDate").value = exp.isoDay;
+      
       selectBudget(exp.budgetSource || 'Online', null); renderBudgetChips();
       selectPayment(exp.paymentMethod || 'Online', document.getElementById(`chip-${exp.paymentMethod || 'Online'}`));
       
@@ -855,21 +891,30 @@ function renderAnalyticsTable() {
   let sum = 0;
   currentFilteredData.forEach(exp => {
     sum += exp.price;
-    tbody.innerHTML += `<tr><td><input type="checkbox" class="row-checkbox" checked data-full='${JSON.stringify(exp)}'></td><td>${exp.dateStr.split(" | ")[0]}</td><td>${exp.name} <br>💳 ${exp.paymentMethod}</td><td>₹${exp.price}</td></tr>`;
+    // FIX: Using data-id to avoid parsing errors
+    tbody.innerHTML += `<tr><td><input type="checkbox" class="row-checkbox" checked data-id='${exp.id}'></td><td>${exp.dateStr.split(" | ")[0]}</td><td>${exp.name} <br>💳 ${exp.paymentMethod}</td><td>₹${exp.price}</td></tr>`;
   });
   document.getElementById("analyticsTotal").innerText = `₹ ${sum.toLocaleString('en-IN')}`;
 }
 
+// FIX: Robust CSV Export
 function exportCSV() {
   const rows = document.querySelectorAll('.row-checkbox:checked');
   if(rows.length===0) { showCustomAlert("No items checked"); return; }
+  
   let csv = "Date,Name,Budget,Price,Payment,Cash Given\n";
+  
   rows.forEach(r => {
-    const o = JSON.parse(r.getAttribute('data-full'));
-    csv += `"${o.dateStr}","${o.name}","${o.budgetSource}",${o.price},"${o.paymentMethod}","${o.cashGiven||'-'}"\n`;
+    const id = parseInt(r.getAttribute('data-id'));
+    const o = currentFilteredData.find(x => x.id === id);
+    if(o) {
+        let safeName = o.name.replace(/"/g, '""'); // Handles double quotes inside names
+        csv += `"${o.dateStr}","${safeName}","${o.budgetSource}",${o.price},"${o.paymentMethod}","${o.cashGiven||'-'}"\n`;
+    }
   });
-  const url = window.URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-  const a = document.createElement("a"); a.href = url; a.download = `Export_${Date.now()}.csv`; a.click();
+  
+  const url = window.URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+  const a = document.createElement("a"); a.href = url; a.download = `Expense_Export_${Date.now()}.csv`; a.click();
 }
 
 function openNotesSummary() {
