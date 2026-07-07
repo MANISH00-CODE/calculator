@@ -10,7 +10,6 @@
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('Offline Support Ready!'))
         .catch(err => console.error('Offline Error:', err));
     });
   }
@@ -33,7 +32,7 @@
     color: var(--text-main); overflow-x: hidden; padding-bottom: 80px; 
   }
 
-  /* Top Header & Search */
+  /* Top Header */
   .top { 
     padding: 15px 15px 5px 15px; background: var(--bg-card); 
     box-shadow: 0 4px 10px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 10;
@@ -48,7 +47,7 @@
     font-family: 'Poppins', sans-serif; transition: 0.2s; font-weight: 600; display: flex; align-items: center; gap: 4px;
   }
 
-  /* Smart Search Bar */
+  /* Search */
   .search-wrapper { position: relative; width: 100%; padding-bottom: 10px; }
   .search-input {
     width: 100%; padding: 10px 15px; background: var(--bg-main); border: 1px solid var(--bg-input); 
@@ -57,7 +56,6 @@
   }
   .search-input:focus { border-color: var(--accent); }
 
-  /* Floating Add Button */
   .fab-add {
     position: fixed; bottom: 80px; right: 20px; width: 56px; height: 56px;
     background: var(--accent); color: white; border-radius: 50%; display: flex;
@@ -65,18 +63,17 @@
     box-shadow: 0 4px 10px rgba(14, 165, 233, 0.4); cursor: pointer; z-index: 90;
   }
 
-  /* Notes Container & Compact List */
+  /* Notes Container */
   #notes-container { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
   
   .note-card {
     background: var(--bg-card); padding: 10px 12px; border-radius: 12px; 
     border-left: 4px solid var(--accent); display: flex; flex-direction: row; 
-    align-items: center; gap: 10px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; touch-action: pan-y; 
+    align-items: center; gap: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); touch-action: pan-y; 
   }
   .note-card.dragging { opacity: 0.5; transform: scale(0.98); border: 2px dashed var(--accent); }
   
-  /* Overlays (Preview & Editor) */
+  /* Overlays */
   .overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: var(--bg-main); z-index: 200; display: none; flex-direction: column;
@@ -85,41 +82,51 @@
 
   .overlay-header {
     padding: 10px 15px; background: var(--bg-card); display: flex; align-items: center; justify-content: space-between;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 10px;
   }
-  .overlay-header-actions { display: flex; gap: 8px; align-items: center; }
+  .overlay-header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .btn-close { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; }
   
   .overlay-body { flex: 1; padding: 15px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; scroll-behavior: smooth; }
   
-  /* Fixed Size Rich Text Editor */
+  /* Fixed Size Editor Container */
   .rich-input-container {
     background: var(--bg-card); border-radius: 12px; border: 2px solid var(--bg-input); 
-    display: flex; flex-direction: column; 
-    height: 350px; min-height: 350px; max-height: 350px; /* Fixed height constraint as commanded */
+    display: flex; flex-direction: column; height: 400px; min-height: 400px; max-height: 400px; 
   }
   .rich-input-container:focus-within { border-color: var(--accent); }
 
-  .content-editor {
-    flex: 1; padding: 15px; font-family: 'Poppins', sans-serif; font-size: 15px; line-height: 1.6;
-    color: var(--text-main); overflow-y: auto; outline: none; word-wrap: break-word; white-space: pre-wrap;
+  #blocksContainer { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; scroll-behavior: smooth; }
+  
+  /* Task Row Structure */
+  .task-row {
+    display: flex; align-items: flex-start; gap: 8px; background: var(--bg-main); 
+    padding: 10px; border-radius: 8px; position: relative; transition: background 0.3s;
+  }
+  .task-row.dragging-row { opacity: 0.5; border: 1px dashed var(--accent); }
+  
+  .drag-handle { cursor: grab; font-size: 16px; color: var(--text-muted); display: flex; align-items: center; padding-top: 2px; }
+  .row-num { font-weight: bold; font-size: 14px; color: var(--accent); padding-top: 2px; min-width: 18px; }
+  .task-check { width: 18px; height: 18px; accent-color: var(--success); cursor: pointer; margin-top: 4px; }
+  
+  .row-content { 
+    flex: 1; outline: none; min-height: 24px; font-size: 15px; color: var(--text-main);
+    word-wrap: break-word; white-space: pre-wrap; padding-top: 1px;
   }
   
-  /* Inline Tasks (Text + Audio) */
-  .task-block { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 5px; padding: 5px; border-radius: 6px; transition: 0.2s; }
-  .inline-checkbox { width: 18px; height: 18px; accent-color: var(--success); cursor: pointer; }
-  .img-trigger { color: var(--accent); font-weight: bold; cursor: pointer; padding: 2px 5px; background: rgba(14, 165, 233, 0.1); border-radius: 4px; display: inline-block; user-select: none; }
-  
+  /* Top & Delete Buttons in Row */
+  .row-top { background: none; border: none; color: var(--success); font-size: 18px; cursor: pointer; padding: 0 2px; }
+  .row-del { background: none; border: none; color: var(--danger); font-size: 18px; cursor: pointer; padding: 0 2px; }
+
   /* Toolbars */
   .inline-toolbar {
-    display: flex; gap: 12px; padding: 10px 15px; background: rgba(0, 0, 0, 0.2);
+    display: flex; gap: 10px; padding: 10px 15px; background: rgba(0, 0, 0, 0.2);
     border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; align-items: center; flex-shrink: 0;
   }
   .media-btn {
-    background: var(--bg-input); color: var(--text-main); border: none; width: 36px; height: 36px; 
-    border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; transition: 0.2s;
+    background: var(--bg-input); color: var(--text-main); border: none; width: 34px; height: 34px; 
+    border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer;
   }
-  .media-btn:active { transform: scale(0.9); }
   .media-btn.recording { background: var(--danger); animation: pulse 1.5s infinite; }
   @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
@@ -136,10 +143,10 @@
 
   /* Bottom Nav */
   .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--bg-card); display: flex; justify-content: space-around; align-items: center; box-shadow: 0 -4px 10px rgba(0,0,0,0.3); z-index: 100; }
-  .nav-btn { background: none; border: none; color: var(--text-muted); font-size: 11px; display: flex; flex-direction: column; align-items: center; cursor: pointer; text-decoration: none; transition: 0.2s; }
+  .nav-btn { background: none; border: none; color: var(--text-muted); font-size: 11px; display: flex; flex-direction: column; align-items: center; cursor: pointer; text-decoration: none; }
   .nav-btn span { font-size: 20px; margin-bottom: 2px; }
   .nav-btn.active { color: var(--accent); font-weight: 600; }
-  .action-fab { background: var(--accent); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.4); cursor: pointer; text-decoration: none; margin-top: -20px; }
+  .action-fab { background: var(--accent); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-top: -20px; text-decoration: none; }
 </style>
 </head>
 <body>
@@ -147,6 +154,7 @@
 <input type="file" id="inlineImageInput" accept="image/*" style="display: none;">
 <input type="file" id="importInput" accept=".json" style="display: none;">
 
+<!-- Main App Screen -->
 <div class="top">
   <div class="header-row">
     <h2>📝 Smart Notes</h2>
@@ -170,14 +178,14 @@
     <span style="font-weight: 600; font-size: 16px;">View Note</span>
     <div class="overlay-header-actions">
       <button class="btn-small" style="background: rgba(16, 185, 129, 0.1); color: var(--success);" onclick="document.getElementById('previewBody').scrollTop = 0">⬆️ Top</button>
-      <button class="btn-small" style="background: rgba(14, 165, 233, 0.1); color: var(--accent);" onclick="switchToEdit()">✏️ Edit</button>
       <button class="btn-small" style="background: rgba(239, 68, 68, 0.1); color: var(--danger);" onclick="deleteFromPreview()">🗑️ Del</button>
       <button class="btn-close" onclick="closePreview()">✖ Back</button>
     </div>
   </div>
   <div class="overlay-body" id="previewBody">
     <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 5px;" id="previewDate"></div>
-    <div id="previewContent" style="font-size: 15px; line-height: 1.6; word-wrap: break-word;"></div>
+    <!-- Organized Content goes here -->
+    <div id="previewContent" style="display: flex; flex-direction: column; gap: 15px;"></div>
   </div>
 </div>
 
@@ -189,21 +197,22 @@
   </div>
   
   <div class="overlay-body">
-    <!-- Fixed Box Constraint Maintained -->
     <div class="rich-input-container">
-      <div id="noteEditor" class="content-editor" contenteditable="true" placeholder="Type here. Checkbox, audio, or hold to insert image..."></div>
+      <div id="blocksContainer"></div>
       
+      <!-- Toolbar with Simple Note & Checkbox -->
       <div class="inline-toolbar">
-        <button class="media-btn" title="Add Checkbox" onclick="insertCheckboxBlock()">☑️</button>
+        <button class="media-btn" title="Add Simple Note" onclick="addRow('note')">📝</button>
+        <button class="media-btn" title="Add Checkbox" onclick="addRow('check')">☑️</button>
         <button class="media-btn" id="inlineVoiceBtn" title="Record Voice" onclick="toggleRecording()">🎙️</button>
-        <span style="font-size: 10px; color: var(--text-muted); margin-left: 5px;">Hold text to attach image 🖼️</span>
+        <span style="font-size: 10px; color: var(--text-muted); margin-left: 5px; line-height: 1.2;">Click text & Hold<br>for image 🖼️</span>
       </div>
     </div>
   </div>
 </div>
 
 <div id="snackbar">
-  <span id="snackbarMsg">Note deleted</span>
+  <span id="snackbarMsg">Action</span>
   <button class="undo-btn" id="undoBtn" onclick="undoDelete()">UNDO</button>
 </div>
 
@@ -214,9 +223,7 @@
 </div>
 
 <script>
-/* =========================================
-   1. IndexedDB Engine Setup
-   ========================================= */
+/* ================= DB Setup ================= */
 const DB_NAME = "ProSmartNotesV7";
 const STORE_NAME = "notes_multimedia";
 let db;
@@ -224,7 +231,6 @@ let currentActiveId = null;
 let allNotesCache = []; 
 let lastDeletedNote = null;
 let undoTimeout = null;
-let savedSelectionRange = null;
 
 const request = indexedDB.open(DB_NAME, 1);
 request.onupgradeneeded = (e) => {
@@ -252,9 +258,11 @@ function showSnackbar(msg, showUndo = false) {
   undoTimeout = setTimeout(() => { snackbar.classList.remove("show"); if(showUndo) lastDeletedNote = null; }, 5000);
 }
 
-/* =========================================
-   2. List Rendering & Global Search
-   ========================================= */
+function generateRowId() {
+  return 'row_' + Date.now() + Math.random().toString(36).substr(2, 5);
+}
+
+/* ================= List Rendering ================= */
 function filterNotes() {
   const query = document.getElementById("globalSearch").value.toLowerCase().trim();
   let sortedNotes = [...allNotesCache].sort((a, b) => b.order - a.order);
@@ -270,7 +278,7 @@ function filterNotes() {
 function updateWordSuggestions() {
   let words = new Set();
   allNotesCache.forEach(note => {
-    let t = (note.text || "").replace(/<[^>]+>/g, ' ').toLowerCase(); // strip html for search
+    let t = (note.text || "").replace(/<[^>]+>/g, ' ').toLowerCase();
     let matchedWords = t.match(/[a-z0-9\u0900-\u097F]+/g);
     if (matchedWords) matchedWords.forEach(w => { if(w.length > 2) words.add(w) });
   });
@@ -292,39 +300,34 @@ function loadNotes() {
 function renderNotesList(notesArray) {
   const container = document.getElementById("notes-container");
   container.innerHTML = "";
-  
   if(notesArray.length === 0) {
      container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px; font-size: 13px;">No matching notes found.</div>`; return;
   }
-
   notesArray.forEach((note, index) => {
     const card = document.createElement("div");
     card.className = "note-card";
     card.dataset.id = note.id;
     
-    // Extract first line of text for list preview (removing HTML tags safely)
     const tempDiv = document.createElement("div");
     tempDiv.innerHTML = note.text || "";
-    let cleanText = tempDiv.innerText.trim();
+    let firstRowContent = tempDiv.querySelector('.row-content');
+    let cleanText = firstRowContent ? firstRowContent.innerText.trim() : tempDiv.innerText.trim();
     let firstLine = cleanText.split('\n')[0].substring(0, 50);
     
-    let hasAudio = (note.text || "").includes("<audio") || (note.audios && note.audios.length > 0);
+    let hasAudio = tempDiv.querySelector('audio') !== null;
     let previewContent = firstLine ? `<span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${firstLine}</span>` 
                                    : (hasAudio ? `<span style="font-size: 12px; color: var(--accent);">🎵 Audio Attached</span>` : `<span style="font-size: 12px; color: var(--text-muted);">Empty Note</span>`);
 
     card.innerHTML = `
       <span class="drag-handle" style="cursor: grab; font-size: 18px; color: var(--text-muted); padding: 5px; flex-shrink: 0;">↕️</span>
-      
       <span style="font-size: 14px; font-weight: bold; color: var(--accent); min-width: 22px; flex-shrink: 0; text-align: center;">${index + 1}.</span>
-
       <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; cursor: pointer;" onclick="openPreview(${note.id})">
          <span style="font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">${note.date}</span>
          ${previewContent}
       </div>
-
       <button class="btn-delete" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; border-radius: 6px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; flex-shrink: 0;" onclick="deleteNoteFromList(event, ${note.id})">✖</button>
     `;
-    setupTouchDrag(card); container.appendChild(card);
+    setupMainListTouchDrag(card); container.appendChild(card);
   });
 }
 
@@ -342,28 +345,26 @@ function undoDelete() {
   tx.oncomplete = () => { loadNotes(); document.getElementById("snackbar").classList.remove("show"); lastDeletedNote = null; clearTimeout(undoTimeout); };
 }
 
-let draggedElement = null;
-function setupTouchDrag(card) {
+/* ================= Drag & Drop (Main List) ================= */
+let draggedListElement = null;
+function setupMainListTouchDrag(card) {
   const handle = card.querySelector('.drag-handle');
-  handle.addEventListener('mousedown', () => { card.setAttribute('draggable', 'true'); });
-  card.addEventListener('dragstart', (e) => { draggedElement = card; setTimeout(() => card.classList.add('dragging'), 0); });
-  card.addEventListener('dragend', () => { card.classList.remove('dragging'); card.removeAttribute('draggable'); saveNewOrder(); });
-  handle.addEventListener('touchstart', (e) => { draggedElement = card; card.classList.add('dragging'); e.preventDefault(); }, { passive: false });
+  handle.addEventListener('touchstart', (e) => { draggedListElement = card; card.classList.add('dragging'); e.preventDefault(); }, { passive: false });
   handle.addEventListener('touchmove', (e) => {
-    if (!draggedElement) return; e.preventDefault();
+    if (!draggedListElement) return; e.preventDefault();
     const touch = e.touches[0];
+    const container = document.getElementById("notes-container");
     const target = document.elementFromPoint(touch.clientX, touch.clientY);
     const targetCard = target ? target.closest('.note-card') : null;
-    if (targetCard && targetCard !== draggedElement) {
-      const container = document.getElementById("notes-container");
+    if (targetCard && targetCard !== draggedListElement) {
       const targetRect = targetCard.getBoundingClientRect();
-      if (touch.clientY < targetRect.top + targetRect.height / 2) container.insertBefore(draggedElement, targetCard);
-      else container.insertBefore(draggedElement, targetCard.nextSibling);
+      if (touch.clientY < targetRect.top + targetRect.height / 2) container.insertBefore(draggedListElement, targetCard);
+      else container.insertBefore(draggedListElement, targetCard.nextSibling);
     }
   }, { passive: false });
-  handle.addEventListener('touchend', () => { if (draggedElement) { draggedElement.classList.remove('dragging'); draggedElement = null; saveNewOrder(); } });
+  handle.addEventListener('touchend', () => { if (draggedListElement) { draggedListElement.classList.remove('dragging'); draggedListElement = null; saveMainListOrder(); } });
 }
-function saveNewOrder() {
+function saveMainListOrder() {
   if(document.getElementById("globalSearch").value) return; 
   const cards = document.querySelectorAll('.note-card');
   const tx = db.transaction(STORE_NAME, "readwrite");
@@ -376,9 +377,7 @@ function saveNewOrder() {
   tx.oncomplete = () => loadNotes();
 }
 
-/* =========================================
-   3. Preview Mode Logic
-   ========================================= */
+/* ================= View Note (Preview & Groups) ================= */
 function openPreview(id) {
   currentActiveId = id;
   const tx = db.transaction(STORE_NAME, "readonly");
@@ -387,28 +386,57 @@ function openPreview(id) {
     if (note) {
       document.getElementById("previewDate").innerText = note.date;
       
-      // Backward compatibility for old images/audios array
-      let extraHtml = "";
-      if (note.images && note.images.length > 0) {
-        extraHtml += `<br><br><div style="display:flex; flex-wrap:wrap; gap:10px;">` + note.images.map(img => `<img src="${img}" style="max-width:100%; border-radius:8px;">`).join('') + `</div>`;
-      }
-      if (note.audios && note.audios.length > 0) {
-        extraHtml += `<br>` + note.audios.map(aud => `<audio controls src="${aud}" style="width:100%; margin-top:10px;"></audio>`).join('');
-      }
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = note.text || "";
+      
+      let notesHtml = `<div style="background:var(--bg-card); padding:10px; border-radius:10px;"><h3 style="margin:0 0 10px 0; color:var(--accent); font-size:16px;">📝 Notes</h3>`;
+      let checksHtml = `<div style="background:var(--bg-card); padding:10px; border-radius:10px;"><h3 style="margin:0 0 10px 0; color:var(--success); font-size:16px;">☑️ Tasks</h3>`;
+      let noteNum = 1, checkNum = 1;
+      let hasNotes = false, hasChecks = false;
 
-      // Render content
-      document.getElementById("previewContent").innerHTML = (note.text || "") + extraHtml;
+      tempDiv.querySelectorAll('.task-row').forEach(row => {
+        if(!row.id) row.id = generateRowId(); // Retrofit ID if missing
+        
+        let isCheck = row.querySelector('.task-check') !== null;
+        let contentHtml = row.querySelector('.row-content').innerHTML;
+        let isChecked = isCheck && row.querySelector('.task-check').checked;
+        
+        let textStyle = isChecked ? 'text-decoration: line-through; opacity: 0.6;' : '';
+        let checkInput = isCheck ? `<input type="checkbox" ${isChecked?'checked':''} onchange="togglePreviewCheck(this, ${note.id}, '${row.id}')" style="width:18px; height:18px; accent-color:var(--success); margin-top:2px;">` : '';
+
+        // Direct Line Editing Button (✏️ Edit)
+        let rowHtml = `
+          <div style="display:flex; align-items:flex-start; gap:10px; margin-bottom:12px;">
+            <span style="font-weight:bold; color:var(--text-muted); min-width:20px; text-align:right;">${isCheck ? checkNum++ : noteNum++}.</span>
+            ${checkInput}
+            <div style="flex:1; font-size:15px; color:var(--text-main); ${textStyle}">${contentHtml}</div>
+            <button onclick="switchToEditRow(${note.id}, '${row.id}')" style="background:rgba(14,165,233,0.1); border:none; border-radius:6px; padding:4px 8px; cursor:pointer; color:var(--accent); font-size:12px; font-weight:600;">✏️ Edit</button>
+          </div>
+        `;
+
+        if(isCheck) { checksHtml += rowHtml; hasChecks = true; }
+        else { notesHtml += rowHtml; hasNotes = true; }
+      });
+
+      notesHtml += `</div>`;
+      checksHtml += `</div>`;
+
+      let finalHtml = "";
+      if(hasNotes) finalHtml += notesHtml;
+      if(hasChecks) finalHtml += checksHtml;
+      
+      document.getElementById("previewContent").innerHTML = finalHtml || "<div style='text-align:center; color:var(--text-muted);'>Empty Note</div>";
       document.getElementById("previewOverlay").classList.add("active");
       history.pushState({ isPreview: true }, "");
     }
   };
 }
 
-function closePreview() {
+function closePreview(popHistory = true) {
   document.getElementById("previewOverlay").classList.remove("active");
   currentActiveId = null;
-  loadNotes(); // Refresh list to reflect checked tasks
-  if (history.state && history.state.isPreview) history.back();
+  loadNotes(); 
+  if (popHistory && history.state && history.state.isPreview) history.back();
 }
 
 function deleteFromPreview() {
@@ -416,108 +444,150 @@ function deleteFromPreview() {
     const tx = db.transaction(STORE_NAME, "readwrite");
     const store = tx.objectStore(STORE_NAME);
     store.get(currentActiveId).onsuccess = (e) => { lastDeletedNote = e.target.result; store.delete(currentActiveId); };
-    tx.oncomplete = () => { 
-      closePreview(); 
-      showSnackbar("Note Deleted", true); 
-    };
+    tx.oncomplete = () => { closePreview(); showSnackbar("Note Deleted", true); };
   }
 }
 
-function switchToEdit() {
-  document.getElementById("previewOverlay").classList.remove("active");
-  openEditor(currentActiveId);
+function switchToEditRow(noteId, rowId) {
+  closePreview(false); // Close preview without popping history
+  openEditor(noteId, rowId);
 }
 
-// Checkbox Toggle logic applied dynamically via onclick in HTML
-window.toggleInlineTask = function(checkbox) {
-  const block = checkbox.closest('.task-block') || checkbox.parentElement;
-  if (checkbox.checked) {
-    block.style.textDecoration = 'line-through';
-    block.style.opacity = '0.6';
-  } else {
-    block.style.textDecoration = 'none';
-    block.style.opacity = '1';
-  }
-  
-  // Auto-save changes if done in preview mode
-  if (document.getElementById("previewOverlay").classList.contains("active") && currentActiveId) {
-    const contentHtml = document.getElementById("previewContent").innerHTML;
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    const store = tx.objectStore(STORE_NAME);
-    store.get(currentActiveId).onsuccess = (e) => {
-      const note = e.target.result;
-      if (note) {
-        // Only saving the updated HTML back to note.text 
-        // (For old data, we strip the extra appended HTML to avoid duplication)
-        let saveHtml = contentHtml;
-        if(note.images && note.images.length > 0) saveHtml = saveHtml.split('<br><br><div style="display:flex')[0];
-        note.text = saveHtml;
-        store.put(note);
+// Tick checkbox from Preview directly updates DB
+window.togglePreviewCheck = function(chk, noteId, rowId) {
+  const tx = db.transaction(STORE_NAME, "readwrite");
+  const store = tx.objectStore(STORE_NAME);
+  store.get(noteId).onsuccess = (e) => {
+    const note = e.target.result;
+    if (note) {
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = note.text;
+      const targetRow = tempDiv.querySelector(`#${rowId}`);
+      if(targetRow) {
+         let targetCheck = targetRow.querySelector('.task-check');
+         if(targetCheck) {
+            if(chk.checked) targetCheck.setAttribute('checked', 'checked');
+            else targetCheck.removeAttribute('checked');
+            note.text = tempDiv.innerHTML;
+            store.put(note);
+            // Apply visual strike-through instantly on preview screen
+            let contentDiv = chk.nextElementSibling;
+            if(chk.checked) { contentDiv.style.textDecoration = 'line-through'; contentDiv.style.opacity = '0.6'; }
+            else { contentDiv.style.textDecoration = 'none'; contentDiv.style.opacity = '1'; }
+         }
       }
-    };
+    }
+  };
+};
+
+/* ================= Editor Mode ================= */
+function updateRowNumbers(containerId) {
+  const rows = document.querySelectorAll(`#${containerId} .task-row`);
+  rows.forEach((row, index) => {
+    const numEl = row.querySelector('.row-num');
+    if(numEl) numEl.innerText = (index + 1) + ".";
+  });
+}
+
+function moveRowTop(btn) {
+  const row = btn.closest('.task-row');
+  const container = document.getElementById("blocksContainer");
+  container.insertBefore(row, container.firstChild);
+  updateRowNumbers('blocksContainer');
+  row.style.background = 'rgba(16, 185, 129, 0.2)';
+  setTimeout(() => row.style.background = 'var(--bg-main)', 800);
+}
+
+function deleteRow(btn) {
+  btn.closest('.task-row').remove();
+  updateRowNumbers('blocksContainer');
+}
+
+// Type can be 'note' or 'check'
+function addRow(type = 'note', focus = true) {
+  const container = document.getElementById("blocksContainer");
+  const rowId = generateRowId();
+  const row = document.createElement("div");
+  row.className = "task-row";
+  row.id = rowId;
+  
+  let checkHtml = type === 'check' ? `<input type="checkbox" class="task-check" onchange="toggleEditCheck(this)">` : ``;
+  
+  row.innerHTML = `
+    <span class="drag-handle">↕️</span>
+    <span class="row-num"></span>
+    ${checkHtml}
+    <div class="row-content" contenteditable="true" placeholder="${type==='check' ? 'Task...' : 'Note...'}"></div>
+    <button class="row-top" onclick="moveRowTop(this)">⬆️</button>
+    <button class="row-del" onclick="deleteRow(this)">✖</button>
+  `;
+  container.appendChild(row);
+  updateRowNumbers('blocksContainer');
+  if(focus) row.querySelector('.row-content').focus();
+}
+
+window.toggleEditCheck = function(chk) {
+  const content = chk.closest('.task-row').querySelector('.row-content');
+  if(chk.checked) {
+    content.style.textDecoration = 'line-through'; content.style.opacity = '0.6';
+    chk.setAttribute('checked', 'checked');
+  } else {
+    content.style.textDecoration = 'none'; content.style.opacity = '1';
+    chk.removeAttribute('checked');
   }
 };
 
-window.toggleInlineImage = function(triggerSpan) {
-  const imgElement = triggerSpan.nextElementSibling;
-  if (imgElement && imgElement.tagName === 'IMG') {
-    imgElement.style.display = imgElement.style.display === 'none' ? 'block' : 'none';
-  }
-};
-
-/* =========================================
-   4. Rich Editor & Media Logic
-   ========================================= */
-function saveSelection() {
-  if (window.getSelection) {
-    let sel = window.getSelection();
-    if (sel.getRangeAt && sel.rangeCount) savedSelectionRange = sel.getRangeAt(0);
-  }
-}
-function restoreSelection() {
-  if (savedSelectionRange) {
-    let sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(savedSelectionRange);
-  }
-}
-
-function openEditor(noteId = null) {
+function openEditor(noteId = null, targetRowId = null) {
   currentActiveId = noteId;
-  const editor = document.getElementById("noteEditor");
-  editor.innerHTML = "";
+  const blocksContainer = document.getElementById("blocksContainer");
+  blocksContainer.innerHTML = "";
   
   if (noteId) {
     const tx = db.transaction(STORE_NAME, "readonly");
     tx.objectStore(STORE_NAME).get(noteId).onsuccess = (e) => {
       const note = e.target.result;
       if (note) {
-        editor.innerHTML = note.text || "";
-        // Migrate old media to inline blocks if they are not already integrated
-        if (note.images && note.images.length > 0) {
-          note.images.forEach(img => {
-            editor.innerHTML += `<div style="margin: 10px 0;"><span class="img-trigger" onclick="toggleInlineImage(this)">🖼️ Image attached</span><img src="${img}" style="display:none; max-width:100%; border-radius:8px; margin-top:5px; border: 1px solid var(--accent);"></div>`;
-          });
-          note.images = []; // Clear array after migration
-        }
-        if (note.audios && note.audios.length > 0) {
-          note.audios.forEach(aud => {
-            editor.innerHTML += `<div class="task-block"><input type="checkbox" class="inline-checkbox" onclick="toggleInlineTask(this)">&nbsp;<audio controls src="${aud}" style="height: 35px; max-width: 200px; vertical-align: middle;"></audio></div>`;
-          });
-          note.audios = [];
+        blocksContainer.innerHTML = note.text || "";
+        
+        // Add ID if missing
+        blocksContainer.querySelectorAll('.task-row').forEach(row => {
+           if(!row.id) row.id = generateRowId();
+        });
+
+        // Scroll to specific row if clicked from Edit in Preview
+        if(targetRowId) {
+           setTimeout(() => {
+              let target = document.getElementById(targetRowId);
+              if(target) {
+                 target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                 target.querySelector('.row-content').focus();
+                 target.style.background = 'rgba(14, 165, 233, 0.2)';
+                 setTimeout(() => target.style.background = 'var(--bg-main)', 1000);
+              }
+           }, 200);
         }
       }
     };
+  } else {
+    addRow('note', true); // Default simple note row
   }
   
   document.getElementById("editorOverlay").classList.add("active");
   history.pushState({ isEditing: true }, "");
-  
-  setTimeout(() => { editor.focus(); }, 100);
 }
 
 function closeEditor(shouldPopHistory = true) {
-  const textHtml = document.getElementById("noteEditor").innerHTML.trim();
+  const blocksContainer = document.getElementById("blocksContainer");
+  // Clean empty rows
+  blocksContainer.querySelectorAll('.task-row').forEach(row => {
+     let content = row.querySelector('.row-content');
+     if(content.innerText.trim() === "" && content.innerHTML.indexOf('<img') === -1 && content.innerHTML.indexOf('<audio') === -1) {
+         row.remove();
+     }
+  });
+  updateRowNumbers('blocksContainer');
+
+  const textHtml = blocksContainer.innerHTML.trim();
   if (!textHtml) {
     document.getElementById("editorOverlay").classList.remove("active");
     if (shouldPopHistory && history.state && history.state.isEditing) history.back();
@@ -533,7 +603,7 @@ function closeEditor(shouldPopHistory = true) {
       if (note) { note.text = textHtml; store.put(note); }
     };
   } else {
-    store.add({ text: textHtml, images: [], audios: [], date: getFormattedDate(), order: Date.now() });
+    store.add({ text: textHtml, date: getFormattedDate(), order: Date.now() });
   }
   
   tx.oncomplete = () => {
@@ -546,15 +616,16 @@ function closeEditor(shouldPopHistory = true) {
 
 window.addEventListener('popstate', function (event) {
   if (document.getElementById("editorOverlay").classList.contains("active")) closeEditor(false); 
-  else if (document.getElementById("previewOverlay").classList.contains("active")) closePreview();
+  else if (document.getElementById("previewOverlay").classList.contains("active")) closePreview(false);
 });
 
-function insertCheckboxBlock() {
-  document.getElementById("noteEditor").focus();
-  document.execCommand('insertHTML', false, '<div class="task-block"><input type="checkbox" class="inline-checkbox" onclick="toggleInlineTask(this)">&nbsp;<span></span></div><br>');
-}
+/* ================= Editor Media ================= */
+let lastFocusedRow = null;
+document.addEventListener('focusin', function(e) {
+  if (e.target.classList.contains('row-content')) lastFocusedRow = e.target;
+});
 
-/* Voice Recording */
+// Inline Audio fix
 let mediaRecorder; let audioChunks = []; let isRecording = false;
 async function toggleRecording() {
   const btn = document.getElementById("inlineVoiceBtn");
@@ -565,50 +636,60 @@ async function toggleRecording() {
       audioChunks = [];
       mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data); };
       
-      saveSelection(); // Save cursor position before recording ends
-      
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
         const reader = new FileReader();
         reader.onload = () => { 
-          restoreSelection();
-          // Insert Audio next to text (can be inside task block)
-          document.execCommand('insertHTML', false, `&nbsp;<audio controls src="${reader.result}" style="height: 35px; max-width: 200px; vertical-align: middle; border-radius: 20px;"></audio>&nbsp;`);
+          // Audio stays inline with text
+          const audioHtml = `&nbsp;<audio controls src="${reader.result}" style="display:inline-block; vertical-align:middle; height:35px; max-width:200px; border-radius:20px;"></audio>&nbsp;`;
+          if(lastFocusedRow && document.getElementById('blocksContainer').contains(lastFocusedRow)) {
+            lastFocusedRow.focus();
+            document.execCommand('insertHTML', false, audioHtml);
+          } else {
+            const rows = document.getElementById('blocksContainer').querySelectorAll('.row-content');
+            if(rows.length > 0) rows[rows.length-1].innerHTML += audioHtml;
+            else { addRow('note', false); document.getElementById('blocksContainer').querySelector('.row-content').innerHTML += audioHtml; }
+          }
         };
         reader.readAsDataURL(audioBlob);
       };
       mediaRecorder.start(); isRecording = true;
       btn.innerHTML = "⏹️"; btn.classList.add("recording");
-    } catch (err) { console.error("Microphone denied!", err); showSnackbar("Microphone access needed."); }
+    } catch (err) { showSnackbar("Microphone access needed."); }
   } else {
     mediaRecorder.stop(); isRecording = false;
     btn.innerHTML = "🎙️"; btn.classList.remove("recording");
   }
 }
 
-/* Long Press for Image Attachment */
+// Inline Image Attachment
 let pressTimer;
-const editorDiv = document.getElementById('noteEditor');
-
-editorDiv.addEventListener('touchstart', (e) => {
+document.getElementById('blocksContainer').addEventListener('touchstart', (e) => {
   if(e.touches.length > 1) return;
-  pressTimer = setTimeout(() => {
-    saveSelection();
-    document.getElementById('inlineImageInput').click();
-  }, 700); // 700ms long press
-});
-editorDiv.addEventListener('touchend', () => clearTimeout(pressTimer));
-editorDiv.addEventListener('touchmove', () => clearTimeout(pressTimer));
+  if(e.target.classList.contains('row-content') || e.target.closest('.row-content')) {
+    lastFocusedRow = e.target.classList.contains('row-content') ? e.target : e.target.closest('.row-content');
+    pressTimer = setTimeout(() => { document.getElementById('inlineImageInput').click(); }, 700);
+  }
+}, {passive: true});
 
-// Fallback for Desktop/Mouse hold
-editorDiv.addEventListener('mousedown', (e) => {
-  pressTimer = setTimeout(() => {
-    saveSelection();
-    document.getElementById('inlineImageInput').click();
-  }, 700);
+const clearPress = () => clearTimeout(pressTimer);
+document.getElementById('blocksContainer').addEventListener('touchend', clearPress);
+document.getElementById('blocksContainer').addEventListener('touchmove', clearPress);
+document.getElementById('blocksContainer').addEventListener('mousedown', (e) => {
+  if(e.target.classList.contains('row-content') || e.target.closest('.row-content')) {
+    lastFocusedRow = e.target.classList.contains('row-content') ? e.target : e.target.closest('.row-content');
+    pressTimer = setTimeout(() => { document.getElementById('inlineImageInput').click(); }, 700);
+  }
 });
-editorDiv.addEventListener('mouseup', () => clearTimeout(pressTimer));
-editorDiv.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+document.getElementById('blocksContainer').addEventListener('mouseup', clearPress);
+document.getElementById('blocksContainer').addEventListener('mouseleave', clearPress);
+
+window.toggleInlineImage = function(triggerSpan) {
+  const imgElement = triggerSpan.nextElementSibling;
+  if (imgElement && imgElement.tagName === 'IMG') {
+    imgElement.style.display = imgElement.style.display === 'none' ? 'block' : 'none';
+  }
+};
 
 document.getElementById('inlineImageInput').addEventListener('change', function(e) {
   const file = e.target.files[0];
@@ -625,20 +706,56 @@ document.getElementById('inlineImageInput').addEventListener('change', function(
       canvas.getContext("2d").drawImage(img, 0, 0, width, height);
       const base64Str = canvas.toDataURL("image/jpeg", 0.7);
       
-      restoreSelection();
-      // Insert hidden image with trigger text as per user requirement
-      let imgHtml = `<span style="display: inline-block; margin: 0 5px;"><span class="img-trigger" onclick="toggleInlineImage(this)">🖼️ Image attached</span><img src="${base64Str}" style="display: none; max-width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid var(--accent); box-shadow: 0 4px 6px rgba(0,0,0,0.2);"></span>&nbsp;`;
-      document.execCommand('insertHTML', false, imgHtml);
-      this.value = ""; // reset file input
+      let imgHtml = `&nbsp;<span style="display:inline-block;"><span class="img-trigger" onclick="toggleInlineImage(this)" style="color:var(--accent); cursor:pointer; background:rgba(14,165,233,0.1); padding:2px 6px; border-radius:4px; font-size:12px; font-weight:bold;">🖼️ View Image</span><img src="${base64Str}" style="display: none; width: 100%; max-width: 300px; border-radius: 8px; margin-top: 5px; border: 1px solid var(--accent);"></span>&nbsp;`;
+      
+      if(lastFocusedRow && document.getElementById('blocksContainer').contains(lastFocusedRow)) {
+        lastFocusedRow.focus();
+        document.execCommand('insertHTML', false, imgHtml);
+      } else {
+        const rows = document.getElementById('blocksContainer').querySelectorAll('.row-content');
+        if(rows.length > 0) rows[rows.length-1].innerHTML += imgHtml;
+      }
+      this.value = ""; 
     };
     img.src = event.target.result;
   };
   reader.readAsDataURL(file);
 });
 
-/* =========================================
-   5. Import / Export
-   ========================================= */
+/* ================= Drag & Drop inside Editor ================= */
+let draggedEditorRow = null;
+document.getElementById('blocksContainer').addEventListener('touchstart', (e) => {
+  if(e.target.classList.contains('drag-handle')) {
+    draggedEditorRow = e.target.closest('.task-row');
+    draggedEditorRow.classList.add('dragging-row');
+    e.preventDefault(); 
+  }
+}, {passive: false});
+
+document.getElementById('blocksContainer').addEventListener('touchmove', (e) => {
+  if(!draggedEditorRow) return;
+  e.preventDefault();
+  const touch = e.touches[0];
+  const container = document.getElementById('blocksContainer');
+  const target = document.elementFromPoint(touch.clientX, touch.clientY);
+  const targetRow = target ? target.closest('.task-row') : null;
+  
+  if (targetRow && targetRow !== draggedEditorRow) {
+    const rect = targetRow.getBoundingClientRect();
+    if (touch.clientY < rect.top + rect.height / 2) container.insertBefore(draggedEditorRow, targetRow);
+    else container.insertBefore(draggedEditorRow, targetRow.nextSibling);
+  }
+}, {passive: false});
+
+document.getElementById('blocksContainer').addEventListener('touchend', (e) => {
+  if(draggedEditorRow) {
+    draggedEditorRow.classList.remove('dragging-row');
+    draggedEditorRow = null;
+    updateRowNumbers('blocksContainer');
+  }
+});
+
+/* ================= Backup Import/Export ================= */
 function exportNotes() {
   const tx = db.transaction(STORE_NAME, "readonly");
   tx.objectStore(STORE_NAME).getAll().onsuccess = (e) => {
