@@ -11,7 +11,7 @@
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js')
         .then(reg => console.log('Offline Support Ready!'))
-        .catch(err => console.log('Offline Error:', err));
+        .catch(err => console.error('Offline Error:', err));
     });
   }
 </script>
@@ -45,7 +45,7 @@
   .btn-small { 
     background: var(--bg-input); color: var(--text-main); border: none; 
     padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; 
-    font-family: 'Poppins', sans-serif; transition: 0.2s; font-weight: 600;
+    font-family: 'Poppins', sans-serif; transition: 0.2s; font-weight: 600; display: flex; align-items: center; gap: 4px;
   }
 
   /* Smart Search Bar */
@@ -65,10 +65,9 @@
     box-shadow: 0 4px 10px rgba(14, 165, 233, 0.4); cursor: pointer; z-index: 90;
   }
 
-  /* Notes Container */
+  /* Notes Container & Compact List */
   #notes-container { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
   
-  /* Compact List Row UI */
   .note-card {
     background: var(--bg-card); padding: 10px 12px; border-radius: 12px; 
     border-left: 4px solid var(--accent); display: flex; flex-direction: row; 
@@ -77,58 +76,44 @@
   }
   .note-card.dragging { opacity: 0.5; transform: scale(0.98); border: 2px dashed var(--accent); }
   
-  /* Full Page Editor Overlay */
-  .editor-overlay {
+  /* Overlays (Preview & Editor) */
+  .overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: var(--bg-main); z-index: 200; display: none; flex-direction: column;
   }
-  .editor-overlay.active { display: flex; }
+  .overlay.active { display: flex; }
 
-  .editor-header {
-    padding: 10px 15px; background: var(--bg-card); display: flex; flex-direction: column; gap: 10px;
+  .overlay-header {
+    padding: 10px 15px; background: var(--bg-card); display: flex; align-items: center; justify-content: space-between;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   }
-  .editor-top-row { display: flex; justify-content: space-between; align-items: center; }
-  .btn-close-editor { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+  .overlay-header-actions { display: flex; gap: 8px; align-items: center; }
+  .btn-close { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; }
   
-  /* In-Editor Search */
-  .editor-search {
-    width: 100%; padding: 8px 12px; background: var(--bg-main); border: 1px solid var(--bg-input);
-    border-radius: 6px; color: var(--warning); font-size: 12px; font-family: 'Poppins', sans-serif; outline: none; font-weight: 500;
-  }
-
-  .editor-body { flex: 1; padding: 15px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+  .overlay-body { flex: 1; padding: 15px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; scroll-behavior: smooth; }
   
-  /* Editor Text Area - Fixed Size constraint applied here */
+  /* Fixed Size Rich Text Editor */
   .rich-input-container {
-    position: relative; background: var(--bg-card); border-radius: 12px;
-    border: 2px solid var(--bg-input); display: flex; flex-direction: column; height: 350px; min-height: 350px;
+    background: var(--bg-card); border-radius: 12px; border: 2px solid var(--bg-input); 
+    display: flex; flex-direction: column; 
+    height: 350px; min-height: 350px; max-height: 350px; /* Fixed height constraint as commanded */
   }
   .rich-input-container:focus-within { border-color: var(--accent); }
 
-  .text-layer-wrapper { position: relative; flex: 1; display: flex; overflow: hidden; }
+  .content-editor {
+    flex: 1; padding: 15px; font-family: 'Poppins', sans-serif; font-size: 15px; line-height: 1.6;
+    color: var(--text-main); overflow-y: auto; outline: none; word-wrap: break-word; white-space: pre-wrap;
+  }
   
-  .backdrop {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 1; overflow: hidden; pointer-events: none;
-  }
-  .highlights {
-    padding: 15px; font-family: 'Poppins', sans-serif; font-size: 15px; line-height: 1.5;
-    white-space: pre-wrap; word-wrap: break-word; color: transparent; box-sizing: border-box;
-  }
-  .highlights mark { background-color: rgba(245, 158, 11, 0.4); color: transparent; border-radius: 3px; }
+  /* Inline Tasks (Text + Audio) */
+  .task-block { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 5px; padding: 5px; border-radius: 6px; transition: 0.2s; }
+  .inline-checkbox { width: 18px; height: 18px; accent-color: var(--success); cursor: pointer; }
+  .img-trigger { color: var(--accent); font-weight: bold; cursor: pointer; padding: 2px 5px; background: rgba(14, 165, 233, 0.1); border-radius: 4px; display: inline-block; user-select: none; }
   
-  textarea {
-    position: relative; z-index: 2; background: transparent; border: none; color: var(--text-main);
-    resize: none; outline: none; margin: 0; width: 100%; height: 100%;
-    padding: 15px; font-family: 'Poppins', sans-serif; font-size: 15px; line-height: 1.5;
-    box-sizing: border-box; caret-color: var(--text-main);
-  }
-
-  /* Toolbars & Previews */
+  /* Toolbars */
   .inline-toolbar {
     display: flex; gap: 12px; padding: 10px 15px; background: rgba(0, 0, 0, 0.2);
-    border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; align-items: center;
+    border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; align-items: center; flex-shrink: 0;
   }
   .media-btn {
     background: var(--bg-input); color: var(--text-main); border: none; width: 36px; height: 36px; 
@@ -138,24 +123,7 @@
   .media-btn.recording { background: var(--danger); animation: pulse 1.5s infinite; }
   @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-  .preview-section { display: flex; flex-direction: column; gap: 15px; }
-  .preview-wrapper { position: relative; display: inline-block; width: 100%; text-align: center; }
-  
-  /* Images modified to show fully inside the editor */
-  .preview-img { max-width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--accent); object-fit: contain; }
-  
-  .btn-remove-media {
-    position: absolute; top: -10px; right: 0px; background: var(--danger); color: white;
-    border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-size: 12px; z-index: 5;
-  }
-  .audio-wrapper { width: 100%; position: relative; margin-top: 5px; }
-  audio { width: 100%; height: 40px; }
-
-  /* Checkboxes in editor */
-  .task-checkbox { margin: 0 6px 0 0; vertical-align: middle; cursor: pointer; accent-color: var(--success); width: 16px; height: 16px; }
-  .task-done { text-decoration: line-through; color: var(--text-muted); transition: 0.2s; }
-
-  /* Undo Snackbar */
+  /* Snackbar */
   #snackbar {
     visibility: hidden; min-width: 250px; background-color: var(--bg-input); color: #fff;
     text-align: center; border-radius: 10px; padding: 15px 20px; position: fixed;
@@ -176,15 +144,15 @@
 </head>
 <body>
 
-<input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
+<input type="file" id="inlineImageInput" accept="image/*" style="display: none;">
 <input type="file" id="importInput" accept=".json" style="display: none;">
 
 <div class="top">
   <div class="header-row">
     <h2>📝 Smart Notes</h2>
     <div class="header-actions">
-      <button class="btn-small" onclick="exportNotes()">📤 Export</button>
-      <button class="btn-small" onclick="document.getElementById('importInput').click()">📥 Import</button>
+      <button class="btn-small" onclick="exportNotes()">📤</button>
+      <button class="btn-small" onclick="document.getElementById('importInput').click()">📥</button>
     </div>
   </div>
   <div class="search-wrapper">
@@ -196,40 +164,47 @@
 <div id="notes-container"></div>
 <div class="fab-add" onclick="openEditor()">➕</div>
 
-<div class="editor-overlay" id="editorOverlay">
-  <div class="editor-header">
-    <div class="editor-top-row">
-      <span style="font-weight: 600; font-size: 16px;">Edit Note</span>
-      <button class="btn-close-editor" onclick="closeEditor()">✕ Save & Close</button>
+<!-- PREVIEW OVERLAY -->
+<div class="overlay" id="previewOverlay">
+  <div class="overlay-header">
+    <span style="font-weight: 600; font-size: 16px;">View Note</span>
+    <div class="overlay-header-actions">
+      <button class="btn-small" style="background: rgba(16, 185, 129, 0.1); color: var(--success);" onclick="document.getElementById('previewBody').scrollTop = 0">⬆️ Top</button>
+      <button class="btn-small" style="background: rgba(14, 165, 233, 0.1); color: var(--accent);" onclick="switchToEdit()">✏️ Edit</button>
+      <button class="btn-small" style="background: rgba(239, 68, 68, 0.1); color: var(--danger);" onclick="deleteFromPreview()">🗑️ Del</button>
+      <button class="btn-close" onclick="closePreview()">✖ Back</button>
     </div>
-    <input type="text" id="editorSearch" class="editor-search" placeholder="🔍 Find word to scroll to..." oninput="findInEditor()">
+  </div>
+  <div class="overlay-body" id="previewBody">
+    <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 5px;" id="previewDate"></div>
+    <div id="previewContent" style="font-size: 15px; line-height: 1.6; word-wrap: break-word;"></div>
+  </div>
+</div>
+
+<!-- EDITOR OVERLAY -->
+<div class="overlay" id="editorOverlay">
+  <div class="overlay-header">
+    <span style="font-weight: 600; font-size: 16px;">Edit Note</span>
+    <button class="btn-close" onclick="closeEditor()">💾 Save & Close</button>
   </div>
   
-  <div class="editor-body">
-    
+  <div class="overlay-body">
+    <!-- Fixed Box Constraint Maintained -->
     <div class="rich-input-container">
-      <div class="text-layer-wrapper">
-        <div class="backdrop" id="backdrop">
-          <div class="highlights" id="highlights"></div>
-        </div>
-        <textarea id="noteText" placeholder="Start typing your note here..." oninput="handleInput()" onscroll="handleScroll()"></textarea>
-      </div>
+      <div id="noteEditor" class="content-editor" contenteditable="true" placeholder="Type here. Checkbox, audio, or hold to insert image..."></div>
       
       <div class="inline-toolbar">
-        <button class="media-btn" title="Add Photo" onclick="document.getElementById('imageInput').click()">📷</button>
+        <button class="media-btn" title="Add Checkbox" onclick="insertCheckboxBlock()">☑️</button>
         <button class="media-btn" id="inlineVoiceBtn" title="Record Voice" onclick="toggleRecording()">🎙️</button>
-        <button class="media-btn" title="Add Checkbox" onclick="insertCheckbox()">☑️</button>
-        <span id="recordingStatus" style="font-size: 12px; color: var(--text-muted);"></span>
+        <span style="font-size: 10px; color: var(--text-muted); margin-left: 5px;">Hold text to attach image 🖼️</span>
       </div>
     </div>
-
-    <div class="preview-section" id="previewSection"></div>
   </div>
 </div>
 
 <div id="snackbar">
-  <span>Note deleted</span>
-  <button class="undo-btn" onclick="undoDelete()">UNDO</button>
+  <span id="snackbarMsg">Note deleted</span>
+  <button class="undo-btn" id="undoBtn" onclick="undoDelete()">UNDO</button>
 </div>
 
 <div class="bottom-nav">
@@ -245,13 +220,11 @@
 const DB_NAME = "ProSmartNotesV7";
 const STORE_NAME = "notes_multimedia";
 let db;
-let currentEditingId = null; 
-
-let currentMedia = { images: [], audios: [] };
+let currentActiveId = null; 
 let allNotesCache = []; 
-
 let lastDeletedNote = null;
 let undoTimeout = null;
+let savedSelectionRange = null;
 
 const request = indexedDB.open(DB_NAME, 1);
 request.onupgradeneeded = (e) => {
@@ -270,232 +243,42 @@ function getFormattedDate() {
   return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()} | ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
 }
 
+function showSnackbar(msg, showUndo = false) {
+  const snackbar = document.getElementById("snackbar");
+  document.getElementById("snackbarMsg").innerText = msg;
+  document.getElementById("undoBtn").style.display = showUndo ? "block" : "none";
+  snackbar.classList.add("show");
+  clearTimeout(undoTimeout);
+  undoTimeout = setTimeout(() => { snackbar.classList.remove("show"); if(showUndo) lastDeletedNote = null; }, 5000);
+}
+
 /* =========================================
-   2. Smart Global Search & Auto-Suggest
+   2. List Rendering & Global Search
    ========================================= */
+function filterNotes() {
+  const query = document.getElementById("globalSearch").value.toLowerCase().trim();
+  let sortedNotes = [...allNotesCache].sort((a, b) => b.order - a.order);
+  if (query) {
+    sortedNotes = sortedNotes.filter(note => {
+      let t = (note.text || "").toLowerCase();
+      return t.includes(query);
+    });
+  }
+  renderNotesList(sortedNotes);
+}
+
 function updateWordSuggestions() {
   let words = new Set();
   allNotesCache.forEach(note => {
-    if (note.text) {
-      let matchedWords = note.text.toLowerCase().match(/[a-z0-9\u0900-\u097F]+/g);
-      if (matchedWords) matchedWords.forEach(w => { if(w.length > 2) words.add(w) });
-    }
+    let t = (note.text || "").replace(/<[^>]+>/g, ' ').toLowerCase(); // strip html for search
+    let matchedWords = t.match(/[a-z0-9\u0900-\u097F]+/g);
+    if (matchedWords) matchedWords.forEach(w => { if(w.length > 2) words.add(w) });
   });
   const datalist = document.getElementById("wordSuggestions");
   datalist.innerHTML = "";
   words.forEach(w => { datalist.innerHTML += `<option value="${w}">`; });
 }
 
-function filterNotes() {
-  const query = document.getElementById("globalSearch").value.toLowerCase().trim();
-  
-  let sortedNotes = [...allNotesCache].sort((a, b) => {
-    let aMatch = (a.text && a.text.toLowerCase().includes(query)) ? 1 : 0;
-    let bMatch = (b.text && b.text.toLowerCase().includes(query)) ? 1 : 0;
-    if (aMatch === bMatch) return b.order - a.order;
-    return bMatch - aMatch; 
-  });
-  if (!query) sortedNotes = [...allNotesCache].sort((a, b) => b.order - a.order);
-  renderNotesList(sortedNotes);
-}
-
-/* =========================================
-   3. Highlight Engine & Editor
-   ========================================= */
-function applyHighlights(text, query) {
-  let escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  if (!query) return escaped.replace(/\n$/g, '\n\n'); 
-  const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const regex = new RegExp(`(${escapedQuery})`, 'gi');
-  return escaped.replace(regex, '<mark>$1</mark>').replace(/\n$/g, '\n\n');
-}
-
-function handleInput() {
-  const text = document.getElementById("noteText").value;
-  const query = document.getElementById("editorSearch").value;
-  document.getElementById("highlights").innerHTML = applyHighlights(text, query);
-}
-
-function handleScroll() {
-  document.getElementById("backdrop").scrollTop = document.getElementById("noteText").scrollTop;
-  document.getElementById("backdrop").scrollLeft = document.getElementById("noteText").scrollLeft;
-}
-
-function findInEditor() {
-  handleInput(); 
-  const query = document.getElementById("editorSearch").value;
-  if (query) {
-    const mark = document.querySelector("#highlights mark");
-    if (mark) {
-      const textarea = document.getElementById("noteText");
-      textarea.scrollTop = mark.offsetTop - 30;
-      handleScroll(); 
-    }
-  }
-}
-
-function openEditor(noteId = null) {
-  currentEditingId = noteId;
-  currentMedia = { images: [], audios: [] };
-  document.getElementById("noteText").value = "";
-  document.getElementById("editorSearch").value = "";
-  document.getElementById("previewSection").innerHTML = "";
-  
-  if (noteId) {
-    const tx = db.transaction(STORE_NAME, "readonly");
-    tx.objectStore(STORE_NAME).get(noteId).onsuccess = (e) => {
-      const note = e.target.result;
-      if (note) {
-        document.getElementById("noteText").value = note.text || "";
-        currentMedia.images = note.images ? [...note.images] : (note.img ? [note.img] : []);
-        currentMedia.audios = note.audios ? [...note.audios] : (note.audio ? [note.audio] : []);
-        updatePreviewUI();
-        handleInput(); 
-      }
-    };
-  } else { handleInput(); }
-  
-  document.getElementById("editorOverlay").classList.add("active");
-  history.pushState({ isEditing: true }, "");
-}
-
-window.addEventListener('popstate', function (event) {
-  if (document.getElementById("editorOverlay").classList.contains("active")) closeEditor(false); 
-});
-
-function closeEditor(shouldPopHistory = true) {
-  autoSaveCurrentNote();
-  document.getElementById("editorOverlay").classList.remove("active");
-  if (shouldPopHistory && history.state && history.state.isEditing) history.back();
-}
-
-function autoSaveCurrentNote() {
-  const text = document.getElementById("noteText").value.trim();
-  if (!text && currentMedia.images.length === 0 && currentMedia.audios.length === 0) return;
-
-  const tx = db.transaction(STORE_NAME, "readwrite");
-  const store = tx.objectStore(STORE_NAME);
-
-  if (currentEditingId) {
-    store.get(currentEditingId).onsuccess = (e) => {
-      const note = e.target.result;
-      if (note) {
-        note.text = text; 
-        note.images = [...currentMedia.images]; 
-        note.audios = [...currentMedia.audios];
-        store.put(note);
-      }
-    };
-  } else {
-    store.add({ text: text, images: [...currentMedia.images], audios: [...currentMedia.audios], date: getFormattedDate(), order: Date.now(), isDone: false });
-  }
-  tx.oncomplete = () => loadNotes();
-}
-
-/* =========================================
-   4. Note Checkbox & Text Logic
-   ========================================= */
-function insertCheckbox() {
-  const textarea = document.getElementById("noteText");
-  const startPos = textarea.selectionStart;
-  const text = textarea.value;
-  textarea.value = text.substring(0, startPos) + "☐ " + text.substring(textarea.selectionEnd, text.length);
-  textarea.selectionStart = textarea.selectionEnd = startPos + 2;
-  textarea.focus();
-  handleInput();
-}
-
-window.toggleRowTask = function(event, noteId) {
-  event.stopPropagation();
-  const tx = db.transaction(STORE_NAME, "readwrite");
-  const store = tx.objectStore(STORE_NAME);
-  store.get(noteId).onsuccess = (e) => {
-    const note = e.target.result;
-    if (note) {
-      note.isDone = !note.isDone;
-      store.put(note);
-    }
-  };
-  tx.oncomplete = () => loadNotes();
-};
-
-/* =========================================
-   5. Media Management
-   ========================================= */
-document.getElementById("imageInput").addEventListener("change", function(e) {
-  const files = e.target.files;
-  if (!files || files.length === 0) return;
-
-  Array.from(files).forEach(file => {
-    const reader = new FileReader();
-    reader.onload = function(event) {
-      const img = new Image();
-      img.onload = function() {
-        const canvas = document.createElement("canvas");
-        const MAX_WIDTH = 1200;
-        let width = img.width, height = img.height;
-        if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
-        canvas.width = width; canvas.height = height;
-        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
-        currentMedia.images.push(canvas.toDataURL("image/jpeg", 0.7)); 
-        updatePreviewUI();
-      };
-      img.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-});
-
-let mediaRecorder; let audioChunks = []; let isRecording = false;
-async function toggleRecording() {
-  const btn = document.getElementById("inlineVoiceBtn");
-  const status = document.getElementById("recordingStatus");
-  if (!isRecording) {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder = new MediaRecorder(stream);
-      audioChunks = [];
-      mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data); };
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        const reader = new FileReader();
-        reader.onload = () => { 
-          currentMedia.audios.push(reader.result); 
-          updatePreviewUI(); 
-        };
-        reader.readAsDataURL(audioBlob);
-      };
-      mediaRecorder.start(); isRecording = true;
-      btn.innerHTML = "⏹️"; btn.classList.add("recording"); status.innerText = "Recording...";
-    } catch (err) { console.error("Microphone permission denied!", err); }
-  } else {
-    mediaRecorder.stop(); isRecording = false;
-    btn.innerHTML = "🎙️"; btn.classList.remove("recording"); status.innerText = "";
-  }
-}
-
-function removeImage(index) { currentMedia.images.splice(index, 1); updatePreviewUI(); }
-function removeAudio(index) { currentMedia.audios.splice(index, 1); updatePreviewUI(); }
-
-function updatePreviewUI() {
-  const previewSection = document.getElementById("previewSection");
-  let htmlString = `<div style="display: flex; gap: 15px; flex-direction: column; width: 100%;">`;
-  
-  currentMedia.images.forEach((imgData, index) => {
-    htmlString += `<div class="preview-wrapper"><img class="preview-img" src="${imgData}"><button class="btn-remove-media" onclick="removeImage(${index})">✕</button></div>`;
-  });
-  
-  currentMedia.audios.forEach((audioData, index) => {
-    htmlString += `<div class="audio-wrapper"><audio controls src="${audioData}"></audio><button class="btn-remove-media" onclick="removeAudio(${index})" style="top:-5px;">✕</button></div>`;
-  });
-  
-  htmlString += `</div>`;
-  previewSection.innerHTML = htmlString;
-}
-
-/* =========================================
-   6. Rendering List Format & Drag/Drop
-   ========================================= */
 function loadNotes() {
   const tx = db.transaction(STORE_NAME, "readonly");
   allNotesCache = [];
@@ -509,6 +292,7 @@ function loadNotes() {
 function renderNotesList(notesArray) {
   const container = document.getElementById("notes-container");
   container.innerHTML = "";
+  
   if(notesArray.length === 0) {
      container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px; font-size: 13px;">No matching notes found.</div>`; return;
   }
@@ -518,60 +302,39 @@ function renderNotesList(notesArray) {
     card.className = "note-card";
     card.dataset.id = note.id;
     
-    let isDoneChecked = note.isDone ? 'checked' : '';
-    let textClass = note.isDone ? 'task-done' : '';
+    // Extract first line of text for list preview (removing HTML tags safely)
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = note.text || "";
+    let cleanText = tempDiv.innerText.trim();
+    let firstLine = cleanText.split('\n')[0].substring(0, 50);
     
-    // Sirf pehli line nikalna (Max 60 char)
-    let firstLine = note.text ? note.text.split('\n')[0] : '';
-    let escapedText = firstLine.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    
-    // Check audio and images for list preview
-    let audiosArr = note.audios ? note.audios : (note.audio ? [note.audio] : []);
-    let audioHtml = audiosArr.length > 0 ? `<audio controls src="${audiosArr[0]}" style="height: 25px; max-width: 150px; flex-shrink: 1;" onclick="event.stopPropagation();"></audio>` : "";
-    
-    let imagesArr = note.images ? note.images : (note.img ? [note.img] : []);
-    let imageIcon = imagesArr.length > 0 ? `<span style="font-size: 12px; margin-left: 5px;" title="Image attached">🖼️</span>` : '';
+    let hasAudio = (note.text || "").includes("<audio") || (note.audios && note.audios.length > 0);
+    let previewContent = firstLine ? `<span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${firstLine}</span>` 
+                                   : (hasAudio ? `<span style="font-size: 12px; color: var(--accent);">🎵 Audio Attached</span>` : `<span style="font-size: 12px; color: var(--text-muted);">Empty Note</span>`);
 
-    // Show text if exists, otherwise show audio player in the list
-    let contentHtml = escapedText ? `<span class="${textClass}" style="font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${escapedText}</span>` : audioHtml;
-
-    // Compact Row Layout per requirements
     card.innerHTML = `
-      <span class="drag-handle" style="cursor: grab; font-size: 18px; color: var(--text-muted); padding: 5px; flex-shrink: 0; display:flex; align-items:center;">↕️</span>
-      
-      <input type="checkbox" class="task-checkbox" style="width: 18px; height: 18px; flex-shrink: 0;" ${isDoneChecked} onclick="toggleRowTask(event, ${note.id})">
+      <span class="drag-handle" style="cursor: grab; font-size: 18px; color: var(--text-muted); padding: 5px; flex-shrink: 0;">↕️</span>
       
       <span style="font-size: 14px; font-weight: bold; color: var(--accent); min-width: 22px; flex-shrink: 0; text-align: center;">${index + 1}.</span>
 
-      <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; cursor: pointer; justify-content: center;" onclick="openEditor(${note.id})">
-         <span class="note-date" style="font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">${note.date}</span>
-         <div style="display: flex; align-items: center; overflow: hidden;">
-             ${contentHtml}
-             ${imageIcon}
-         </div>
+      <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; cursor: pointer;" onclick="openPreview(${note.id})">
+         <span style="font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">${note.date}</span>
+         ${previewContent}
       </div>
 
-      <button class="btn-delete" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; border-radius: 6px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; flex-shrink: 0;" onclick="deleteNote(event, ${note.id})">✖</button>
+      <button class="btn-delete" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); border: none; border-radius: 6px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; flex-shrink: 0;" onclick="deleteNoteFromList(event, ${note.id})">✖</button>
     `;
     setupTouchDrag(card); container.appendChild(card);
   });
 }
 
-function deleteNote(event, id) {
+function deleteNoteFromList(event, id) {
   event.stopPropagation(); 
   const tx = db.transaction(STORE_NAME, "readwrite");
   const store = tx.objectStore(STORE_NAME);
   store.get(id).onsuccess = (e) => { lastDeletedNote = e.target.result; store.delete(id); };
-  tx.oncomplete = () => { loadNotes(); showUndoToast(); };
+  tx.oncomplete = () => { loadNotes(); showSnackbar("Note Deleted", true); };
 }
-
-function showUndoToast() {
-  const snackbar = document.getElementById("snackbar");
-  snackbar.classList.add("show");
-  clearTimeout(undoTimeout);
-  undoTimeout = setTimeout(() => { snackbar.classList.remove("show"); lastDeletedNote = null; }, 5000);
-}
-
 function undoDelete() {
   if (!lastDeletedNote) return;
   const tx = db.transaction(STORE_NAME, "readwrite");
@@ -600,7 +363,6 @@ function setupTouchDrag(card) {
   }, { passive: false });
   handle.addEventListener('touchend', () => { if (draggedElement) { draggedElement.classList.remove('dragging'); draggedElement = null; saveNewOrder(); } });
 }
-
 function saveNewOrder() {
   if(document.getElementById("globalSearch").value) return; 
   const cards = document.querySelectorAll('.note-card');
@@ -614,6 +376,269 @@ function saveNewOrder() {
   tx.oncomplete = () => loadNotes();
 }
 
+/* =========================================
+   3. Preview Mode Logic
+   ========================================= */
+function openPreview(id) {
+  currentActiveId = id;
+  const tx = db.transaction(STORE_NAME, "readonly");
+  tx.objectStore(STORE_NAME).get(id).onsuccess = (e) => {
+    const note = e.target.result;
+    if (note) {
+      document.getElementById("previewDate").innerText = note.date;
+      
+      // Backward compatibility for old images/audios array
+      let extraHtml = "";
+      if (note.images && note.images.length > 0) {
+        extraHtml += `<br><br><div style="display:flex; flex-wrap:wrap; gap:10px;">` + note.images.map(img => `<img src="${img}" style="max-width:100%; border-radius:8px;">`).join('') + `</div>`;
+      }
+      if (note.audios && note.audios.length > 0) {
+        extraHtml += `<br>` + note.audios.map(aud => `<audio controls src="${aud}" style="width:100%; margin-top:10px;"></audio>`).join('');
+      }
+
+      // Render content
+      document.getElementById("previewContent").innerHTML = (note.text || "") + extraHtml;
+      document.getElementById("previewOverlay").classList.add("active");
+      history.pushState({ isPreview: true }, "");
+    }
+  };
+}
+
+function closePreview() {
+  document.getElementById("previewOverlay").classList.remove("active");
+  currentActiveId = null;
+  loadNotes(); // Refresh list to reflect checked tasks
+  if (history.state && history.state.isPreview) history.back();
+}
+
+function deleteFromPreview() {
+  if(currentActiveId) {
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+    store.get(currentActiveId).onsuccess = (e) => { lastDeletedNote = e.target.result; store.delete(currentActiveId); };
+    tx.oncomplete = () => { 
+      closePreview(); 
+      showSnackbar("Note Deleted", true); 
+    };
+  }
+}
+
+function switchToEdit() {
+  document.getElementById("previewOverlay").classList.remove("active");
+  openEditor(currentActiveId);
+}
+
+// Checkbox Toggle logic applied dynamically via onclick in HTML
+window.toggleInlineTask = function(checkbox) {
+  const block = checkbox.closest('.task-block') || checkbox.parentElement;
+  if (checkbox.checked) {
+    block.style.textDecoration = 'line-through';
+    block.style.opacity = '0.6';
+  } else {
+    block.style.textDecoration = 'none';
+    block.style.opacity = '1';
+  }
+  
+  // Auto-save changes if done in preview mode
+  if (document.getElementById("previewOverlay").classList.contains("active") && currentActiveId) {
+    const contentHtml = document.getElementById("previewContent").innerHTML;
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+    store.get(currentActiveId).onsuccess = (e) => {
+      const note = e.target.result;
+      if (note) {
+        // Only saving the updated HTML back to note.text 
+        // (For old data, we strip the extra appended HTML to avoid duplication)
+        let saveHtml = contentHtml;
+        if(note.images && note.images.length > 0) saveHtml = saveHtml.split('<br><br><div style="display:flex')[0];
+        note.text = saveHtml;
+        store.put(note);
+      }
+    };
+  }
+};
+
+window.toggleInlineImage = function(triggerSpan) {
+  const imgElement = triggerSpan.nextElementSibling;
+  if (imgElement && imgElement.tagName === 'IMG') {
+    imgElement.style.display = imgElement.style.display === 'none' ? 'block' : 'none';
+  }
+};
+
+/* =========================================
+   4. Rich Editor & Media Logic
+   ========================================= */
+function saveSelection() {
+  if (window.getSelection) {
+    let sel = window.getSelection();
+    if (sel.getRangeAt && sel.rangeCount) savedSelectionRange = sel.getRangeAt(0);
+  }
+}
+function restoreSelection() {
+  if (savedSelectionRange) {
+    let sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(savedSelectionRange);
+  }
+}
+
+function openEditor(noteId = null) {
+  currentActiveId = noteId;
+  const editor = document.getElementById("noteEditor");
+  editor.innerHTML = "";
+  
+  if (noteId) {
+    const tx = db.transaction(STORE_NAME, "readonly");
+    tx.objectStore(STORE_NAME).get(noteId).onsuccess = (e) => {
+      const note = e.target.result;
+      if (note) {
+        editor.innerHTML = note.text || "";
+        // Migrate old media to inline blocks if they are not already integrated
+        if (note.images && note.images.length > 0) {
+          note.images.forEach(img => {
+            editor.innerHTML += `<div style="margin: 10px 0;"><span class="img-trigger" onclick="toggleInlineImage(this)">🖼️ Image attached</span><img src="${img}" style="display:none; max-width:100%; border-radius:8px; margin-top:5px; border: 1px solid var(--accent);"></div>`;
+          });
+          note.images = []; // Clear array after migration
+        }
+        if (note.audios && note.audios.length > 0) {
+          note.audios.forEach(aud => {
+            editor.innerHTML += `<div class="task-block"><input type="checkbox" class="inline-checkbox" onclick="toggleInlineTask(this)">&nbsp;<audio controls src="${aud}" style="height: 35px; max-width: 200px; vertical-align: middle;"></audio></div>`;
+          });
+          note.audios = [];
+        }
+      }
+    };
+  }
+  
+  document.getElementById("editorOverlay").classList.add("active");
+  history.pushState({ isEditing: true }, "");
+  
+  setTimeout(() => { editor.focus(); }, 100);
+}
+
+function closeEditor(shouldPopHistory = true) {
+  const textHtml = document.getElementById("noteEditor").innerHTML.trim();
+  if (!textHtml) {
+    document.getElementById("editorOverlay").classList.remove("active");
+    if (shouldPopHistory && history.state && history.state.isEditing) history.back();
+    return;
+  }
+
+  const tx = db.transaction(STORE_NAME, "readwrite");
+  const store = tx.objectStore(STORE_NAME);
+
+  if (currentActiveId) {
+    store.get(currentActiveId).onsuccess = (e) => {
+      const note = e.target.result;
+      if (note) { note.text = textHtml; store.put(note); }
+    };
+  } else {
+    store.add({ text: textHtml, images: [], audios: [], date: getFormattedDate(), order: Date.now() });
+  }
+  
+  tx.oncomplete = () => {
+    loadNotes();
+    document.getElementById("editorOverlay").classList.remove("active");
+    if (shouldPopHistory && history.state && history.state.isEditing) history.back();
+    showSnackbar("Saved successfully");
+  };
+}
+
+window.addEventListener('popstate', function (event) {
+  if (document.getElementById("editorOverlay").classList.contains("active")) closeEditor(false); 
+  else if (document.getElementById("previewOverlay").classList.contains("active")) closePreview();
+});
+
+function insertCheckboxBlock() {
+  document.getElementById("noteEditor").focus();
+  document.execCommand('insertHTML', false, '<div class="task-block"><input type="checkbox" class="inline-checkbox" onclick="toggleInlineTask(this)">&nbsp;<span></span></div><br>');
+}
+
+/* Voice Recording */
+let mediaRecorder; let audioChunks = []; let isRecording = false;
+async function toggleRecording() {
+  const btn = document.getElementById("inlineVoiceBtn");
+  if (!isRecording) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+      mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data); };
+      
+      saveSelection(); // Save cursor position before recording ends
+      
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.onload = () => { 
+          restoreSelection();
+          // Insert Audio next to text (can be inside task block)
+          document.execCommand('insertHTML', false, `&nbsp;<audio controls src="${reader.result}" style="height: 35px; max-width: 200px; vertical-align: middle; border-radius: 20px;"></audio>&nbsp;`);
+        };
+        reader.readAsDataURL(audioBlob);
+      };
+      mediaRecorder.start(); isRecording = true;
+      btn.innerHTML = "⏹️"; btn.classList.add("recording");
+    } catch (err) { console.error("Microphone denied!", err); showSnackbar("Microphone access needed."); }
+  } else {
+    mediaRecorder.stop(); isRecording = false;
+    btn.innerHTML = "🎙️"; btn.classList.remove("recording");
+  }
+}
+
+/* Long Press for Image Attachment */
+let pressTimer;
+const editorDiv = document.getElementById('noteEditor');
+
+editorDiv.addEventListener('touchstart', (e) => {
+  if(e.touches.length > 1) return;
+  pressTimer = setTimeout(() => {
+    saveSelection();
+    document.getElementById('inlineImageInput').click();
+  }, 700); // 700ms long press
+});
+editorDiv.addEventListener('touchend', () => clearTimeout(pressTimer));
+editorDiv.addEventListener('touchmove', () => clearTimeout(pressTimer));
+
+// Fallback for Desktop/Mouse hold
+editorDiv.addEventListener('mousedown', (e) => {
+  pressTimer = setTimeout(() => {
+    saveSelection();
+    document.getElementById('inlineImageInput').click();
+  }, 700);
+});
+editorDiv.addEventListener('mouseup', () => clearTimeout(pressTimer));
+editorDiv.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+
+document.getElementById('inlineImageInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement("canvas");
+      const MAX_WIDTH = 1200;
+      let width = img.width, height = img.height;
+      if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
+      canvas.width = width; canvas.height = height;
+      canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+      const base64Str = canvas.toDataURL("image/jpeg", 0.7);
+      
+      restoreSelection();
+      // Insert hidden image with trigger text as per user requirement
+      let imgHtml = `<span style="display: inline-block; margin: 0 5px;"><span class="img-trigger" onclick="toggleInlineImage(this)">🖼️ Image attached</span><img src="${base64Str}" style="display: none; max-width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid var(--accent); box-shadow: 0 4px 6px rgba(0,0,0,0.2);"></span>&nbsp;`;
+      document.execCommand('insertHTML', false, imgHtml);
+      this.value = ""; // reset file input
+    };
+    img.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+/* =========================================
+   5. Import / Export
+   ========================================= */
 function exportNotes() {
   const tx = db.transaction(STORE_NAME, "readonly");
   tx.objectStore(STORE_NAME).getAll().onsuccess = (e) => {
@@ -635,9 +660,9 @@ document.getElementById("importInput").addEventListener("change", function(e) {
         const tx = db.transaction(STORE_NAME, "readwrite");
         const store = tx.objectStore(STORE_NAME);
         importedData.forEach(note => { delete note.id; store.add(note); });
-        tx.oncomplete = () => { console.log("Imported Successfully!"); loadNotes(); };
+        tx.oncomplete = () => { showSnackbar("Imported Successfully!"); loadNotes(); };
       }
-    } catch (err) { console.error("Invalid backup file!", err); }
+    } catch (err) { showSnackbar("Invalid backup file!"); }
   };
   reader.readAsText(file);
 });
