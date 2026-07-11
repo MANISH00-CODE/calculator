@@ -184,7 +184,6 @@
     </div>
   </div>
 
-  <!-- NAYA: Unlimited Split Budget Section -->
   <div id="splitSection" style="display: none; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; border: 1px dashed var(--warning);">
     <span style="font-size: 12px; color: var(--warning); font-weight: 600;">Split Payment (Unlimited Budgets)</span>
     
@@ -197,7 +196,6 @@
         <input type="text" id="splitChangeStatus" placeholder="Change: ₹0" disabled style="color: var(--warning); font-weight: bold; flex:1;">
     </div>
 
-    <!-- NAYA: Change Routing Section -->
     <div id="splitReceivedSection" style="display: none; background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 8px; border: 1px dashed var(--success); margin-top: 15px;">
         <span style="font-size: 11px; color: var(--success); font-weight: 600;">Received Notes (Wapas mile hue)</span>
         <div class="note-grid">
@@ -671,11 +669,12 @@ function processExpense() {
   if(pendingName && pendingPrice) { addToCart(); }
   if (currentCart.length === 0) { showCustomAlert("Please add items to bill first!"); return; }
 
-  let txId = targetTransactionId ? targetTransactionId : Date.now();
+  // Base Transaction ID - IMPORTANT FIX: Split items use unique offsets to prevent merging!
+  let txIdBase = targetTransactionId ? targetTransactionId : Date.now();
   const tx = db.transaction("expenses", "readwrite");
   const store = tx.objectStore("expenses");
 
-  // NAYA: Handle Dynamic Split Payment Saving
+  // Handle Dynamic Split Payment Saving
   if (selectedPaymentVal === 'Split') {
       const rows = document.querySelectorAll('.split-budget-row');
       let splitData = []; let totalGiven = 0;
@@ -712,29 +711,38 @@ function processExpense() {
       
       splitData.forEach(part => {
           if (part.amt === 0 && part.bName !== changeToBudget) return; 
+          
           let isTarget = (part.bName === changeToBudget);
           let netSpent = part.amt - (isTarget ? changeNeeded : 0);
           let payMethod = part.bName === 'Online' ? 'Online' : 'Cash';
           
           store.add({
-              name: combinedName + ` (Split: ${part.bName})`, price: netSpent, 
-              budgetSource: part.bName, paymentMethod: payMethod, cashGiven: part.amt, 
-              givenNotes: part.notesObj, receivedNotes: isTarget ? changeNotesObj : null,
-              transactionId: txId, dateStr: displayDateStr, isoDay: isoDates.full, 
-              isoMonth: isoDates.month, isoYear: isoDates.year, order: Date.now() - orderOffset
+              name: combinedName + ` (Split: ${part.bName})`, 
+              price: netSpent, 
+              budgetSource: part.bName, 
+              paymentMethod: payMethod, 
+              cashGiven: part.amt, 
+              givenNotes: part.notesObj, 
+              receivedNotes: isTarget ? changeNotesObj : null,
+              transactionId: txIdBase + orderOffset, // YAHAN FIX HUA HAI! Har split ka alag ID hoga
+              dateStr: displayDateStr, isoDay: isoDates.full, 
+              isoMonth: isoDates.month, isoYear: isoDates.year, 
+              order: Date.now() - orderOffset
           });
           orderOffset++;
       });
 
-      // Agar Change us budget me ja raha hai jo Split Dene walo ki list me nahi tha
+      // Agar Change us budget me ja raha hai jo split list me nahi tha
       let targetInSplit = splitData.find(p => p.bName === changeToBudget);
       if (!targetInSplit && changeNeeded > 0) {
            store.add({
               name: combinedName + ` (Change Received)`, price: -changeNeeded, 
               budgetSource: changeToBudget, paymentMethod: changeToBudget === 'Online' ? 'Online' : 'Cash', 
               cashGiven: 0, givenNotes: null, receivedNotes: changeNotesObj,
-              transactionId: txId, dateStr: displayDateStr, isoDay: isoDates.full, 
-              isoMonth: isoDates.month, isoYear: isoDates.year, order: Date.now() - orderOffset
+              transactionId: txIdBase + orderOffset, // Yahan bhi alag ID
+              dateStr: displayDateStr, isoDay: isoDates.full, 
+              isoMonth: isoDates.month, isoYear: isoDates.year, 
+              order: Date.now() - orderOffset
           });
       }
       tx.oncomplete = () => { currentCart = []; targetTransactionId = null; updateCartUI(); resetInputs(); loadAllData(); };
@@ -766,7 +774,7 @@ function processExpense() {
           name: item.name, price: item.price, 
           budgetSource: selectedBudgetVal, paymentMethod: selectedPaymentVal, 
           cashGiven: cashGiven, givenNotes: givenNotes, receivedNotes: receivedNotes,
-          transactionId: txId, dateStr: displayDateStr, isoDay: isoDates.full, isoMonth: isoDates.month, isoYear: isoDates.year, order: Date.now() - index
+          transactionId: txIdBase, dateStr: displayDateStr, isoDay: isoDates.full, isoMonth: isoDates.month, isoYear: isoDates.year, order: Date.now() - index
       });
   });
 
@@ -918,29 +926,21 @@ function loadGroupedExpenses(budgetDepositSums) {
       }
       groups[tId].items.push(exp); groups[tId].total += exp.price;
       
-      // Update logic for specific split records combining given/received accurately
-      if(exp.givenNotes) {
-          if(!groups[tId].gNotes) groups[tId].gNotes = {};
-          for(let n in exp.givenNotes) { groups[tId].gNotes[n] = (groups[tId].gNotes[n] || 0) + exp.givenNotes[n]; }
-      }
-      if(exp.receivedNotes) {
-          if(!groups[tId].rNotes) groups[tId].rNotes = {};
-          for(let n in exp.receivedNotes) { groups[tId].rNotes[n] = (groups[tId].rNotes[n] || 0) + exp.receivedNotes[n]; }
-      }
-      
       cursor.continue();
     } else {
-      Object.values(allExpensesCache).forEach(exp => {
-          let bName = exp.budgetSource;
-          if (exp.paymentMethod === 'Cash' && budgetDepositedNotes[bName]) {
-              if (exp.givenNotes) {
-                  for (let n in exp.givenNotes) {
-                      budgetDepositedNotes[bName][n] = (budgetDepositedNotes[bName][n] || 0) - parseInt(exp.givenNotes[n]);
+      
+      // YAHAN BHI FIX HUA HAI: Ab groups object se notes calculate honge taki duplicate na ghate
+      Object.values(groups).forEach(g => {
+          let bName = g.budget;
+          if (g.pay === 'Cash' && budgetDepositedNotes[bName]) {
+              if (g.gNotes) {
+                  for (let n in g.gNotes) {
+                      budgetDepositedNotes[bName][n] = (budgetDepositedNotes[bName][n] || 0) - parseInt(g.gNotes[n]);
                   }
               }
-              if (exp.receivedNotes) {
-                  for (let n in exp.receivedNotes) {
-                      budgetDepositedNotes[bName][n] = (budgetDepositedNotes[bName][n] || 0) + parseInt(exp.receivedNotes[n]);
+              if (g.rNotes) {
+                  for (let n in g.rNotes) {
+                      budgetDepositedNotes[bName][n] = (budgetDepositedNotes[bName][n] || 0) + parseInt(g.rNotes[n]);
                   }
               }
           }
@@ -964,7 +964,7 @@ function loadGroupedExpenses(budgetDepositSums) {
       
       sortedGroups.forEach(g => {
          let title = g.items.map(i=>i.name).join(', ').substring(0,25) + (g.items.length > 1 ? '...' : '');
-         if(title.includes("(Split")) title = "Split Payment Bill";
+         if(title.includes("(Split")) title = "Split Payment Part"; // UI Title
          const card = document.createElement('div'); card.className = 'group-card';
          
          let notesMetaStr = "";
@@ -1152,7 +1152,7 @@ function openNotesSummary() {
 
 function closeNotesSummary() { document.getElementById("notesSummaryOverlay").classList.remove("active"); }
 
-/* NAYA: Auto-save on Phone Back Button Logic */
+/* Auto-save on Phone Back Button Logic */
 history.pushState({ page: 'main' }, '', '');
 window.addEventListener('popstate', (e) => {
     let activeOverlays = document.querySelectorAll('.overlay.active');
