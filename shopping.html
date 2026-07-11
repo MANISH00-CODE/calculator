@@ -149,6 +149,7 @@
   <div class="chips-container">
     <div class="chip active" id="chip-Online" onclick="selectPayment('Online', this)">Online</div>
     <div class="chip" id="chip-Cash" onclick="selectPayment('Cash', this)">Cash Note</div>
+    <div class="chip" id="chip-Split" onclick="selectPayment('Split', this)">Split Budget</div>
   </div>
   
   <div id="cashSection" style="display: none; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; border: 1px dashed var(--accent);">
@@ -166,6 +167,53 @@
     <div style="margin-top: 10px; display: flex; gap: 10px;">
         <input type="number" id="cashGiven" placeholder="Total Given (₹)" disabled style="font-weight: bold;">
         <input type="text" id="changeStatus" placeholder="Change: ₹0" disabled style="color: var(--warning); font-weight: bold;">
+    </div>
+  </div>
+
+  <!-- Naya Split Budget Section -->
+  <div id="splitSection" style="display: none; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; border: 1px dashed var(--warning);">
+    <span style="font-size: 12px; color: var(--warning); font-weight: 600;">Split Payment (Bill ko 2 jagah se pay karein)</span>
+    
+    <div style="margin-top: 10px; padding: 10px; background: var(--bg-card); border-radius: 8px;">
+        <span style="font-size: 11px; color: var(--text-muted);">Budget Part 1</span>
+        <div style="display:flex; gap:10px;">
+            <select id="splitB1" style="flex:1;"></select>
+            <input type="number" id="splitA1" placeholder="₹ Amount" style="flex:1;">
+        </div>
+        <div style="margin-top:8px;">
+            <span style="font-size:11px; color:var(--text-muted);">Notes (Optional)</span>
+            <div class="note-grid">
+                <div class="note-wrapper"><span class="note-label">500</span><input type="number" id="s1_500" placeholder="x" min="0"></div>
+                <div class="note-wrapper"><span class="note-label">200</span><input type="number" id="s1_200" placeholder="x" min="0"></div>
+                <div class="note-wrapper"><span class="note-label">100</span><input type="number" id="s1_100" placeholder="x" min="0"></div>
+                <div class="note-wrapper"><span class="note-label">50</span><input type="number" id="s1_50" placeholder="x" min="0"></div>
+                <div class="note-wrapper"><span class="note-label">20</span><input type="number" id="s1_20" placeholder="x" min="0"></div>
+                <div class="note-wrapper"><span class="note-label">10</span><input type="number" id="s1_10" placeholder="x" min="0"></div>
+                <div class="note-wrapper"><span class="note-label">5</span><input type="number" id="s1_5" placeholder="x" min="0"></div>
+                <div class="note-wrapper"><span class="note-label">Coins(₹1)</span><input type="number" id="s1_1" placeholder="₹" min="0"></div>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 10px; padding: 10px; background: var(--bg-card); border-radius: 8px;">
+        <span style="font-size: 11px; color: var(--text-muted);">Budget Part 2</span>
+        <div style="display:flex; gap:10px;">
+            <select id="splitB2" style="flex:1;"></select>
+            <input type="number" id="splitA2" placeholder="₹ Amount" style="flex:1;">
+        </div>
+        <div style="margin-top:8px;">
+            <span style="font-size:11px; color:var(--text-muted);">Notes (Optional)</span>
+            <div class="note-grid">
+                <div class="note-wrapper"><span class="note-label">500</span><input type="number" id="s2_500" placeholder="x" min="0"></div>
+                <div class="note-wrapper"><span class="note-label">200</span><input type="number" id="s2_200" placeholder="x" min="0"></div>
+                <div class="note-wrapper"><span class="note-label">100</span><input type="number" id="s2_100" placeholder="x" min="0"></div>
+                <div class="note-wrapper"><span class="note-label">50</span><input type="number" id="s2_50" placeholder="x" min="0"></div>
+                <div class="note-wrapper"><span class="note-label">20</span><input type="number" id="s2_20" placeholder="x" min="0"></div>
+                <div class="note-wrapper"><span class="note-label">10</span><input type="number" id="s2_10" placeholder="x" min="0"></div>
+                <div class="note-wrapper"><span class="note-label">5</span><input type="number" id="s2_5" placeholder="x" min="0"></div>
+                <div class="note-wrapper"><span class="note-label">Coins(₹1)</span><input type="number" id="s2_1" placeholder="₹" min="0"></div>
+            </div>
+        </div>
     </div>
   </div>
 
@@ -234,6 +282,9 @@
     <button class="btn-small" style="background: rgba(239, 68, 68, 0.1); color: var(--danger);" onclick="closeAnalytics()">✕ Close</button>
   </div>
   <div class="overlay-body">
+    <!-- Naya Search Bar -->
+    <input type="text" id="analyticsSearch" placeholder="🔍 Search Item Name..." oninput="runAnalytics()" style="margin-bottom: 15px;">
+
     <label style="font-size:12px; color:var(--text-muted); display: block; margin-bottom: 5px;">Select Date Filter</label>
     <select id="filterType" onchange="runAnalytics()">
       <option value="all">All Expenses</option>
@@ -311,7 +362,6 @@ function getLocalIsoDate() {
     return `${y}-${m}-${day}`;
 }
 
-// Set default date picker to today (Local Date)
 document.getElementById('entryDate').value = getLocalIsoDate();
 
 const request = indexedDB.open(DB_NAME, 1);
@@ -393,13 +443,18 @@ function selectPayment(val, el) {
   selectedPaymentVal = val;
   document.getElementById("chip-Online").classList.remove('active');
   document.getElementById("chip-Cash").classList.remove('active');
+  document.getElementById("chip-Split").classList.remove('active');
   el.classList.add('active');
   
+  document.getElementById("cashSection").style.display = "none";
+  document.getElementById("receivedSection").style.display = "none";
+  document.getElementById("splitSection").style.display = "none";
+
   if (val === 'Cash') {
     document.getElementById("cashSection").style.display = "block";
+  } else if (val === 'Split') {
+    document.getElementById("splitSection").style.display = "block";
   } else {
-    document.getElementById("cashSection").style.display = "none";
-    document.getElementById("receivedSection").style.display = "none";
     setNoteObj('g', null); setNoteObj('r', null);
     document.getElementById("cashGiven").value = "";
   }
@@ -408,10 +463,18 @@ function selectPayment(val, el) {
 function renderBudgetChips() {
   const container = document.getElementById("budgetChipsContainer");
   container.innerHTML = `<div class="chip ${selectedBudgetVal === 'Online' ? 'active' : ''}" onclick="selectBudget('Online', this)">Online</div>`;
+  
+  let splitOpts = `<option value="Online">Online</option>`;
+  
   uniqueBudgets.forEach(name => {
     const isActive = selectedBudgetVal === name ? 'active' : '';
     container.innerHTML += `<div class="chip ${isActive}" onclick="selectBudget('${name}', this)">${name}</div>`;
+    splitOpts += `<option value="${name}">${name}</option>`;
   });
+
+  const sb1 = document.getElementById("splitB1");
+  const sb2 = document.getElementById("splitB2");
+  if(sb1 && sb2) { sb1.innerHTML = splitOpts; sb2.innerHTML = splitOpts; }
 }
 
 /* Suggestions */
@@ -503,12 +566,8 @@ function processExpense() {
               existing.name = name; existing.price = price; existing.budgetSource = selectedBudgetVal; 
               existing.paymentMethod = selectedPaymentVal; existing.cashGiven = cashGiven;
               existing.givenNotes = givenNotes; existing.receivedNotes = receivedNotes;
-              
-              existing.dateStr = displayDateStr;
-              existing.isoDay = isoDates.full;
-              existing.isoMonth = isoDates.month;
-              existing.isoYear = isoDates.year;
-              
+              existing.dateStr = displayDateStr; existing.isoDay = isoDates.full;
+              existing.isoMonth = isoDates.month; existing.isoYear = isoDates.year;
               tx.objectStore("expenses").put(existing);
           }
       };
@@ -518,12 +577,49 @@ function processExpense() {
 
   const pendingName = document.getElementById("itemName").value.trim();
   const pendingPrice = parseFloat(document.getElementById("itemPrice").value);
-  
   if(pendingName && pendingPrice) { addToCart(); }
+  
   if (currentCart.length === 0) { showCustomAlert("Please add items to bill first!"); return; }
 
+  // Split Payment Logic Handling
+  if (selectedPaymentVal === 'Split') {
+      let a1 = parseFloat(document.getElementById("splitA1").value) || 0;
+      let a2 = parseFloat(document.getElementById("splitA2").value) || 0;
+      let b1 = document.getElementById("splitB1").value;
+      let b2 = document.getElementById("splitB2").value;
+      
+      if (a1 + a2 !== cartTotal) { 
+          showCustomAlert(`Error: Split amounts (₹${a1+a2}) must equal Total Bill (₹${cartTotal})!`); 
+          return; 
+      }
+      
+      let combinedName = currentCart.map(i => i.name).join(' + ');
+      let txId = targetTransactionId ? targetTransactionId : Date.now();
+      const tx = db.transaction("expenses", "readwrite");
+      const store = tx.objectStore("expenses");
+      
+      if(a1 > 0) {
+          store.add({
+              name: combinedName + " (Split: Part 1)", price: a1, 
+              budgetSource: b1, paymentMethod: 'Cash', cashGiven: a1, givenNotes: getNoteObj('s1_'), receivedNotes: null,
+              transactionId: txId, dateStr: displayDateStr, isoDay: isoDates.full, isoMonth: isoDates.month, isoYear: isoDates.year, order: Date.now()
+          });
+      }
+      if(a2 > 0) {
+          store.add({
+              name: combinedName + " (Split: Part 2)", price: a2, 
+              budgetSource: b2, paymentMethod: 'Cash', cashGiven: a2, givenNotes: getNoteObj('s2_'), receivedNotes: null,
+              transactionId: txId, dateStr: displayDateStr, isoDay: isoDates.full, isoMonth: isoDates.month, isoYear: isoDates.year, order: Date.now() - 1
+          });
+      }
+      tx.oncomplete = () => { 
+          currentCart = []; targetTransactionId = null; updateCartUI(); resetInputs(); loadAllData(); 
+      };
+      return;
+  }
+
+  // Normal Cash / Online Logic
   let cashGiven = parseFloat(document.getElementById("cashGiven").value) || 0;
-  
   if(selectedPaymentVal === 'Cash') {
       const currentTotalBill = cartTotal; 
       if (cashGiven > currentTotalBill && currentTotalBill > 0) {
@@ -546,7 +642,6 @@ function processExpense() {
 
   const tx = db.transaction("expenses", "readwrite");
   const store = tx.objectStore("expenses");
-  
   const txId = targetTransactionId ? targetTransactionId : Date.now(); 
 
   currentCart.forEach((item, index) => {
@@ -559,11 +654,7 @@ function processExpense() {
   });
 
   tx.oncomplete = () => { 
-    currentCart = [];
-    targetTransactionId = null; 
-    updateCartUI();
-    resetInputs();
-    loadAllData(); 
+    currentCart = []; targetTransactionId = null; updateCartUI(); resetInputs(); loadAllData(); 
   };
 }
 
@@ -571,8 +662,10 @@ function resetInputs() {
   currentEditId = null;
   document.getElementById("itemName").value = ""; document.getElementById("itemPrice").value = "";
   document.getElementById("cashGiven").value = ""; document.getElementById("changeStatus").value = "Change: ₹0";
-  document.getElementById('entryDate').value = getLocalIsoDate(); // Reset Date back to today
-  setNoteObj('g', null); setNoteObj('r', null);
+  document.getElementById("splitA1").value = ""; document.getElementById("splitA2").value = "";
+  document.getElementById('entryDate').value = getLocalIsoDate();
+  
+  setNoteObj('g', null); setNoteObj('r', null); setNoteObj('s1_', null); setNoteObj('s2_', null);
   document.getElementById("receivedSection").style.display = "none";
   document.getElementById("btnAddUpdate").innerText = "💾 Save Full Bill & Finish";
   document.getElementById("btnAddToBill").style.display = "block";
@@ -625,6 +718,17 @@ function addDeposit() {
   };
 }
 
+function topupDeposit(name) {
+    openDepositPanel();
+    document.getElementById("depositName").value = name;
+    document.getElementById("depositAmount").value = "";
+    if(budgetNotesMode) toggleBudgetNotes();
+    setNoteObj('b', null);
+    currentEditDepositId = null; // Important: Null rakha hai taki Naya Record bane!
+    document.getElementById("btnDepositSubmit").innerText = "Save Funds (Add)";
+    showCustomAlert("Adding Naya Funds to " + name);
+}
+
 /* Load & Render */
 function loadAllData() {
   uniqueItemsDict = {}; allExpensesCache = []; uniqueBudgets.clear();
@@ -657,6 +761,7 @@ function loadAllData() {
             <span style="font-size:11px; color:var(--text-muted);">${dep.dateStr}</span>
           </div>
           <div class="controls">
+            <button class="btn-edit" style="color:var(--success); background:rgba(16, 185, 129, 0.1);" onclick="topupDeposit('${dep.name}')" title="Add More Funds">➕</button>
             <button class="btn-edit" onclick="editDeposit(${dep.id})">✏️</button>
             <button class="btn-delete" onclick="deleteItem(event, ${dep.id}, 'deposits')">🗑️</button>
           </div>
@@ -696,7 +801,6 @@ function loadGroupedExpenses(budgetDepositSums) {
       
       cursor.continue();
     } else {
-      
       Object.values(groups).forEach(g => {
           let bName = g.budget;
           if (g.pay === 'Cash' && budgetDepositedNotes[bName]) {
@@ -744,7 +848,6 @@ function loadGroupedExpenses(budgetDepositSums) {
                  if(notesMetaStr.endsWith(" | ")) notesMetaStr = notesMetaStr.slice(0, -3);
                  notesMetaStr += `</span>`;
              }
-             
              if(g.cash > g.total) {
                  let chgAmt = g.cash - g.total;
                  notesMetaStr += `<br><span style="color:var(--success); font-size:11px;">Change Rcvd: ₹${chgAmt}`;
@@ -787,7 +890,6 @@ function loadGroupedExpenses(budgetDepositSums) {
          });
          
          innerHtml += `<button class="btn-small" style="background: var(--accent); color: white; margin: 10px; width: calc(100% - 20px);" onclick="addToExistingGroup(${g.id})">➕ Add Item to this Bill</button>`;
-         
          card.innerHTML = innerHtml + `</div>`;
          expContainer.appendChild(card);
       });
@@ -803,8 +905,7 @@ function editItem(event, id) {
     const exp = e.target.result;
     if (exp) {
       document.getElementById("itemName").value = exp.name; document.getElementById("itemPrice").value = exp.price;
-      
-      document.getElementById("entryDate").value = exp.isoDay; // Display correct past date
+      document.getElementById("entryDate").value = exp.isoDay;
       
       selectBudget(exp.budgetSource || 'Online', null); renderBudgetChips();
       selectPayment(exp.paymentMethod || 'Online', document.getElementById(`chip-${exp.paymentMethod || 'Online'}`));
@@ -864,9 +965,14 @@ function renderBudgetCheckboxes() {
 }
 
 function runAnalytics() {
-  const type = document.getElementById("filterType").value; const customInput = document.getElementById("customFilterDate"); const iso = getIsoDates();
-  let targetIso = ""; 
+  const type = document.getElementById("filterType").value; 
+  const customInput = document.getElementById("customFilterDate"); 
+  const iso = getIsoDates();
   
+  // Naya Search Text
+  const searchTxt = document.getElementById("analyticsSearch").value.toLowerCase().trim();
+
+  let targetIso = ""; 
   if (type === "custom") { 
       customInput.style.display = "block"; targetIso = customInput.value; if(!targetIso) return; 
   } else { 
@@ -882,7 +988,9 @@ function runAnalytics() {
         dMatch = (type==="today"||type==="custom") ? exp.isoDay===targetIso : type==="month" ? exp.isoMonth===targetIso : exp.isoYear===targetIso;
     }
     let bMatch = checkedBudgets.includes(exp.budgetSource || "Online");
-    return dMatch && bMatch;
+    let sMatch = searchTxt === "" ? true : exp.name.toLowerCase().includes(searchTxt);
+    
+    return dMatch && bMatch && sMatch;
   });
   renderAnalyticsTable();
 }
@@ -897,35 +1005,28 @@ function renderAnalyticsTable() {
   document.getElementById("analyticsTotal").innerText = `₹ ${sum.toLocaleString('en-IN')}`;
 }
 
-// FIX: Robust CSV Export
 function exportCSV() {
   const rows = document.querySelectorAll('.row-checkbox:checked');
   if(rows.length===0) { showCustomAlert("No items checked"); return; }
   
   let csv = "Date,Name,Budget,Price,Payment,Cash Given\n";
-  
   rows.forEach(r => {
     const id = parseInt(r.getAttribute('data-id'));
     const o = currentFilteredData.find(x => x.id === id);
     if(o) {
-        let safeName = o.name.replace(/"/g, '""'); // Quotes fixing
+        let safeName = o.name.replace(/"/g, '""'); 
         csv += `"${o.dateStr}","${safeName}","${o.budgetSource}",${o.price},"${o.paymentMethod}","${o.cashGiven||'-'}"\n`;
     }
   });
   
-  // Create Blob With BOM for Excel Compatibility
   const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
   const url = window.URL.createObjectURL(blob);
-  
-  // Safe Download Method for all Browsers
   const a = document.createElement("a"); 
   a.style.display = "none";
   a.href = url; 
   a.download = `Expense_Export_${Date.now()}.csv`; 
   document.body.appendChild(a);
   a.click();
-  
-  // Cleanup
   setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); }, 100);
 }
 
@@ -936,21 +1037,14 @@ function openNotesSummary() {
     
     for (const [name, notes] of Object.entries(budgetDepositedNotes)) {
         if (notes && Object.keys(notes).length > 0) {
-            let totalAmount = 0; 
-            let noteDetails = "";
-            let hasValidNotes = false;
-            
+            let totalAmount = 0; let noteDetails = ""; let hasValidNotes = false;
             let sortedNotes = Object.keys(notes).sort((a,b) => b - a);
             
             for (let n of sortedNotes) {
-                let noteValue = parseInt(n);
-                let noteCount = parseInt(notes[n]);
-                
+                let noteValue = parseInt(n); let noteCount = parseInt(notes[n]);
                 if(noteCount > 0) {
-                    hasValidNotes = true;
-                    let lineTotal = noteValue * noteCount;
+                    hasValidNotes = true; let lineTotal = noteValue * noteCount;
                     let lbl = n == 1 ? "Coins (Khulle)" : `₹${n} ka Note`;
-                    
                     noteDetails += `
                     <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:8px 0; font-size:13px;">
                         <span>${lbl} <b>x ${noteCount}</b></span> 
@@ -959,7 +1053,6 @@ function openNotesSummary() {
                     totalAmount += lineTotal;
                 }
             }
-            
             if(hasValidNotes) {
                 html += `
                 <div style="background: var(--bg-card); padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 4px solid var(--accent);">
@@ -972,16 +1065,42 @@ function openNotesSummary() {
             }
         }
     }
-    
     if(html === "") html = "<div style='text-align:center; color:var(--text-muted); margin-top:20px;'>Koi budget notes bache nahi hain.</div>";
-    
     body.innerHTML = html;
     document.getElementById("notesSummaryOverlay").classList.add("active");
 }
 
-function closeNotesSummary() {
-    document.getElementById("notesSummaryOverlay").classList.remove("active");
-}
+function closeNotesSummary() { document.getElementById("notesSummaryOverlay").classList.remove("active"); }
+
+/* NAYA: Auto-save on Phone Back Button Logic */
+history.pushState({ page: 'main' }, '', '');
+window.addEventListener('popstate', (e) => {
+    // 1. Agar koi overlay khula hai, toh sirf usko close karo, bahar mat niklo
+    let activeOverlays = document.querySelectorAll('.overlay.active');
+    if(activeOverlays.length > 0) {
+        activeOverlays.forEach(o => o.classList.remove('active'));
+        history.pushState({ page: 'main' }, '', '');
+        return;
+    }
+
+    // 2. Agar input me details bhari hui hai, ya cart me items hain, auto-save kar lo
+    let name = document.getElementById("itemName").value.trim();
+    let price = document.getElementById("itemPrice").value;
+    
+    if (name && price) {
+        processExpense();
+        showCustomAlert("Auto-saved Item before Exit!");
+        history.pushState({ page: 'main' }, '', ''); // Prevent direct exit
+    } else if (currentCart.length > 0) {
+        processExpense();
+        showCustomAlert("Auto-saved Cart before Exit!");
+        history.pushState({ page: 'main' }, '', ''); // Prevent direct exit
+    } else {
+        // App close hone do
+        window.history.back();
+    }
+});
+
 </script>
 </body>
 </html>
