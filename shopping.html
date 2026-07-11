@@ -114,7 +114,7 @@
   <div class="header-btns">
     <button class="btn-small" style="background: var(--warning); color: #fff;" onclick="openAnalytics()">📊 Analytics</button>
     <button class="btn-small" style="background: var(--success); color: white;" onclick="openDepositPanel()">💰 Budget</button>
-    <button class="btn-small" style="background: var(--accent); color: white;" onclick="openNotesSummary()">👛 Budget Notes Info</button>
+    <button class="btn-small" style="background: var(--accent); color: white;" onclick="openNotesSummary()">👛 Budget Notes</button>
   </div>
 </div>
 
@@ -132,7 +132,7 @@
 
   <div class="row-inputs" style="position: relative;">
     <input type="text" id="itemName" placeholder="Item Name" autocomplete="off" style="flex: 2;">
-    <input type="number" id="itemPrice" placeholder="₹ Price" min="0" step="any" style="flex: 1;" oninput="checkChangeNeeded()">
+    <input type="number" id="itemPrice" placeholder="₹ Price" min="0" step="any" style="flex: 1;" oninput="checkChangeNeeded(); if(selectedPaymentVal==='Split') calcSplit();">
     <div class="suggestions-box" id="suggestionBox"></div>
   </div>
   
@@ -170,53 +170,6 @@
     </div>
   </div>
 
-  <!-- Naya Split Budget Section -->
-  <div id="splitSection" style="display: none; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; border: 1px dashed var(--warning);">
-    <span style="font-size: 12px; color: var(--warning); font-weight: 600;">Split Payment (Bill ko 2 jagah se pay karein)</span>
-    
-    <div style="margin-top: 10px; padding: 10px; background: var(--bg-card); border-radius: 8px;">
-        <span style="font-size: 11px; color: var(--text-muted);">Budget Part 1</span>
-        <div style="display:flex; gap:10px;">
-            <select id="splitB1" style="flex:1;"></select>
-            <input type="number" id="splitA1" placeholder="₹ Amount" style="flex:1;">
-        </div>
-        <div style="margin-top:8px;">
-            <span style="font-size:11px; color:var(--text-muted);">Notes (Optional)</span>
-            <div class="note-grid">
-                <div class="note-wrapper"><span class="note-label">500</span><input type="number" id="s1_500" placeholder="x" min="0"></div>
-                <div class="note-wrapper"><span class="note-label">200</span><input type="number" id="s1_200" placeholder="x" min="0"></div>
-                <div class="note-wrapper"><span class="note-label">100</span><input type="number" id="s1_100" placeholder="x" min="0"></div>
-                <div class="note-wrapper"><span class="note-label">50</span><input type="number" id="s1_50" placeholder="x" min="0"></div>
-                <div class="note-wrapper"><span class="note-label">20</span><input type="number" id="s1_20" placeholder="x" min="0"></div>
-                <div class="note-wrapper"><span class="note-label">10</span><input type="number" id="s1_10" placeholder="x" min="0"></div>
-                <div class="note-wrapper"><span class="note-label">5</span><input type="number" id="s1_5" placeholder="x" min="0"></div>
-                <div class="note-wrapper"><span class="note-label">Coins(₹1)</span><input type="number" id="s1_1" placeholder="₹" min="0"></div>
-            </div>
-        </div>
-    </div>
-
-    <div style="margin-top: 10px; padding: 10px; background: var(--bg-card); border-radius: 8px;">
-        <span style="font-size: 11px; color: var(--text-muted);">Budget Part 2</span>
-        <div style="display:flex; gap:10px;">
-            <select id="splitB2" style="flex:1;"></select>
-            <input type="number" id="splitA2" placeholder="₹ Amount" style="flex:1;">
-        </div>
-        <div style="margin-top:8px;">
-            <span style="font-size:11px; color:var(--text-muted);">Notes (Optional)</span>
-            <div class="note-grid">
-                <div class="note-wrapper"><span class="note-label">500</span><input type="number" id="s2_500" placeholder="x" min="0"></div>
-                <div class="note-wrapper"><span class="note-label">200</span><input type="number" id="s2_200" placeholder="x" min="0"></div>
-                <div class="note-wrapper"><span class="note-label">100</span><input type="number" id="s2_100" placeholder="x" min="0"></div>
-                <div class="note-wrapper"><span class="note-label">50</span><input type="number" id="s2_50" placeholder="x" min="0"></div>
-                <div class="note-wrapper"><span class="note-label">20</span><input type="number" id="s2_20" placeholder="x" min="0"></div>
-                <div class="note-wrapper"><span class="note-label">10</span><input type="number" id="s2_10" placeholder="x" min="0"></div>
-                <div class="note-wrapper"><span class="note-label">5</span><input type="number" id="s2_5" placeholder="x" min="0"></div>
-                <div class="note-wrapper"><span class="note-label">Coins(₹1)</span><input type="number" id="s2_1" placeholder="₹" min="0"></div>
-            </div>
-        </div>
-    </div>
-  </div>
-
   <div id="receivedSection" style="display: none; background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 10px; border: 1px dashed var(--success);">
     <span style="font-size: 12px; color: var(--success); font-weight: 600;">Received Notes (Wapas kya mila?)</span>
     <div class="note-grid">
@@ -228,6 +181,39 @@
       <div class="note-wrapper"><span class="note-label">10</span><input type="number" id="r10" placeholder="x" min="0"></div>
       <div class="note-wrapper"><span class="note-label">5</span><input type="number" id="r5" placeholder="x" min="0"></div>
       <div class="note-wrapper"><span class="note-label">Coins(₹1)</span><input type="number" id="r1" placeholder="₹" min="0"></div>
+    </div>
+  </div>
+
+  <!-- NAYA: Unlimited Split Budget Section -->
+  <div id="splitSection" style="display: none; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; border: 1px dashed var(--warning);">
+    <span style="font-size: 12px; color: var(--warning); font-weight: 600;">Split Payment (Unlimited Budgets)</span>
+    
+    <div id="dynamicSplitBudgets"></div>
+    
+    <button class="btn-small" style="margin-top: 10px; background: rgba(245, 158, 11, 0.2); color: var(--warning); width: 100%; padding: 8px;" onclick="addSplitRow()">➕ Add Another Budget</button>
+
+    <div style="margin-top: 15px; display: flex; gap: 10px;">
+        <input type="text" id="splitTotalGiven" placeholder="Total Given: ₹0" disabled style="font-weight: bold; flex:1;">
+        <input type="text" id="splitChangeStatus" placeholder="Change: ₹0" disabled style="color: var(--warning); font-weight: bold; flex:1;">
+    </div>
+
+    <!-- NAYA: Change Routing Section -->
+    <div id="splitReceivedSection" style="display: none; background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 8px; border: 1px dashed var(--success); margin-top: 15px;">
+        <span style="font-size: 11px; color: var(--success); font-weight: 600;">Received Notes (Wapas mile hue)</span>
+        <div class="note-grid">
+            <div class="note-wrapper"><span class="note-label">500</span><input type="number" id="sr_500" placeholder="x" min="0"></div>
+            <div class="note-wrapper"><span class="note-label">200</span><input type="number" id="sr_200" placeholder="x" min="0"></div>
+            <div class="note-wrapper"><span class="note-label">100</span><input type="number" id="sr_100" placeholder="x" min="0"></div>
+            <div class="note-wrapper"><span class="note-label">50</span><input type="number" id="sr_50" placeholder="x" min="0"></div>
+            <div class="note-wrapper"><span class="note-label">20</span><input type="number" id="sr_20" placeholder="x" min="0"></div>
+            <div class="note-wrapper"><span class="note-label">10</span><input type="number" id="sr_10" placeholder="x" min="0"></div>
+            <div class="note-wrapper"><span class="note-label">5</span><input type="number" id="sr_5" placeholder="x" min="0"></div>
+            <div class="note-wrapper"><span class="note-label">Coins</span><input type="number" id="sr_1" placeholder="₹" min="0"></div>
+        </div>
+        <div style="margin-top: 10px;">
+            <span style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 3px;">Add Change To (Yeh notes kis budget mein jayenge?):</span>
+            <select id="splitChangeTarget" style="width: 100%; padding: 8px; font-weight: bold; color: var(--accent);"></select>
+        </div>
     </div>
   </div>
 
@@ -282,7 +268,6 @@
     <button class="btn-small" style="background: rgba(239, 68, 68, 0.1); color: var(--danger);" onclick="closeAnalytics()">✕ Close</button>
   </div>
   <div class="overlay-body">
-    <!-- Naya Search Bar -->
     <input type="text" id="analyticsSearch" placeholder="🔍 Search Item Name..." oninput="runAnalytics()" style="margin-bottom: 15px;">
 
     <label style="font-size:12px; color:var(--text-muted); display: block; margin-bottom: 5px;">Select Date Filter</label>
@@ -349,11 +334,12 @@ let currentCart = [];
 let cartTotal = 0;
 
 let currentEditId = null; let currentEditDepositId = null; 
-let lastDeletedData = null; let lastDeletedType = null; let undoTimeout = null;
+let lastDeletedData = null; let lastDeletedType = null; 
 
 let selectedBudgetVal = "Online";
 let selectedPaymentVal = "Online";
 let budgetNotesMode = false;
+let splitRowCount = 0;
 
 /* Helper: Generate Local ISO Date String */
 function getLocalIsoDate() {
@@ -370,7 +356,7 @@ request.onupgradeneeded = (e) => {
   db.createObjectStore("expenses", { keyPath: "id", autoIncrement: true }).createIndex("order", "order", { unique: false });
   db.createObjectStore("deposits", { keyPath: "id", autoIncrement: true }).createIndex("order", "order", { unique: false });
 };
-request.onsuccess = (e) => { db = e.target.result; loadAllData(); };
+request.onsuccess = (e) => { db = e.target.result; loadAllData(); initSplitUI(); };
 
 /* Utility Functions */
 function getDisplayDate(customDateStr) { 
@@ -428,8 +414,122 @@ function getNoteObj(prefix) {
     return Object.keys(obj).length ? obj : null;
 }
 function setNoteObj(prefix, obj) {
-    notesArr.forEach(n => { document.getElementById(prefix+n).value = (obj && obj[n]) ? obj[n] : ''; });
+    notesArr.forEach(n => { const el = document.getElementById(prefix+n); if(el) el.value = (obj && obj[n]) ? obj[n] : ''; });
 }
+
+/* NAYA: Dynamic Split Budget Logic */
+function initSplitUI() {
+    document.getElementById('dynamicSplitBudgets').innerHTML = '';
+    splitRowCount = 0;
+    addSplitRow();
+    addSplitRow();
+}
+
+function addSplitRow() {
+    splitRowCount++;
+    const container = document.getElementById('dynamicSplitBudgets');
+    const rowId = `splitRow_${splitRowCount}`;
+    
+    let opts = `<option value="Online">Online</option>`;
+    uniqueBudgets.forEach(b => opts += `<option value="${b}">${b}</option>`);
+
+    const html = `
+    <div class="split-budget-row" id="${rowId}" style="margin-top: 10px; padding: 10px; background: var(--bg-card); border-radius: 8px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+            <span style="font-size: 11px; color: var(--text-muted);">Budget Part ${splitRowCount}</span>
+            ${splitRowCount > 2 ? `<button onclick="removeSplitRow('${rowId}')" style="background:none; border:none; color:var(--danger); font-size:12px; cursor:pointer;">✕ Remove</button>` : ''}
+        </div>
+        <div style="display:flex; gap:10px; margin-bottom: 8px;">
+            <select id="splitSel_${splitRowCount}" style="flex:1; padding:8px;" onchange="toggleSplitRowType(${splitRowCount})">${opts}</select>
+            <input type="number" id="splitAmt_${splitRowCount}" placeholder="₹ Amount" style="flex:1; padding:8px;" oninput="calcSplit()">
+        </div>
+        <div id="splitNotes_${splitRowCount}" style="display:none;">
+            <span style="font-size:11px; color:var(--text-muted);">Given Notes</span>
+            <div class="note-grid">
+                ${notesArr.map(n => `<div class="note-wrapper"><span class="note-label">${n==1?'Coins':n}</span><input type="number" id="s${splitRowCount}_${n}" placeholder="x" min="0" oninput="calcSplit()"></div>`).join('')}
+            </div>
+        </div>
+    </div>
+    `;
+    container.insertAdjacentHTML('beforeend', html);
+    toggleSplitRowType(splitRowCount);
+}
+
+function removeSplitRow(rowId) {
+    document.getElementById(rowId).remove();
+    calcSplit();
+}
+
+function toggleSplitRowType(id) {
+    const sel = document.getElementById(`splitSel_${id}`).value;
+    const amtInput = document.getElementById(`splitAmt_${id}`);
+    const notesDiv = document.getElementById(`splitNotes_${id}`);
+    if(sel === 'Online') {
+        notesDiv.style.display = 'none';
+        amtInput.readOnly = false;
+        amtInput.style.opacity = '1';
+    } else {
+        notesDiv.style.display = 'block';
+        amtInput.readOnly = true;
+        amtInput.style.opacity = '0.7';
+    }
+    calcSplit();
+}
+
+function calcSplit() {
+    let totalGiven = 0;
+    const rows = document.querySelectorAll('.split-budget-row');
+    rows.forEach(row => {
+        const idStr = row.id.split('_')[1];
+        const bName = document.getElementById(`splitSel_${idStr}`).value;
+        let amt = 0;
+        if (bName === 'Online') {
+            amt = parseFloat(document.getElementById(`splitAmt_${idStr}`).value) || 0;
+        } else {
+            notesArr.forEach(n => { amt += (parseInt(document.getElementById(`s${idStr}_${n}`).value) || 0) * n; });
+            document.getElementById(`splitAmt_${idStr}`).value = amt > 0 ? amt : '';
+        }
+        totalGiven += amt;
+    });
+    
+    document.getElementById('splitTotalGiven').value = `Total Given: ₹${totalGiven}`;
+    
+    const currentTotalBill = cartTotal + (parseFloat(document.getElementById('itemPrice').value) || 0);
+    let change = totalGiven - currentTotalBill;
+    
+    if (change > 0 && currentTotalBill > 0) {
+        document.getElementById('splitChangeStatus').value = `Change: ₹${change}`;
+        document.getElementById('splitReceivedSection').style.display = 'block';
+    } else {
+        document.getElementById('splitChangeStatus').value = `Change: ₹0`;
+        document.getElementById('splitReceivedSection').style.display = 'none';
+    }
+}
+
+function updateSplitDropdowns() {
+    let opts = `<option value="Online">Online</option>`;
+    uniqueBudgets.forEach(b => opts += `<option value="${b}">${b}</option>`);
+    
+    const rows = document.querySelectorAll('.split-budget-row');
+    rows.forEach(row => {
+        const idStr = row.id.split('_')[1];
+        const sel = document.getElementById(`splitSel_${idStr}`);
+        if(sel) {
+            const currentVal = sel.value;
+            sel.innerHTML = opts;
+            if (Array.from(sel.options).find(o => o.value === currentVal)) sel.value = currentVal;
+            toggleSplitRowType(idStr);
+        }
+    });
+    
+    const targetSel = document.getElementById('splitChangeTarget');
+    if(targetSel) {
+        const targetVal = targetSel.value;
+        targetSel.innerHTML = opts;
+        if (Array.from(targetSel.options).find(o => o.value === targetVal)) targetSel.value = targetVal;
+    }
+}
+
 
 /* UI Interaction: Chips */
 function selectBudget(val, el) {
@@ -454,6 +554,7 @@ function selectPayment(val, el) {
     document.getElementById("cashSection").style.display = "block";
   } else if (val === 'Split') {
     document.getElementById("splitSection").style.display = "block";
+    calcSplit();
   } else {
     setNoteObj('g', null); setNoteObj('r', null);
     document.getElementById("cashGiven").value = "";
@@ -463,18 +564,11 @@ function selectPayment(val, el) {
 function renderBudgetChips() {
   const container = document.getElementById("budgetChipsContainer");
   container.innerHTML = `<div class="chip ${selectedBudgetVal === 'Online' ? 'active' : ''}" onclick="selectBudget('Online', this)">Online</div>`;
-  
-  let splitOpts = `<option value="Online">Online</option>`;
-  
   uniqueBudgets.forEach(name => {
     const isActive = selectedBudgetVal === name ? 'active' : '';
     container.innerHTML += `<div class="chip ${isActive}" onclick="selectBudget('${name}', this)">${name}</div>`;
-    splitOpts += `<option value="${name}">${name}</option>`;
   });
-
-  const sb1 = document.getElementById("splitB1");
-  const sb2 = document.getElementById("splitB2");
-  if(sb1 && sb2) { sb1.innerHTML = splitOpts; sb2.innerHTML = splitOpts; }
+  updateSplitDropdowns();
 }
 
 /* Suggestions */
@@ -491,7 +585,7 @@ nameInput.addEventListener("input", (e) => {
       div.innerHTML = `<strong>${m}</strong> <span style="color:var(--text-muted); font-size:11px;">(₹${uniqueItemsDict[m].price})</span>`;
       div.onclick = () => {
         document.getElementById("itemName").value = m; document.getElementById("itemPrice").value = uniqueItemsDict[m].price;
-        sugBox.style.display = "none"; checkChangeNeeded();
+        sugBox.style.display = "none"; checkChangeNeeded(); if(selectedPaymentVal==='Split') calcSplit();
       };
       sugBox.appendChild(div);
     });
@@ -503,7 +597,6 @@ document.addEventListener("click", (e) => { if (e.target !== nameInput) sugBox.s
 function addToCart() {
     const name = document.getElementById("itemName").value.trim();
     const price = parseFloat(document.getElementById("itemPrice").value);
-    
     if(!name || !price) { showCustomAlert("Item Name and Price required to add!"); return; }
     
     currentCart.push({ name, price });
@@ -534,12 +627,10 @@ function updateCartUI() {
         cartSec.style.display = "none";
     }
     checkChangeNeeded();
+    if(selectedPaymentVal==='Split') calcSplit();
 }
 
-function removeFromCart(index) {
-    currentCart.splice(index, 1);
-    updateCartUI();
-}
+function removeFromCart(index) { currentCart.splice(index, 1); updateCartUI(); }
 
 /* Save Full Cart / Edit Item */
 function processExpense() {
@@ -578,43 +669,75 @@ function processExpense() {
   const pendingName = document.getElementById("itemName").value.trim();
   const pendingPrice = parseFloat(document.getElementById("itemPrice").value);
   if(pendingName && pendingPrice) { addToCart(); }
-  
   if (currentCart.length === 0) { showCustomAlert("Please add items to bill first!"); return; }
 
-  // Split Payment Logic Handling
+  let txId = targetTransactionId ? targetTransactionId : Date.now();
+  const tx = db.transaction("expenses", "readwrite");
+  const store = tx.objectStore("expenses");
+
+  // NAYA: Handle Dynamic Split Payment Saving
   if (selectedPaymentVal === 'Split') {
-      let a1 = parseFloat(document.getElementById("splitA1").value) || 0;
-      let a2 = parseFloat(document.getElementById("splitA2").value) || 0;
-      let b1 = document.getElementById("splitB1").value;
-      let b2 = document.getElementById("splitB2").value;
+      const rows = document.querySelectorAll('.split-budget-row');
+      let splitData = []; let totalGiven = 0;
       
-      if (a1 + a2 !== cartTotal) { 
-          showCustomAlert(`Error: Split amounts (₹${a1+a2}) must equal Total Bill (₹${cartTotal})!`); 
-          return; 
+      rows.forEach(row => {
+          const idStr = row.id.split('_')[1];
+          const bName = document.getElementById(`splitSel_${idStr}`).value;
+          let amt = 0; let notesObj = null;
+          
+          if (bName === 'Online') {
+              amt = parseFloat(document.getElementById(`splitAmt_${idStr}`).value) || 0;
+          } else {
+              notesObj = getNoteObj(`s${idStr}_`);
+              notesArr.forEach(n => { amt += (notesObj && notesObj[n] ? notesObj[n] : 0) * n; });
+          }
+          totalGiven += amt;
+          splitData.push({ bName, amt, notesObj });
+      });
+      
+      if (totalGiven < cartTotal) { showCustomAlert(`Error: Split amounts (₹${totalGiven}) must be >= Total Bill (₹${cartTotal})!`); return; }
+      
+      let changeNeeded = totalGiven - cartTotal;
+      let changeNotesObj = null; let changeToBudget = null;
+      
+      if (changeNeeded > 0) {
+          changeNotesObj = getNoteObj('sr_');
+          let changeRcvd = 0; notesArr.forEach(n => { changeRcvd += (changeNotesObj && changeNotesObj[n] ? changeNotesObj[n] : 0) * n; });
+          if (changeRcvd !== changeNeeded) { showCustomAlert(`Error: Wapas aana chahiye ₹${changeNeeded}, par notes ₹${changeRcvd} ke hain!`); return; }
+          changeToBudget = document.getElementById('splitChangeTarget').value;
       }
       
       let combinedName = currentCart.map(i => i.name).join(' + ');
-      let txId = targetTransactionId ? targetTransactionId : Date.now();
-      const tx = db.transaction("expenses", "readwrite");
-      const store = tx.objectStore("expenses");
+      let orderOffset = 0;
       
-      if(a1 > 0) {
+      splitData.forEach(part => {
+          if (part.amt === 0 && part.bName !== changeToBudget) return; 
+          let isTarget = (part.bName === changeToBudget);
+          let netSpent = part.amt - (isTarget ? changeNeeded : 0);
+          let payMethod = part.bName === 'Online' ? 'Online' : 'Cash';
+          
           store.add({
-              name: combinedName + " (Split: Part 1)", price: a1, 
-              budgetSource: b1, paymentMethod: 'Cash', cashGiven: a1, givenNotes: getNoteObj('s1_'), receivedNotes: null,
-              transactionId: txId, dateStr: displayDateStr, isoDay: isoDates.full, isoMonth: isoDates.month, isoYear: isoDates.year, order: Date.now()
+              name: combinedName + ` (Split: ${part.bName})`, price: netSpent, 
+              budgetSource: part.bName, paymentMethod: payMethod, cashGiven: part.amt, 
+              givenNotes: part.notesObj, receivedNotes: isTarget ? changeNotesObj : null,
+              transactionId: txId, dateStr: displayDateStr, isoDay: isoDates.full, 
+              isoMonth: isoDates.month, isoYear: isoDates.year, order: Date.now() - orderOffset
+          });
+          orderOffset++;
+      });
+
+      // Agar Change us budget me ja raha hai jo Split Dene walo ki list me nahi tha
+      let targetInSplit = splitData.find(p => p.bName === changeToBudget);
+      if (!targetInSplit && changeNeeded > 0) {
+           store.add({
+              name: combinedName + ` (Change Received)`, price: -changeNeeded, 
+              budgetSource: changeToBudget, paymentMethod: changeToBudget === 'Online' ? 'Online' : 'Cash', 
+              cashGiven: 0, givenNotes: null, receivedNotes: changeNotesObj,
+              transactionId: txId, dateStr: displayDateStr, isoDay: isoDates.full, 
+              isoMonth: isoDates.month, isoYear: isoDates.year, order: Date.now() - orderOffset
           });
       }
-      if(a2 > 0) {
-          store.add({
-              name: combinedName + " (Split: Part 2)", price: a2, 
-              budgetSource: b2, paymentMethod: 'Cash', cashGiven: a2, givenNotes: getNoteObj('s2_'), receivedNotes: null,
-              transactionId: txId, dateStr: displayDateStr, isoDay: isoDates.full, isoMonth: isoDates.month, isoYear: isoDates.year, order: Date.now() - 1
-          });
-      }
-      tx.oncomplete = () => { 
-          currentCart = []; targetTransactionId = null; updateCartUI(); resetInputs(); loadAllData(); 
-      };
+      tx.oncomplete = () => { currentCart = []; targetTransactionId = null; updateCartUI(); resetInputs(); loadAllData(); };
       return;
   }
 
@@ -626,10 +749,8 @@ function processExpense() {
           let changeRequired = cashGiven - currentTotalBill;
           let receivedTotal = 0;
           notesArr.forEach(n => { receivedTotal += (parseInt(document.getElementById('r'+n).value) || 0) * n; });
-          
           if (receivedTotal > 0 && receivedTotal !== changeRequired) {
-              showCustomAlert(`Error: Wapas ₹${changeRequired} aana chahiye, par notes ₹${receivedTotal} ke hain!`);
-              return;
+              showCustomAlert(`Error: Wapas ₹${changeRequired} aana chahiye, par notes ₹${receivedTotal} ke hain!`); return;
           }
       }
   }
@@ -639,10 +760,6 @@ function processExpense() {
       givenNotes = getNoteObj('g');
       if (document.getElementById('receivedSection').style.display === 'block') receivedNotes = getNoteObj('r');
   }
-
-  const tx = db.transaction("expenses", "readwrite");
-  const store = tx.objectStore("expenses");
-  const txId = targetTransactionId ? targetTransactionId : Date.now(); 
 
   currentCart.forEach((item, index) => {
       store.add({
@@ -662,11 +779,16 @@ function resetInputs() {
   currentEditId = null;
   document.getElementById("itemName").value = ""; document.getElementById("itemPrice").value = "";
   document.getElementById("cashGiven").value = ""; document.getElementById("changeStatus").value = "Change: ₹0";
-  document.getElementById("splitA1").value = ""; document.getElementById("splitA2").value = "";
   document.getElementById('entryDate').value = getLocalIsoDate();
   
-  setNoteObj('g', null); setNoteObj('r', null); setNoteObj('s1_', null); setNoteObj('s2_', null);
+  setNoteObj('g', null); setNoteObj('r', null); setNoteObj('sr_', null);
   document.getElementById("receivedSection").style.display = "none";
+  
+  initSplitUI(); // Reset split rows
+  document.getElementById('splitTotalGiven').value = "Total Given: ₹0";
+  document.getElementById('splitChangeStatus').value = "Change: ₹0";
+  document.getElementById('splitReceivedSection').style.display = "none";
+
   document.getElementById("btnAddUpdate").innerText = "💾 Save Full Bill & Finish";
   document.getElementById("btnAddToBill").style.display = "block";
 }
@@ -724,16 +846,15 @@ function topupDeposit(name) {
     document.getElementById("depositAmount").value = "";
     if(budgetNotesMode) toggleBudgetNotes();
     setNoteObj('b', null);
-    currentEditDepositId = null; // Important: Null rakha hai taki Naya Record bane!
+    currentEditDepositId = null; 
     document.getElementById("btnDepositSubmit").innerText = "Save Funds (Add)";
-    showCustomAlert("Adding Naya Funds to " + name);
+    showCustomAlert("Adding New Funds to " + name);
 }
 
 /* Load & Render */
 function loadAllData() {
   uniqueItemsDict = {}; allExpensesCache = []; uniqueBudgets.clear();
-  let budgetDepositSums = {}; 
-  budgetDepositedNotes = {}; 
+  let budgetDepositSums = {}; budgetDepositedNotes = {}; 
 
   const depContainer = document.getElementById("deposit-history-container");
   depContainer.innerHTML = "";
@@ -796,22 +917,30 @@ function loadGroupedExpenses(budgetDepositSums) {
         }; 
       }
       groups[tId].items.push(exp); groups[tId].total += exp.price;
-      if(exp.givenNotes) groups[tId].gNotes = exp.givenNotes;
-      if(exp.receivedNotes) groups[tId].rNotes = exp.receivedNotes; 
+      
+      // Update logic for specific split records combining given/received accurately
+      if(exp.givenNotes) {
+          if(!groups[tId].gNotes) groups[tId].gNotes = {};
+          for(let n in exp.givenNotes) { groups[tId].gNotes[n] = (groups[tId].gNotes[n] || 0) + exp.givenNotes[n]; }
+      }
+      if(exp.receivedNotes) {
+          if(!groups[tId].rNotes) groups[tId].rNotes = {};
+          for(let n in exp.receivedNotes) { groups[tId].rNotes[n] = (groups[tId].rNotes[n] || 0) + exp.receivedNotes[n]; }
+      }
       
       cursor.continue();
     } else {
-      Object.values(groups).forEach(g => {
-          let bName = g.budget;
-          if (g.pay === 'Cash' && budgetDepositedNotes[bName]) {
-              if (g.gNotes) {
-                  for (let n in g.gNotes) {
-                      budgetDepositedNotes[bName][n] = (budgetDepositedNotes[bName][n] || 0) - parseInt(g.gNotes[n]);
+      Object.values(allExpensesCache).forEach(exp => {
+          let bName = exp.budgetSource;
+          if (exp.paymentMethod === 'Cash' && budgetDepositedNotes[bName]) {
+              if (exp.givenNotes) {
+                  for (let n in exp.givenNotes) {
+                      budgetDepositedNotes[bName][n] = (budgetDepositedNotes[bName][n] || 0) - parseInt(exp.givenNotes[n]);
                   }
               }
-              if (g.rNotes && g.cash > g.total) {
-                  for (let n in g.rNotes) {
-                      budgetDepositedNotes[bName][n] = (budgetDepositedNotes[bName][n] || 0) + parseInt(g.rNotes[n]);
+              if (exp.receivedNotes) {
+                  for (let n in exp.receivedNotes) {
+                      budgetDepositedNotes[bName][n] = (budgetDepositedNotes[bName][n] || 0) + parseInt(exp.receivedNotes[n]);
                   }
               }
           }
@@ -834,56 +963,45 @@ function loadGroupedExpenses(budgetDepositSums) {
       const sortedGroups = Object.values(groups).sort((a,b) => b.order - a.order);
       
       sortedGroups.forEach(g => {
-         const title = g.items.map(i=>i.name).join(', ').substring(0,25) + (g.items.length > 1 ? '...' : '');
+         let title = g.items.map(i=>i.name).join(', ').substring(0,25) + (g.items.length > 1 ? '...' : '');
+         if(title.includes("(Split")) title = "Split Payment Bill";
          const card = document.createElement('div'); card.className = 'group-card';
          
          let notesMetaStr = "";
-         if(g.pay === 'Cash') {
-             if(g.gNotes) {
+         if(g.pay === 'Cash' || g.items.some(i => i.paymentMethod === 'Cash')) {
+             if(g.gNotes && Object.keys(g.gNotes).length > 0) {
                  notesMetaStr += `<br><span style="color:var(--warning); font-size:11px;">Given Notes: `;
-                 for(let n in g.gNotes) {
-                     let lbl = n == 1 ? "Coins" : `₹${n}`;
-                     notesMetaStr += `${lbl}x${g.gNotes[n]} | `;
-                 }
+                 for(let n in g.gNotes) { let lbl = n == 1 ? "Coins" : `₹${n}`; notesMetaStr += `${lbl}x${g.gNotes[n]} | `; }
                  if(notesMetaStr.endsWith(" | ")) notesMetaStr = notesMetaStr.slice(0, -3);
                  notesMetaStr += `</span>`;
              }
-             if(g.cash > g.total) {
-                 let chgAmt = g.cash - g.total;
-                 notesMetaStr += `<br><span style="color:var(--success); font-size:11px;">Change Rcvd: ₹${chgAmt}`;
-                 if(g.rNotes) {
-                     notesMetaStr += " (";
-                     let added = false;
-                     for(let n in g.rNotes) {
-                         let lbl = n == 1 ? "Coins" : `₹${n}`;
-                         notesMetaStr += `${lbl}x${g.rNotes[n]} | `;
-                         added = true;
-                     }
-                     if(added && notesMetaStr.endsWith(" | ")) notesMetaStr = notesMetaStr.slice(0, -3);
-                     notesMetaStr += `)`;
-                 }
-                 notesMetaStr += "</span>";
+             if(g.rNotes && Object.keys(g.rNotes).length > 0) {
+                 notesMetaStr += `<br><span style="color:var(--success); font-size:11px;">Change Rcvd: `;
+                 for(let n in g.rNotes) { let lbl = n == 1 ? "Coins" : `₹${n}`; notesMetaStr += `${lbl}x${g.rNotes[n]} | `; }
+                 if(notesMetaStr.endsWith(" | ")) notesMetaStr = notesMetaStr.slice(0, -3);
+                 notesMetaStr += `</span>`;
              }
          }
 
          let innerHtml = `
             <div class="group-header" onclick="document.getElementById('body-${g.id}').style.display = document.getElementById('body-${g.id}').style.display === 'none' ? 'flex' : 'none'">
                <div>
-                  <div class="group-title">${title} <span style="font-weight:normal; font-size:12px; color:var(--accent);">(${g.items.length} item)</span></div>
-                  <div class="group-meta">${g.date} | 💰 ${g.budget} | 💳 ${g.pay} ${notesMetaStr}</div>
+                  <div class="group-title">${title} <span style="font-weight:normal; font-size:12px; color:var(--accent);">(${g.items.length} record)</span></div>
+                  <div class="group-meta">${g.date} ${notesMetaStr}</div>
                </div>
-               <div class="group-total">-₹${g.total}</div>
+               <div class="group-total" style="color: ${g.total < 0 ? 'var(--success)' : 'var(--danger)'};">${g.total < 0 ? '+' : '-'}₹${Math.abs(g.total)}</div>
             </div>
             <div class="group-body" id="body-${g.id}">
          `;
          
          g.items.forEach(exp => {
+            let color = exp.price < 0 ? 'var(--success)' : 'var(--text-main)';
             innerHtml += `
               <div class="entry-card">
-                 <div class="entry-info"><span class="entry-name">${exp.name}</span></div>
+                 <div class="entry-info"><span class="entry-name" style="color:${color};">${exp.name}</span><span style="font-size:11px; color:var(--accent);">💰 ${exp.budgetSource}</span></div>
                  <div class="entry-right">
-                    <span style="font-size:12px;">₹${exp.price}</span>
-                    <div class="controls"><button class="btn-edit" onclick="editItem(event, ${exp.id})">✏️</button><button class="btn-delete" onclick="deleteItem(event, ${exp.id}, 'expenses')">🗑️</button></div>
+                    <span style="font-size:12px; color:${color}; font-weight:bold;">${exp.price < 0 ? '+' : ''}₹${exp.price}</span>
+                    <div class="controls"><button class="btn-delete" onclick="deleteItem(event, ${exp.id}, 'expenses')">🗑️</button></div>
                  </div>
               </div>
             `;
@@ -898,30 +1016,6 @@ function loadGroupedExpenses(budgetDepositSums) {
   };
 }
 
-function editItem(event, id) {
-  event.stopPropagation();
-  const tx = db.transaction("expenses", "readonly");
-  tx.objectStore("expenses").get(id).onsuccess = (e) => {
-    const exp = e.target.result;
-    if (exp) {
-      document.getElementById("itemName").value = exp.name; document.getElementById("itemPrice").value = exp.price;
-      document.getElementById("entryDate").value = exp.isoDay;
-      
-      selectBudget(exp.budgetSource || 'Online', null); renderBudgetChips();
-      selectPayment(exp.paymentMethod || 'Online', document.getElementById(`chip-${exp.paymentMethod || 'Online'}`));
-      
-      if(exp.paymentMethod === 'Cash') {
-          if(exp.givenNotes) setNoteObj('g', exp.givenNotes);
-          if(exp.cashGiven) { document.getElementById("cashGiven").value = exp.cashGiven; checkChangeNeeded(); }
-          if(exp.receivedNotes) setNoteObj('r', exp.receivedNotes);
-      }
-      currentEditId = id; 
-      document.getElementById("btnAddToBill").style.display = "none";
-      document.getElementById("btnAddUpdate").innerText = "✔️ Update Item"; 
-      window.scrollTo({ top: 0, behavior: 'smooth' }); 
-    }
-  };
-}
 
 function editDeposit(id) {
   const tx = db.transaction("deposits", "readonly");
@@ -968,8 +1062,6 @@ function runAnalytics() {
   const type = document.getElementById("filterType").value; 
   const customInput = document.getElementById("customFilterDate"); 
   const iso = getIsoDates();
-  
-  // Naya Search Text
   const searchTxt = document.getElementById("analyticsSearch").value.toLowerCase().trim();
 
   let targetIso = ""; 
@@ -984,9 +1076,7 @@ function runAnalytics() {
 
   currentFilteredData = allExpensesCache.filter(exp => {
     let dMatch = true;
-    if(type !== "all") {
-        dMatch = (type==="today"||type==="custom") ? exp.isoDay===targetIso : type==="month" ? exp.isoMonth===targetIso : exp.isoYear===targetIso;
-    }
+    if(type !== "all") { dMatch = (type==="today"||type==="custom") ? exp.isoDay===targetIso : type==="month" ? exp.isoMonth===targetIso : exp.isoYear===targetIso; }
     let bMatch = checkedBudgets.includes(exp.budgetSource || "Online");
     let sMatch = searchTxt === "" ? true : exp.name.toLowerCase().includes(searchTxt);
     
@@ -1008,25 +1098,15 @@ function renderAnalyticsTable() {
 function exportCSV() {
   const rows = document.querySelectorAll('.row-checkbox:checked');
   if(rows.length===0) { showCustomAlert("No items checked"); return; }
-  
   let csv = "Date,Name,Budget,Price,Payment,Cash Given\n";
   rows.forEach(r => {
     const id = parseInt(r.getAttribute('data-id'));
     const o = currentFilteredData.find(x => x.id === id);
-    if(o) {
-        let safeName = o.name.replace(/"/g, '""'); 
-        csv += `"${o.dateStr}","${safeName}","${o.budgetSource}",${o.price},"${o.paymentMethod}","${o.cashGiven||'-'}"\n`;
-    }
+    if(o) { let safeName = o.name.replace(/"/g, '""'); csv += `"${o.dateStr}","${safeName}","${o.budgetSource}",${o.price},"${o.paymentMethod}","${o.cashGiven||'-'}"\n`; }
   });
-  
   const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
   const url = window.URL.createObjectURL(blob);
-  const a = document.createElement("a"); 
-  a.style.display = "none";
-  a.href = url; 
-  a.download = `Expense_Export_${Date.now()}.csv`; 
-  document.body.appendChild(a);
-  a.click();
+  const a = document.createElement("a"); a.style.display = "none"; a.href = url; a.download = `Expense_Export_${Date.now()}.csv`; document.body.appendChild(a); a.click();
   setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); }, 100);
 }
 
@@ -1075,7 +1155,6 @@ function closeNotesSummary() { document.getElementById("notesSummaryOverlay").cl
 /* NAYA: Auto-save on Phone Back Button Logic */
 history.pushState({ page: 'main' }, '', '');
 window.addEventListener('popstate', (e) => {
-    // 1. Agar koi overlay khula hai, toh sirf usko close karo, bahar mat niklo
     let activeOverlays = document.querySelectorAll('.overlay.active');
     if(activeOverlays.length > 0) {
         activeOverlays.forEach(o => o.classList.remove('active'));
@@ -1083,20 +1162,14 @@ window.addEventListener('popstate', (e) => {
         return;
     }
 
-    // 2. Agar input me details bhari hui hai, ya cart me items hain, auto-save kar lo
     let name = document.getElementById("itemName").value.trim();
     let price = document.getElementById("itemPrice").value;
     
-    if (name && price) {
+    if ((name && price) || currentCart.length > 0) {
         processExpense();
-        showCustomAlert("Auto-saved Item before Exit!");
-        history.pushState({ page: 'main' }, '', ''); // Prevent direct exit
-    } else if (currentCart.length > 0) {
-        processExpense();
-        showCustomAlert("Auto-saved Cart before Exit!");
-        history.pushState({ page: 'main' }, '', ''); // Prevent direct exit
+        showCustomAlert("Auto-saved before Exit!");
+        history.pushState({ page: 'main' }, '', ''); 
     } else {
-        // App close hone do
         window.history.back();
     }
 });
